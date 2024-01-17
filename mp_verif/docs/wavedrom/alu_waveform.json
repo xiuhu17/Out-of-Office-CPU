@@ -1,0 +1,10 @@
+{signal: [
+  {name: 'clk', wave: 'p...|...|..'},
+  {name: 'rst', wave: '10..|...|..'},
+  {name: 'a', wave: 'x.5x|.8x|..', data: ['dead', 'eceb', 'fb3a', '7d9d']},
+  {name: 'b', wave: 'x.5x|.8x|..', data: ['bee', '0', 'fb3a', '7d9d']},
+  {name: 'op', wave: 'x.5x|.8x|..', data: ['3', '8', 'fb3a', '7d9d']},
+  {name: 'valid_i', wave: '0.10|.10|..'},
+  {name: 'z', wave: 'x...|5x.|8x', data: ['ea9b', 'b', 'fb3a', '7d9d']},
+  {name: 'valid_o', wave: '0...|10.|10'},
+]}
