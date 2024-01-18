@@ -165,7 +165,7 @@ Files you will be graded on:
 - `constr_rand_cov/hvl/randinst.svh`
 - `constr_rand_cov/hvl/instr_cg.svh`
 
-The autograder will replace all other files in `comb_loop/`.
+The autograder will replace all other files in `constr_rand_cov/`.
 
 # Part 4: Main Verification Task
 
@@ -192,11 +192,16 @@ support misaligned loads and stores*.
 
 Files you will be graded on:
 - `hdl/*`: The CPU you submit must fix all provided bugs and correctly
-  implement the RISC-V spec.
+  implement the RISC-V spec, with the exception of `FENCE*`, `ECALL`, `EBREAK`, and `CSRR*` instructions.**
 
 The autograder will replace all other files in `main_verif/`.
 
 # Rubric
+
+## Submission
+You will be graded on the files in main branch in your class GitHub repository on
+the specified deadline.
+
 ## Functionality
 This MP will be auto-graded out of a total 100 points, assigned to each task as follows.
 | Task | Points | 

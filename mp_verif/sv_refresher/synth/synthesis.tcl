@@ -79,6 +79,13 @@ check_design
 set_wire_load_model -name "5K_hvratio_1_1"
 set_wire_load_mode enclosed
 
+set clk_name $design_clock_pin
+set clk_period 1
+create_clock -period $clk_period -name my_clk $clk_name
+set_fix_hold [get_clocks my_clk]
+
+set_input_delay 0.5 [all_inputs] -clock my_clk
+set_output_delay 0.5 [all_outputs] -clock my_clk
 set_load 0.1 [all_outputs]
 set_max_fanout 1 [all_inputs]
 set_fanout_load 8 [all_outputs]
