@@ -15,7 +15,7 @@ module alu (
   logic [63:0] level_0[4];
   logic [63:0] level_1[2];
   logic [63:0] level_2;
-  logic level_0_sig, level_1_sig, level_2_sig;
+  logic level_0_sig, level_1_sig, level_2_sig, level_3_sig;
 
   enum logic [2:0] {Halted, Sel0, Sel1, Sel2, Sel3} Curr_State_Q, Next_State_D; 
 
