@@ -17,7 +17,7 @@ module alu (
   logic [63:0] level_2;
   logic level_0_sig, level_1_sig, level_2_sig;
 
-  enum logic [2:0] {Halted, Sel0, Sel1, Sel2, Sel3}, Curr_State_Q, Next_State_D; 
+  enum logic [2:0] {Halted, Sel0, Sel1, Sel2, Sel3} Curr_State_Q, Next_State_D; 
 
   always_ff @ ( posedge clk ) begin 
     if (rst) begin 
@@ -62,8 +62,10 @@ module alu (
       Sel2:
         level_2_sig = 1;
       Sel3:
-        level_3_sig = 1;
-        valid_o = 1;
+        begin 
+          level_3_sig = 1;
+          valid_o = 1;
+        end
     endcase
   end
 
@@ -84,17 +86,17 @@ module alu (
       level_0[2] <= 0;
       level_0[3] <= 0;
     end else if (level_0_sig) begin 
-      if (internal_op[0]) {
+      if (internal_op[0]) begin 
         level_0[0] <= internal_a | internal_b;
         level_0[1] <= internal_a + internal_b;
         level_0[2] <= internal_a + 1'b1;
         level_0[3] <= internal_a >> internal_b[5:0];
-      } else {
+      end else begin
         level_0[0] <= internal_a & internal_b;
         level_0[1] <= !internal_a;
         level_0[2] <= internal_a - internal_b;
         level_0[3] <= internal_a << internal_b[5:0];
-      }
+      end
     end
   end
 
@@ -103,13 +105,13 @@ module alu (
       level_1[0] <= 0;
       level_1[1] <= 0;
     end else if (level_1_sig) begin 
-      if (internal_op[1]) {
+      if (internal_op[1]) begin
         level_1[0] <= level_0[1];
         level_1[1] <= level_0[3];
-      } else {
+      end else begin
         level_1[0] <= level_0[0];
         level_1[1] <= level_0[2];
-      }
+      end
     end
   end
 
@@ -117,11 +119,11 @@ module alu (
     if (rst) begin 
       level_2 <= 0;
     end else if (level_2_sig) begin 
-      if (internal_op[2]) {
+      if (internal_op[2]) begin 
         level_2 <= level_1[1];
-      } else {
+      end else begin 
         level_2 <= level_1[0];
-      }
+      end
     end
   end
 
@@ -129,11 +131,11 @@ module alu (
     if (rst) begin 
       z <= 0;
     end else if (level_3_sig) begin 
-      if (internal_op[3]) {
+      if (internal_op[3]) begin  
         z <= popcnt;
-      } else {
+      end else begin 
         z <= level_2;
-      }
+      end
     end
   end
 
