@@ -9,63 +9,132 @@ module alu (
   output logic        valid_o
 );
 
-  //----------------------------------------------------------------------------
-  // Valid signaling
-  //----------------------------------------------------------------------------
-  // The ALU is currently purely combinational, so it responds as soon as
-  // it gets input.
-  assign valid_o = valid_i;
+  // store the value
+  logic [63:0] internal_a, internal_b;
+  logic [3:0] internal_op;
+  logic [63:0] level_0[4];
+  logic [63:0] level_1[2];
+  logic [63:0] level_2;
+  logic level_0_sig, level_1_sig, level_2_sig;
 
-  //----------------------------------------------------------------------------
-  // Population count implementation
-  //----------------------------------------------------------------------------
-  // Popcount = number of '1' bits in a
-  logic [63:0] popcnt;
+  enum logic [2:0] {Halted, Sel0, Sel1, Sel2, Sel3}, Curr_State_Q, Next_State_D; 
 
-  always_comb begin
-    foreach (a[i]) begin
-      if (a[i]) popcnt = popcnt + 1'b1;
+  always_ff @ ( posedge clk ) begin 
+    if (rst) begin 
+      Curr_State_Q <= Halted;
+    end else if (valid_i && Curr_State_Q == Halted) begin 
+      Curr_State_Q <= Sel0;
+      internal_op <= op;
+      internal_a <= a;
+      internal_b <= b;
+    end else begin
+      Curr_State_Q <= Next_State_D;
     end
   end
 
-  //----------------------------------------------------------------------------
-  // Simple logical/arithmetic operations
-  //----------------------------------------------------------------------------
-  logic [63:0] land;
-  logic [63:0] lor;
-  logic [63:0] lnot;
-  logic [63:0] add;
-  logic [63:0] sub;
-  logic [63:0] inc;
-  logic [63:0] shl;
-  logic [63:0] shr;
+  always_comb begin 
+    // default
+    Next_State_D = Curr_State_Q;
+    valid_o = 0;
+    level_0_sig = 0;
+    level_1_sig = 0;
+    level_2_sig = 0; 
+    level_3_sig = 0;
 
-  always_comb begin
-      land = a & b;
-      lor  = a | b;
-      lnot = !a;
-      add  = a + b;
-      sub  = a - b;
-      inc  = a + 1'b1;
-      shl  = a << b[5:0];
-      shr  = a >> b[5:0];
+    // state
+    case(Curr_State_Q)
+      Sel0:
+          Next_State_D = Sel1;
+      Sel1:
+          Next_State_D = Sel2;
+      Sel2:
+          Next_State_D = Sel3;
+      Sel3:
+          Next_State_D = Halted;
+    endcase
+
+    // signal
+    case(Curr_State_Q) 
+      Sel0:
+        level_0_sig = 1;
+      Sel1:
+        level_1_sig = 1;
+      Sel2:
+        level_2_sig = 1;
+      Sel3:
+        level_3_sig = 1;
+        valid_o = 1;
+    endcase
   end
 
-  //----------------------------------------------------------------------------
-  // Output MUX
-  //----------------------------------------------------------------------------
+  // Population count implementation
+  logic [63:0] popcnt;
+
   always_comb begin
-    case (op)
-      0: z = land;
-      1: z = lor;
-      2: z = lnot;
-      3: z = add;
-      4: z = sub;
-      5: z = inc;
-      6: z = shl;
-      7: z = shr;
-      8: z = popcnt;
-    endcase
+    popcnt = 0;
+    foreach (internal_a[i]) begin
+      if (internal_a[i]) popcnt = popcnt + 1'b1;
+    end
+  end
+
+  always_ff @ ( posedge clk ) begin 
+    if (rst) begin 
+      level_0[0] <= 0;
+      level_0[1] <= 0;
+      level_0[2] <= 0;
+      level_0[3] <= 0;
+    end else if (level_0_sig) begin 
+      if (internal_op[0]) {
+        level_0[0] <= internal_a | internal_b;
+        level_0[1] <= internal_a + internal_b;
+        level_0[2] <= internal_a + 1'b1;
+        level_0[3] <= internal_a >> internal_b[5:0];
+      } else {
+        level_0[0] <= internal_a & internal_b;
+        level_0[1] <= !internal_a;
+        level_0[2] <= internal_a - internal_b;
+        level_0[3] <= internal_a << internal_b[5:0];
+      }
+    end
+  end
+
+  always_ff @ ( posedge clk ) begin 
+    if (rst) begin 
+      level_1[0] <= 0;
+      level_1[1] <= 0;
+    end else if (level_1_sig) begin 
+      if (internal_op[1]) {
+        level_1[0] <= level_0[1];
+        level_1[1] <= level_0[3];
+      } else {
+        level_1[0] <= level_0[0];
+        level_1[1] <= level_0[2];
+      }
+    end
+  end
+
+  always_ff @ ( posedge clk ) begin 
+    if (rst) begin 
+      level_2 <= 0;
+    end else if (level_2_sig) begin 
+      if (internal_op[2]) {
+        level_2 <= level_1[1];
+      } else {
+        level_2 <= level_1[0];
+      }
+    end
+  end
+
+  always_ff @ ( posedge clk ) begin 
+    if (rst) begin 
+      z <= 0;
+    end else if (level_3_sig) begin 
+      if (internal_op[3]) {
+        z <= popcnt;
+      } else {
+        z <= level_2;
+      }
+    end
   end
 
 endmodule : alu
