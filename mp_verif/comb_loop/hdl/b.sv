@@ -6,8 +6,8 @@ module b(
     input   logic           ack
 );
 
-            logic   [3:0]   internal_counter;
-            logic   [3:0]   internal_counter_next;
+    logic   [3:0]   internal_counter;
+    logic   [3:0]   internal_counter_next;
 
     always_ff @(posedge clk) begin
         if (rst) begin

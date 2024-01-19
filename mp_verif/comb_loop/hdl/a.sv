@@ -12,12 +12,10 @@ module a(
         if (rst) begin
             internal_counter <= '1;
         end else begin
+            ack = req && (req_key == internal_counter - 4'd1);
             internal_counter <= internal_counter - 4'd1;
         end
     end
 
-    always_comb begin
-        ack = req && req_key == internal_counter;
-    end
 
 endmodule
