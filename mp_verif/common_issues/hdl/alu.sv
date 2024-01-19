@@ -17,12 +17,12 @@ module alu (
   logic [63:0] level_2;
   logic level_0_sig, level_1_sig, level_2_sig, level_3_sig;
 
-  enum logic [2:0] {Halted, Sel0, Sel1, Sel2, Sel3} Curr_State_Q, Next_State_D; 
+  enum logic [2:0] {Halted, Sel0, Sel1, Sel2, Sel3, Res} Curr_State_Q, Next_State_D; 
 
   always_ff @ ( posedge clk ) begin 
     if (rst) begin 
       Curr_State_Q <= Halted;
-    end else if (valid_i && Curr_State_Q == Halted) begin 
+    end else if (valid_i && (Curr_State_Q == Halted || Curr_State_Q == Res)) begin 
       Curr_State_Q <= Sel0;
       internal_op <= op;
       internal_a <= a;
@@ -50,7 +50,7 @@ module alu (
       Sel2:
           Next_State_D = Sel3;
       Sel3:
-          Next_State_D = Halted;
+          Next_State_D = Res;
     endcase
 
     // signal
@@ -62,10 +62,9 @@ module alu (
       Sel2:
         level_2_sig = 1;
       Sel3:
-        begin 
-          level_3_sig = 1;
-          valid_o = 1;
-        end
+        level_3_sig = 1;
+      Res:
+        valid_o = 1;
     endcase
   end
 

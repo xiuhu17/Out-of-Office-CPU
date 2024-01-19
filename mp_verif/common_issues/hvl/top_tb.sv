@@ -54,8 +54,14 @@ module top_tb;
 
   alu dut (
     .clk     (clk),
-    .rst     (rst)
+    .rst     (rst),
     // TODO: hook up the rest of the DUT signals!
+    .a        (a),
+    .b        (b),
+    .valid_i (valid_i),
+    .op (op),
+    .z (z),
+    .valid_o (valid_o)
   );
 
 
@@ -87,9 +93,10 @@ module top_tb;
   );
 
     // TODO: Drive the DUT signals:
-    // valid_i <= ...;
-    // a <= ...;
-    // ...
+    valid_i <= 1'b1; 
+    a <= a_in;
+    b <= b_in;
+    op <= op_in;
 
     // Fork...join runs N processes in parallel and joins once the
     // last one finishes.
@@ -106,7 +113,8 @@ module top_tb;
       begin
         // Wait for the ALU to respond.
         // TODO: Complete this statement.
-        // @(posedge clk iff ...);
+        @(posedge clk iff valid_o);
+        exp_z_out <= z;
       end
     join
 
