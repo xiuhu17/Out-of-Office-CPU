@@ -114,7 +114,6 @@ module top_tb;
         // Wait for the ALU to respond.
         // TODO: Complete this statement.
         @(posedge clk iff valid_o);
-        exp_z_out <= z;
       end
     join
 
@@ -139,11 +138,25 @@ module top_tb;
     for (int i = 0; i < 9; ++i) begin
       std::randomize(a_rand);
       // TODO: Randomize b_rand using std::randomize.
+      std::randomize(b_rand);
+
+      logic [63:0] popcnt;
+      foreach (a_rand[i]) begin
+        if (a_rand[i]) popcnt = popcnt + 1'b1;
+      end
 
       case (i)
         0: exp_z = a_rand & b_rand;
         1: exp_z = a_rand | b_rand;
         // TODO: Fill out the rest of the operations.
+        2: exp_z = !a_rand;
+        3: exp_z = a_rand + b_rand; 
+        4: exp_z = a_rand - b_rand;
+        5: exp_z = a_rand + 1;
+        6: exp_z = a_rand << b_rand[5:0];
+        7: exp_z = a_rand >> b_rand[5:0];
+        8: exp_z = popcnt;
+
       endcase
 
       do_transaction(a_rand, b_rand, i, exp_z);

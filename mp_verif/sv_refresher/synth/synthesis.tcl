@@ -80,7 +80,7 @@ set_wire_load_model -name "5K_hvratio_1_1"
 set_wire_load_mode enclosed
 
 set clk_name $design_clock_pin
-set clk_period 1
+set clk_period 10
 create_clock -period $clk_period -name my_clk $clk_name
 set_fix_hold [get_clocks my_clk]
 
