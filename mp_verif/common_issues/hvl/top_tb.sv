@@ -156,7 +156,6 @@ module top_tb;
         6: exp_z = a_rand << b_rand[5:0];
         7: exp_z = a_rand >> b_rand[5:0];
         8: exp_z = popcnt;
-
       endcase
 
       do_transaction(a_rand, b_rand, i, exp_z);
@@ -164,8 +163,7 @@ module top_tb;
       // TODO: Call the sample_cg function with the right arguments.
       // This tells the covergroup about what stimulus you sent
       // to the DUT.
-
-      // sample_cg(...);
+      sample_cg(a_rand, b_rand, i);
     end
 
     if (PASSED) display_colored("[PASSED] ALU", "green");
