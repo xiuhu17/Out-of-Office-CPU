@@ -51,6 +51,7 @@ module top_tb;
   logic [3:0]  op;
   logic [63:0] z;
   logic        valid_o;
+  logic [63:0] popcnt;
 
   alu dut (
     .clk     (clk),
@@ -136,11 +137,12 @@ module top_tb;
     // For each kind of operation, send one transaction.
     // TODO: Modify this code to cover all coverpoints in coverage.svh.
     for (int i = 0; i < 9; ++i) begin
+      for (int j = 0; j < 64; ++ j) begin 
       std::randomize(a_rand);
       // TODO: Randomize b_rand using std::randomize.
       std::randomize(b_rand);
 
-      logic [63:0] popcnt;
+      popcnt = 0;
       foreach (a_rand[i]) begin
         if (a_rand[i]) popcnt = popcnt + 1'b1;
       end
@@ -153,17 +155,24 @@ module top_tb;
         3: exp_z = a_rand + b_rand; 
         4: exp_z = a_rand - b_rand;
         5: exp_z = a_rand + 1;
-        6: exp_z = a_rand << b_rand[5:0];
-        7: exp_z = a_rand >> b_rand[5:0];
+        6: exp_z = a_rand << j;
+        7: exp_z = a_rand >> j;
         8: exp_z = popcnt;
       endcase
 
-      do_transaction(a_rand, b_rand, i, exp_z);
+      if (i == 6 || i == 7) begin
+        do_transaction(a_rand, {b_rand[63:6], j}, i, exp_z);
+        sample_cg(a_rand, {b_rand[63:6], j}, i);
+      end else begin
+        do_transaction(a_rand, b_rand, i, exp_z);
+        sample_cg(a_rand, b_rand, i);
+      end
 
       // TODO: Call the sample_cg function with the right arguments.
       // This tells the covergroup about what stimulus you sent
       // to the DUT.
       sample_cg(a_rand, b_rand, i);
+      end
     end
 
     if (PASSED) display_colored("[PASSED] ALU", "green");

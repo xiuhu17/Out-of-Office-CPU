@@ -22,7 +22,7 @@ module alu (
   always_ff @ ( posedge clk ) begin 
     if (rst) begin 
       Curr_State_Q <= Halted;
-    end else if (valid_i && (Curr_State_Q == Halted || Curr_State_Q == Res)) begin 
+    end else if (valid_i && Curr_State_Q == Halted) begin 
       Curr_State_Q <= Sel0;
       internal_op <= op;
       internal_a <= a;
@@ -51,6 +51,8 @@ module alu (
           Next_State_D = Sel3;
       Sel3:
           Next_State_D = Res;
+      Res:
+          Next_State_D = Halted;
     endcase
 
     // signal
