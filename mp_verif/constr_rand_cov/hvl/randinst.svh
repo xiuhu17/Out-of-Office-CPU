@@ -46,11 +46,17 @@ class RandInst;
       rv32i_opcode opcode;
     } s_type;
 
-    /* TODO: Write the struct for b-type instructions.
+    /* TODO: Write the struct for b-type instructions.*/
     struct packed {
-     // Fill this out to get branches running!
+      bit [12:12] imm_b_top;
+      bit [10:5] imm_b_middle_top;
+      bit [4:0] rs2;
+      bit [4:0] rs1;
+      bit [2:0] funct3;
+      bit [4:1] imm_b_middle_bot;
+      bit [11:11] imm_b_bot;
+      rv32i_opcode opcode;
     } b_type;
-    */
 
     struct packed {
       bit [31:12] imm;

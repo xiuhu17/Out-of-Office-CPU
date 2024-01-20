@@ -35,8 +35,9 @@ package rv32i_types;
         sw = 3'b010
     } store_funct3_t;
 
+    // R type
     typedef enum bit [2:0] {
-        add  = 3'b000, //check bit 30 for sub if op_reg opcode
+        add  = 3'b000, //check bit 30 for sub if op_reg opcode; belongs to funct7
         sll  = 3'b001,
         slt  = 3'b010,
         sltu = 3'b011,
@@ -46,6 +47,7 @@ package rv32i_types;
         aand = 3'b111
     } arith_funct3_t;
 
+    // I type
     typedef enum bit [2:0] {
         alu_add = 3'b000,
         alu_sll = 3'b001,
