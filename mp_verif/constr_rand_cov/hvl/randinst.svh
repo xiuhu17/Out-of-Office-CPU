@@ -5,7 +5,8 @@ class RandInst;
   // You will increment this number as you generate more random instruction
   // types. Once finished, NUM_TYPES should be 9, for each opcode type in
   // rv32i_opcode.
-  localparam NUM_TYPES = 3;
+  // TODO:
+  localparam NUM_TYPES = 9;
 
   // You'll need this type to randomly generate variants of certain
   // instructions that have the funct7 field.
@@ -64,6 +65,12 @@ class RandInst;
       rv32i_opcode opcode;
     } j_type;
 
+    struct packed {
+      bit [31:12] u_imm;
+      bit [4:0] rd;
+      rv32i_opcode opcode;
+    } u_type;
+
   } instr_t;
 
   rand instr_t instr;
@@ -74,7 +81,8 @@ class RandInst;
 
   // Hint/TODO: you will need another solve_order constraint for funct3
   // to get 100% coverage with 500 calls to .randomize().
-  // constraint solve_order_funct3_c { ... }
+  constraint solve_order_funct3_c { solve instr.r_type.funct3 before instr.r_type.funct7; }
+
 
   // Pick one of the instruction types.
   constraint instr_type_c {
@@ -101,13 +109,19 @@ class RandInst;
         // but also supports an else { ... } clause.
         if (instr.r_type.funct3 == sll) {
           instr.r_type.funct7 == base;
-        }
+        } 
       }
 
       // Reg-reg instructions
-      // instr_type[1] -> {
-      //     // TODO: Fill this out!
-      // }
+      instr_type[1] -> {
+        instr.r_type.opcode == op_reg;
+
+        if (instr.r_type.funct3 == add || instr.r_type.funct3 == sr) {
+          instr.r_type.funct7 inside {base, variant};
+        } else {
+          instr.r_type.funct7 == base;
+        }
+      }
 
       // Store instructions -- these are easy to constrain!
       instr_type[2] -> {
@@ -116,12 +130,38 @@ class RandInst;
       }
 
       // // Load instructions
-      // instr_type[3] -> {
-      //   instr.i_type.opcode == op_load;
-      // TODO: Constrain funct3 as well.
-      // }
+      instr_type[3] -> {
+        instr.i_type.opcode == op_load;
+        instr.i_type.funct3 inside {lb, lh, lw, lbu, lhu};
+      }
 
       // TODO: Do all 9 types!
+      // Branch instruction
+      instr_type[4] -> {
+        instr.b_type.opcode == op_br;
+        instr.b_type.funct3 inside {beq, bne, blt, bge, bltu, bgeu}; 
+      }
+
+      // Jump and Link Register instruction
+      instr_type[5] -> {
+        instr.i_type.opcode == op_jalr;
+        instr.i_type.funct3 == 3'b000;
+      }
+
+      // Jump and Link instruction
+      instr_type[6] -> {
+        instr.j_type.opcode == op_jal;
+      }
+
+      // auipc
+      instr_type[7] -> {
+        instr.u_type.opcode == op_auipc;
+      }
+
+      // lui
+      instr_type [8] -> {
+        instr.u_type.opcode == op_lui;
+      }
   }
 
   `include "../../hvl/instr_cg.svh"
