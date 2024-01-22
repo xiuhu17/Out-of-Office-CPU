@@ -17,12 +17,12 @@ module alu (
   logic [63:0] level_2;
   logic level_0_sig, level_1_sig, level_2_sig, level_3_sig;
 
-  enum logic [2:0] {Halted, Sel0, Sel1, Sel2, Sel3, Res} Curr_State_Q, Next_State_D; 
+  enum logic [2:0] {Halted, Sel0, Sel1, Sel2, Sel3, Res} Curr_State_Q, Next_State_D;
 
-  always_ff @ ( posedge clk ) begin 
-    if (rst) begin 
+  always_ff @ ( posedge clk ) begin
+    if (rst) begin
       Curr_State_Q <= Halted;
-    end else if (valid_i && Curr_State_Q == Halted) begin 
+    end else if (valid_i && Curr_State_Q == Halted) begin
       Curr_State_Q <= Sel0;
       internal_op <= op;
       internal_a <= a;
@@ -32,13 +32,13 @@ module alu (
     end
   end
 
-  always_comb begin 
+  always_comb begin
     // default
     Next_State_D = Curr_State_Q;
     valid_o = 0;
     level_0_sig = 0;
     level_1_sig = 0;
-    level_2_sig = 0; 
+    level_2_sig = 0;
     level_3_sig = 0;
 
     // state
@@ -56,7 +56,7 @@ module alu (
     endcase
 
     // signal
-    case(Curr_State_Q) 
+    case(Curr_State_Q)
       Sel0:
         level_0_sig = 1;
       Sel1:
@@ -80,14 +80,14 @@ module alu (
     end
   end
 
-  always_ff @ ( posedge clk ) begin 
-    if (rst) begin 
+  always_ff @ ( posedge clk ) begin
+    if (rst) begin
       level_0[0] <= 0;
       level_0[1] <= 0;
       level_0[2] <= 0;
       level_0[3] <= 0;
-    end else if (level_0_sig) begin 
-      if (internal_op[0]) begin 
+    end else if (level_0_sig) begin
+      if (internal_op[0]) begin
         level_0[0] <= internal_a | internal_b;
         level_0[1] <= internal_a + internal_b;
         level_0[2] <= internal_a + 1'b1;
@@ -101,11 +101,11 @@ module alu (
     end
   end
 
-  always_ff @ ( posedge clk ) begin 
-    if (rst) begin 
+  always_ff @ ( posedge clk ) begin
+    if (rst) begin
       level_1[0] <= 0;
       level_1[1] <= 0;
-    end else if (level_1_sig) begin 
+    end else if (level_1_sig) begin
       if (internal_op[1]) begin
         level_1[0] <= level_0[1];
         level_1[1] <= level_0[3];
@@ -116,25 +116,25 @@ module alu (
     end
   end
 
-  always_ff @ ( posedge clk ) begin 
-    if (rst) begin 
+  always_ff @ ( posedge clk ) begin
+    if (rst) begin
       level_2 <= 0;
-    end else if (level_2_sig) begin 
-      if (internal_op[2]) begin 
+    end else if (level_2_sig) begin
+      if (internal_op[2]) begin
         level_2 <= level_1[1];
-      end else begin 
+      end else begin
         level_2 <= level_1[0];
       end
     end
   end
 
-  always_ff @ ( posedge clk ) begin 
-    if (rst) begin 
+  always_ff @ ( posedge clk ) begin
+    if (rst) begin
       z <= 0;
-    end else if (level_3_sig) begin 
+    end else if (level_3_sig) begin
       if (internal_op[3]) begin  
         z <= popcnt;
-      end else begin 
+      end else begin
         z <= level_2;
       end
     end

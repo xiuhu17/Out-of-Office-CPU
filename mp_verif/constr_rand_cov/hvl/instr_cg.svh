@@ -13,12 +13,12 @@ covergroup instr_cg with function sample(instr_t instr);
   // TODO: Write the following coverpoints:
 
   // Check that funct3 takes on all possible values.
-  // all_funct3 : coverpoint ... ;
+  all_funct3 : coverpoint (instr.r_type.funct3);
 
   // Check that the rs1 and rs2 fields across instructions take on
   // all possible values (each register is touched).
-  // all_regs_rs1 : coverpoint ... ;
-  // all_regs_rs2 : coverpoint ... ;
+  all_regs_rs1 : coverpoint (instr.r_type.rs1);
+  all_regs_rs2 : coverpoint (instr.r_type.rs2);
 
   // Now, cross coverage takes in the opcode context to correctly
   // figure out the /real/ coverage.
@@ -31,6 +31,8 @@ covergroup instr_cg with function sample(instr_t instr);
 
     // TODO:  What other opcodes does funct3 not exist for? Put those in
     // ignore_bins.
+    ignore_bins AUIPC_FUNCT3 = funct3_cross with (instr.i_type.opcode == op_auipc);
+    ignore_bins LUI_FUNCT3 = funct3_cross with (instr.i_type.opcode == op_lui);
 
 
     // Branch instructions use funct3, but only 6 of the 8 possible values
@@ -42,6 +44,9 @@ covergroup instr_cg with function sample(instr_t instr);
 
     // TODO: You'll also have to ignore some funct3 cases in JALR, LOAD, and
     // STORE. Write the illegal_bins/ignore_bins for those cases.
+    illegal_bins JALR_FUNCT3 = funct3_cross with (instr.i_type.opcode == op_jalr && !(instr.i_type.funct3 == 3'b000));
+    illegal_bins LOAD_FUNCT3 = funct3_cross with (instr.i_type.opcode == op_load && !(instr.i_type.funct3 inside {lb, lh, lw, lbu, lhu}));
+    illegal_bins STORE_FUNCT3 = funct3_cross with (instr.i_type.opcode == op_store && !(instr.i_type.funct3 inside {sw, sb, sh}));
   }
 
   // Coverpoint to make separate bins for funct7.
@@ -59,6 +64,10 @@ covergroup instr_cg with function sample(instr_t instr);
 
     // TODO: Get rid of all the other cases where funct7 isn't necessary, or cannot
     // take on certain values.
+    ignore_bins I_TYPE_FUNCT3_CAUSE = funct7_cross with (instr.r_type.opcode == op_imm && !(instr.r_type.funct3 inside {sr, sll}));
+
+    illegal_bins R_FUNCT7_ILLEGAL_VARIANT = funct7_cross with (instr.r_type.opcode == op_reg && !(instr.r_type.funct3 inside {add, sr}) && instr.r_type.funct7 == variant);
+    illegal_bins I_FUNCT7_ILLEGAL_VARIANT = funct7_cross with (instr.r_type.opcode == op_imm && (instr.r_type.funct3 == sll) && instr.r_type.funct7 == variant);
   }
 
 endgroup : instr_cg

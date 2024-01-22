@@ -51,7 +51,7 @@ package rv32i_types;
     typedef enum bit [2:0] {
         alu_add = 3'b000,
         alu_sll = 3'b001,
-        alu_sra = 3'b010, // check bit 30
+        alu_sra = 3'b010, 
         alu_sub = 3'b011,
         alu_xor = 3'b100,
         alu_srl = 3'b101,
