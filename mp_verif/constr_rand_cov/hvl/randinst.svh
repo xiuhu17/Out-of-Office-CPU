@@ -73,15 +73,21 @@ class RandInst;
 
   } instr_t;
 
+  rand bit [3:0] f3;
+  rand bit [6:0] f7;
   rand instr_t instr;
   rand bit [NUM_TYPES-1:0] instr_type;
 
+  constraint funct3_c { instr.r_type.funct3 == f3; }
+  constraint funct7_c { instr.r_type.funct7 == f7; }
   // Make sure we have an even distribution of instruction types.
   constraint solve_order_c { solve instr_type before instr; }
 
   // Hint/TODO: you will need another solve_order constraint for funct3
   // to get 100% coverage with 500 calls to .randomize().
-  constraint solve_order_funct3_c { solve instr.r_type.funct3 before instr.r_type.funct7; }
+  constraint solve_order_funct3_c { 
+    solve f3 before f7; 
+  }
 
 
   // Pick one of the instruction types.
@@ -101,13 +107,13 @@ class RandInst;
 
         // Implies syntax: if funct3 is sr, then funct7 must be
         // one of two possibilities.
-        instr.r_type.funct3 == sr -> {
+        instr.r_type.funct3 == alu_srl -> {
           instr.r_type.funct7 inside {base, variant};
         }
 
         // This if syntax is equivalent to the implies syntax above
         // but also supports an else { ... } clause.
-        if (instr.r_type.funct3 == sll) {
+        if (instr.r_type.funct3 == alu_sll) {
           instr.r_type.funct7 == base;
         } 
       }
@@ -116,7 +122,9 @@ class RandInst;
       instr_type[1] -> {
         instr.r_type.opcode == op_reg;
 
-        if (instr.r_type.funct3 == add || instr.r_type.funct3 == sr) {
+        if (instr.r_type.funct3 == add) {
+          instr.r_type.funct7 inside {base, variant};
+        } else if (instr.r_type.funct3 == sr) {
           instr.r_type.funct7 inside {base, variant};
         } else {
           instr.r_type.funct7 == base;
