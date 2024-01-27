@@ -93,7 +93,7 @@ import rv32i_types::*;
         pc_next = pc;
         mem_addr = 'x;
         mem_read = 1'b0;
-        mem_write = 1'b1;
+        mem_write = 1'b0;
         mem_wmask = '0;
         mem_rmask = '0;
         mem_wdata = 'x;
@@ -175,7 +175,7 @@ import rv32i_types::*;
                 state_next = s_fetch;
             end
             s_load: begin
-                mem_addr = i_imm;
+                mem_addr = i_imm + rs1_v;
                 mem_read = 1'b1;
                 unique case (funct3)
                     lb, lbu: mem_rmask = 4'b0001 << mem_addr[1:0];

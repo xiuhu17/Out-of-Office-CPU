@@ -15,8 +15,8 @@ module top_tb;
     mon_itf mon_itf(.*);
 
     // Pick one of the two options (only one of these should be uncommented at a time):
-    // simple_memory simple_memory(.itf(mem_itf)); // For directed testing with PROG
-    random_tb random_tb(.itf(mem_itf)); // For randomized testing
+    simple_memory simple_memory(.itf(mem_itf)); // For directed testing with PROG
+    // random_tb random_tb(.itf(mem_itf)); // For randomized testing
 
     monitor monitor(.itf(mon_itf));
 
