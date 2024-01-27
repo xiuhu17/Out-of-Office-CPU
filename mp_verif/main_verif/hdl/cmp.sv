@@ -21,9 +21,9 @@ import rv32i_types::*;
             beq:  br_en = (au == bu);
             bne:  br_en = (au != bu);
             blt:  br_en = (as <  bs);
-            bge:  br_en = (as >  bs);
+            bge:  br_en = (as >=  bs);
             bltu: br_en = (au <  bu);
-            bgeu: br_en = (au >  bu);
+            bgeu: br_en = (au >=  bu);
             default: br_en = 1'bx;
         endcase
     end
