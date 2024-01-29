@@ -19,11 +19,11 @@ import rv32i_types::*;
     always_comb begin
         unique case (aluop)
             alu_add: f = au +   bu;
-            alu_sll: f = au <<  bu[3:0];
-            alu_sra: f = unsigned'(as >>> bu[3:0]);
+            alu_sll: f = au <<  bu[4:0];
+            alu_sra: f = unsigned'(as >>> bu[4:0]);
             alu_sub: f = au -   bu;
             alu_xor: f = au ^   bu;
-            alu_srl: f = au >>  bu[3:0];
+            alu_srl: f = au >>  bu[4:0];
             alu_or:  f = au |   bu;
             alu_and: f = au &   bu;
             default: f = 'x;
