@@ -151,7 +151,7 @@ module top_tb;
         0: exp_z = a_rand & b_rand;
         1: exp_z = a_rand | b_rand;
         // TODO: Fill out the rest of the operations.
-        2: exp_z = !a_rand;
+        2: exp_z = ~a_rand;
         3: exp_z = a_rand + b_rand; 
         4: exp_z = a_rand - b_rand;
         5: exp_z = a_rand + 1;
