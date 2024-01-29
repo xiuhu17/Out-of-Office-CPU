@@ -35,11 +35,11 @@ module alu (
   always_comb begin
     // default
     Next_State_D = Curr_State_Q;
-    valid_o = 0;
-    level_0_sig = 0;
-    level_1_sig = 0;
-    level_2_sig = 0;
-    level_3_sig = 0;
+    valid_o = 1'b0;
+    level_0_sig = 1'b0;
+    level_1_sig = 1'b0;
+    level_2_sig = 1'b0;
+    level_3_sig = 1'b0;
 
     // state
     case(Curr_State_Q)
@@ -58,15 +58,15 @@ module alu (
     // signal
     case(Curr_State_Q)
       Sel0:
-        level_0_sig = 1;
+        level_0_sig = 1'b1;
       Sel1:
-        level_1_sig = 1;
+        level_1_sig = 1'b1;
       Sel2:
-        level_2_sig = 1;
+        level_2_sig = 1'b1;
       Sel3:
-        level_3_sig = 1;
+        level_3_sig = 1'b1;
       Res:
-        valid_o = 1;
+        valid_o = 1'b1;
     endcase
   end
 
@@ -74,7 +74,7 @@ module alu (
   logic [63:0] popcnt;
 
   always_comb begin
-    popcnt = 0;
+    popcnt = '0;
     foreach (internal_a[i]) begin
       if (internal_a[i]) popcnt = popcnt + 1'b1;
     end
@@ -82,10 +82,10 @@ module alu (
 
   always_ff @ ( posedge clk ) begin
     if (rst) begin
-      level_0[0] <= 0;
-      level_0[1] <= 0;
-      level_0[2] <= 0;
-      level_0[3] <= 0;
+      level_0[0] <= '0;
+      level_0[1] <= '0;
+      level_0[2] <= '0;
+      level_0[3] <= '0;
     end else if (level_0_sig) begin
       if (internal_op[0]) begin
         level_0[0] <= internal_a | internal_b;
@@ -103,8 +103,8 @@ module alu (
 
   always_ff @ ( posedge clk ) begin
     if (rst) begin
-      level_1[0] <= 0;
-      level_1[1] <= 0;
+      level_1[0] <= '0;
+      level_1[1] <= '0;
     end else if (level_1_sig) begin
       if (internal_op[1]) begin
         level_1[0] <= level_0[1];
@@ -118,7 +118,7 @@ module alu (
 
   always_ff @ ( posedge clk ) begin
     if (rst) begin
-      level_2 <= 0;
+      level_2 <= '0;
     end else if (level_2_sig) begin
       if (internal_op[2]) begin
         level_2 <= level_1[1];
@@ -130,7 +130,7 @@ module alu (
 
   always_ff @ ( posedge clk ) begin
     if (rst) begin
-      z <= 0;
+      z <= '0;
     end else if (level_3_sig) begin
       if (internal_op[3]) begin  
         z <= popcnt;
