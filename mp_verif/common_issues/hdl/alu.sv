@@ -94,7 +94,7 @@ module alu (
         level_0[3] <= internal_a >> internal_b[5:0];
       end else begin
         level_0[0] <= internal_a & internal_b;
-        level_0[1] <= !internal_a;
+        level_0[1] <= ~internal_a;
         level_0[2] <= internal_a - internal_b;
         level_0[3] <= internal_a << internal_b[5:0];
       end
