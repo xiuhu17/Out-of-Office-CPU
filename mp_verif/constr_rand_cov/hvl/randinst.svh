@@ -73,7 +73,7 @@ class RandInst;
 
   } instr_t;
 
-  rand bit [3:0] f3;
+  rand bit [2:0] f3;
   rand bit [6:0] f7;
   rand instr_t instr;
   rand bit [NUM_TYPES-1:0] instr_type;
