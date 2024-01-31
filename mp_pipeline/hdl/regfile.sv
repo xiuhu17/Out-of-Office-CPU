@@ -9,7 +9,7 @@ module regfile
     output  logic   [31:0]  rs1_v, rs2_v
 );
 
-            logic   [31:0]  data [32];
+    logic   [31:0]  data [32];
 
     always_ff @(posedge clk) begin
         if (rst) begin
