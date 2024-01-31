@@ -1,94 +1,59 @@
+// package pcmux;
+//     typedef enum bit [1:0] {
+//         pc_plus4  = 2'b00
+//         ,alu_out  = 2'b01
+//         ,alu_mod2 = 2'b10
+//     } pcmux_sel_t;
+// endpackage
+
+// package marmux;
+//     typedef enum bit {
+//         pc_out = 1'b0
+//         ,alu_out = 1'b1
+//     } marmux_sel_t;
+// endpackage
+
+// package cmpmux;
+//     typedef enum bit {
+//         rs2_out = 1'b0
+//         ,i_imm = 1'b1
+//     } cmpmux_sel_t;
+// endpackage
+
+// package alumux;
+//     typedef enum bit {
+//         rs1_out = 1'b0
+//         ,pc_out = 1'b1
+//     } alumux1_sel_t;
+
+//     typedef enum bit [2:0] {
+//         i_imm    = 3'b000
+//         ,u_imm   = 3'b001
+//         ,b_imm   = 3'b010
+//         ,s_imm   = 3'b011
+//         ,j_imm   = 3'b100
+//         ,rs2_out = 3'b101
+//     } alumux2_sel_t;
+// endpackage
+
+// package regfilemux;
+//     typedef enum bit [3:0] {
+//         alu_out   = 4'b0000
+//         ,br_en    = 4'b0001
+//         ,u_imm    = 4'b0010
+//         ,lw       = 4'b0011
+//         ,pc_plus4 = 4'b0100
+//         ,lb        = 4'b0101
+//         ,lbu       = 4'b0110  // unsigned byte
+//         ,lh        = 4'b0111
+//         ,lhu       = 4'b1000  // unsigned halfword
+//     } regfilemux_sel_t;
+// endpackage
+
+
 /////////////////////////////////////////////////////////////
 // Maybe merge what is in mp_verif/pkg/types.sv over here? //
 /////////////////////////////////////////////////////////////
-
-package rv32i_types;
-
-    typedef enum logic [6:0] {
-        op_b_lui   = 7'b0110111, // U load upper immediate 
-        op_b_auipc = 7'b0010111, // U add upper immediate PC 
-        op_b_jal   = 7'b1101111, // J jump and link 
-        op_b_jalr  = 7'b1100111, // I jump and link register 
-        op_b_br    = 7'b1100011, // B branch 
-        op_b_load  = 7'b0000011, // I load 
-        op_b_store = 7'b0100011, // S store 
-        op_b_imm   = 7'b0010011, // I arith ops with register/immediate operands 
-        op_b_reg   = 7'b0110011, // R arith ops with register operands 
-        op_b_csr   = 7'b1110011  // I control and status register 
-    } rv32i_op_b_t;
-
-    typedef enum logic {
-        rs1_out = 1'b0
-        ,pc_out = 1'b1
-    } alu_m1_sel_t;
-
-    // more mux def here
-
-    typedef struct packed {
-        logic   [31:0]      inst;
-        logic   [31:0]      pc;
-        logic   [63:0]      order;
-
-        alu_m1_sel_t        alu_m1_sel;
-        
-        // what else?
-    
-    } id_ex_stage_reg_t;
-
-endpackage
-
-
-package pcmux;
-    typedef enum bit [1:0] {
-        pc_plus4  = 2'b00
-        ,alu_out  = 2'b01
-        ,alu_mod2 = 2'b10
-    } pcmux_sel_t;
-endpackage
-
-package marmux;
-    typedef enum bit {
-        pc_out = 1'b0
-        ,alu_out = 1'b1
-    } marmux_sel_t;
-endpackage
-
-package cmpmux;
-    typedef enum bit {
-        rs2_out = 1'b0
-        ,i_imm = 1'b1
-    } cmpmux_sel_t;
-endpackage
-
-package alumux;
-    typedef enum bit {
-        rs1_out = 1'b0
-        ,pc_out = 1'b1
-    } alumux1_sel_t;
-
-    typedef enum bit [2:0] {
-        i_imm    = 3'b000
-        ,u_imm   = 3'b001
-        ,b_imm   = 3'b010
-        ,s_imm   = 3'b011
-        ,j_imm   = 3'b100
-        ,rs2_out = 3'b101
-    } alumux2_sel_t;
-endpackage
-
-package regfilemux;
-    typedef enum bit [3:0] {
-        alu_out   = 4'b0000
-        ,br_en    = 4'b0001
-        ,u_imm    = 4'b0010
-        ,lw       = 4'b0011
-        ,pc_plus4 = 4'b0100
-        ,lb        = 4'b0101
-        ,lbu       = 4'b0110  // unsigned byte
-        ,lh        = 4'b0111
-        ,lhu       = 4'b1000  // unsigned halfword
-    } regfilemux_sel_t;
-endpackage
 
 package rv32i_types;
 
@@ -111,6 +76,7 @@ package rv32i_types;
         op_store = 7'b0100011, // store (S type)
         op_imm   = 7'b0010011, // arith ops with register/immediate operands (I type)
         op_reg   = 7'b0110011  // arith ops with register operands (R type)
+        op_csr   = 7'b1110011  // I control and status register 
     } rv32i_opcode;
 
     typedef enum bit [2:0] {
@@ -157,7 +123,24 @@ package rv32i_types;
         alu_or  = 3'b110,
         alu_and = 3'b111
     } alu_ops;
+    
 
-endpackage : rv32i_types
+    // typedef enum logic {
+    //     rs1_out = 1'b0
+    //     ,pc_out = 1'b1
+    // } alu_m1_sel_t;
 
-// add your types in this file if needed.
+    // // more mux def here
+
+    // typedef struct packed {
+    //     logic   [31:0]      inst;
+    //     logic   [31:0]      pc;
+    //     logic   [63:0]      order;
+
+    //     alu_m1_sel_t        alu_m1_sel;
+        
+    //     // what else?
+    
+    // } id_ex_stage_reg_t;
+
+endpackage
