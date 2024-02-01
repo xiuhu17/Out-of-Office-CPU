@@ -1,59 +1,55 @@
-// package pcmux;
-//     typedef enum bit [1:0] {
-//         pc_plus4  = 2'b00
-//         ,alu_out  = 2'b01
-//         ,alu_mod2 = 2'b10
-//     } pcmux_sel_t;
-// endpackage
+package pcmux;
+    typedef enum bit [1:0] {
+        pc_plus4  = 2'b00
+        ,alu_out  = 2'b01
+        ,alu_mod2 = 2'b10
+    } pcmux_sel_t;
+endpackage
 
-// package marmux;
-//     typedef enum bit {
-//         pc_out = 1'b0
-//         ,alu_out = 1'b1
-//     } marmux_sel_t;
-// endpackage
+package marmux;
+    typedef enum bit {
+        pc_out = 1'b0
+        ,alu_out = 1'b1
+    } marmux_sel_t;
+endpackage
 
-// package cmpmux;
-//     typedef enum bit {
-//         rs2_out = 1'b0
-//         ,i_imm = 1'b1
-//     } cmpmux_sel_t;
-// endpackage
+package cmpmux;
+    typedef enum bit {
+        rs2_out = 1'b0
+        ,i_imm = 1'b1
+    } cmpmux_sel_t;
+endpackage
 
-// package alumux;
-//     typedef enum bit {
-//         rs1_out = 1'b0
-//         ,pc_out = 1'b1
-//     } alumux1_sel_t;
+package alumux;
+    typedef enum bit {
+        rs1_out = 1'b0
+        ,pc_out = 1'b1
+    } alumux1_sel_t;
 
-//     typedef enum bit [2:0] {
-//         i_imm    = 3'b000
-//         ,u_imm   = 3'b001
-//         ,b_imm   = 3'b010
-//         ,s_imm   = 3'b011
-//         ,j_imm   = 3'b100
-//         ,rs2_out = 3'b101
-//     } alumux2_sel_t;
-// endpackage
+    typedef enum bit [2:0] {
+        i_imm    = 3'b000
+        ,u_imm   = 3'b001
+        ,b_imm   = 3'b010
+        ,s_imm   = 3'b011
+        ,j_imm   = 3'b100
+        ,rs2_out = 3'b101
+    } alumux2_sel_t;
+endpackage
 
-// package regfilemux;
-//     typedef enum bit [3:0] {
-//         alu_out   = 4'b0000
-//         ,br_en    = 4'b0001
-//         ,u_imm    = 4'b0010
-//         ,lw       = 4'b0011
-//         ,pc_plus4 = 4'b0100
-//         ,lb        = 4'b0101
-//         ,lbu       = 4'b0110  // unsigned byte
-//         ,lh        = 4'b0111
-//         ,lhu       = 4'b1000  // unsigned halfword
-//     } regfilemux_sel_t;
-// endpackage
+package regfilemux;
+    typedef enum bit [3:0] {
+        alu_out   = 4'b0000
+        ,br_en    = 4'b0001
+        ,u_imm    = 4'b0010
+        ,lw       = 4'b0011
+        ,pc_plus4 = 4'b0100
+        ,lb        = 4'b0101
+        ,lbu       = 4'b0110  // unsigned byte
+        ,lh        = 4'b0111
+        ,lhu       = 4'b1000  // unsigned halfword
+    } regfilemux_sel_t;
+endpackage
 
-
-/////////////////////////////////////////////////////////////
-// Maybe merge what is in mp_verif/pkg/types.sv over here? //
-/////////////////////////////////////////////////////////////
 
 package rv32i_types;
 
@@ -80,29 +76,6 @@ package rv32i_types;
     } rv32i_opcode;
 
     typedef enum bit [2:0] {
-        beq  = 3'b000,
-        bne  = 3'b001,
-        blt  = 3'b100,
-        bge  = 3'b101,
-        bltu = 3'b110,
-        bgeu = 3'b111
-    } branch_funct3_t;
-
-    typedef enum bit [2:0] {
-        lb  = 3'b000,
-        lh  = 3'b001,
-        lw  = 3'b010,
-        lbu = 3'b100,
-        lhu = 3'b101
-    } load_funct3_t;
-
-    typedef enum bit [2:0] {
-        sb = 3'b000,
-        sh = 3'b001,
-        sw = 3'b010
-    } store_funct3_t;
-
-    typedef enum bit [2:0] {
         add  = 3'b000, //check bit 30 for sub if op_reg opcode
         sll  = 3'b001,
         slt  = 3'b010,
@@ -123,8 +96,17 @@ package rv32i_types;
         alu_or  = 3'b110,
         alu_and = 3'b111
     } alu_ops_t;
-    
+    typedef enum bit [2:0] {
+        beq  = 3'b000,
+        bne  = 3'b001,
+        blt  = 3'b100,
+        bge  = 3'b101,
+        bltu = 3'b110,
+        bgeu = 3'b111
+    } cmp_ops_t;
 
+
+    //////////////////////////////////////////
     typedef struct packed {
         logic   [31:0]      inst;
         logic   [31:0]      pc;
@@ -144,29 +126,21 @@ package rv32i_types;
 
 
     typedef enum bit {
-        rs1v_out = 1'b0,
-        pc_out = 1'b1
+        rs1_value_alu = 1'b0,
+        pc_out_alu = 1'b1
     } alu_m1_sel_t;
     typedef enum bit [2:0] {
-        i_imm    = 3'b000, 
-        u_imm   = 3'b001, 
-        b_imm   = 3'b010,
-        s_imm   = 3'b011,
-        j_imm   = 3'b100,
-        rs2_out = 3'b101
+        i_imm_alu    = 3'b000, 
+        u_imm_alu   = 3'b001, 
+        b_imm_alu   = 3'b010,
+        s_imm_alu   = 3'b011,
+        j_imm_alu   = 3'b100,
+        rs2_value_alu = 3'b101
     } alu_m2_sel_t;
     typedef enum bit {
-        rs2_out = 1'b0
-        ,i_imm = 1'b1
+        rs2_value_cmp = 1'b0,
+        i_imm_cmp = 1'b1
     } cmp_m_sel_t;
-    typedef enum bit [2:0] {
-        beq  = 3'b000,
-        bne  = 3'b001,
-        blt  = 3'b100,
-        bge  = 3'b101,
-        bltu = 3'b110,
-        bgeu = 3'b111
-    } cmp_ops_t;
     typedef enum bit [2:0] {
         lb  = 3'b000,
         lh  = 3'b001,
@@ -180,15 +154,15 @@ package rv32i_types;
         sw = 3'b010
     } store_ops_t;
     typedef enum bit [3:0] {
-        alu_out   = 4'b0000
-        ,br_en    = 4'b0001
-        ,u_imm    = 4'b0010
-        ,lw       = 4'b0011
-        ,pc_plus4 = 4'b0100
-        ,lb        = 4'b0101
-        ,lbu       = 4'b0110  // unsigned byte
-        ,lh        = 4'b0111
-        ,lhu       = 4'b1000  // unsigned halfword
+        alu_out_wb   = 4'b0000
+        ,br_en_wb    = 4'b0001
+        ,u_imm_wb    = 4'b0010
+        ,lw_wb       = 4'b0011
+        ,pc_plus4_wb = 4'b0100
+        ,lb_wb        = 4'b0101
+        ,lbu_wb       = 4'b0110  // unsigned byte
+        ,lh_wb        = 4'b0111
+        ,lhu_wb       = 4'b1000  // unsigned halfword
     } regfile_m_sel_t;
 
     typedef struct packed {
@@ -209,7 +183,7 @@ package rv32i_types;
         store_ops_t         store_ops;
     }mem_signal_t;
 
-    typedef struct paked {
+    typedef struct packed {
         regfile_m_sel_t     regfile_m_sel;
         logic               regf_we;
     }wb_signal_t;
