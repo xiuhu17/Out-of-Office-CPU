@@ -143,39 +143,98 @@ package rv32i_types;
     } if_id_stage_reg_t;
 
 
-    typedef enum [1:0]logic {
-        rs1v_out = 2'b00,
-        pc_out = 2'b01,
-        zero = 2'b10
+    typedef enum bit {
+        rs1v_out = 1'b0,
+        pc_out = 1'b1
     } alu_m1_sel_t;
-    typedef enum logic {
-        rs2v_out = 1'b0,
-        imm_out = 1'b1
+    typedef enum bit [2:0] {
+        i_imm    = 3'b000, 
+        u_imm   = 3'b001, 
+        b_imm   = 3'b010,
+        s_imm   = 3'b011,
+        j_imm   = 3'b100,
+        rs2_out = 3'b101
     } alu_m2_sel_t;
+    typedef enum bit {
+        rs2_out = 1'b0
+        ,i_imm = 1'b1
+    } cmp_m_sel_t;
+    typedef enum bit [2:0] {
+        beq  = 3'b000,
+        bne  = 3'b001,
+        blt  = 3'b100,
+        bge  = 3'b101,
+        bltu = 3'b110,
+        bgeu = 3'b111
+    } cmp_ops_t;
+    typedef enum bit [2:0] {
+        lb  = 3'b000,
+        lh  = 3'b001,
+        lw  = 3'b010,
+        lbu = 3'b100,
+        lhu = 3'b101
+    } load_ops_t;
+    typedef enum bit [2:0] {
+        sb = 3'b000,
+        sh = 3'b001,
+        sw = 3'b010
+    } store_ops_t;
+    typedef enum bit [3:0] {
+        alu_out   = 4'b0000
+        ,br_en    = 4'b0001
+        ,u_imm    = 4'b0010
+        ,lw       = 4'b0011
+        ,pc_plus4 = 4'b0100
+        ,lb        = 4'b0101
+        ,lbu       = 4'b0110  // unsigned byte
+        ,lh        = 4'b0111
+        ,lhu       = 4'b1000  // unsigned halfword
+    } regfile_m_sel_t;
+
+    typedef struct packed {
+        // signal for alu
+        alu_m1_sel_t        alu_m1_sel;
+        alu_m2_sel_t        alu_m2_sel;
+        alu_ops_t           alu_ops;
+        // signal for cmp
+        // default is rs1_v
+        cmp_m_sel_t         cmp_m_sel;
+        cmp_ops_t           cmp_ops;
+    }ex_signal_t;
+
+    typedef struct packed {
+        logic               MemRead;
+        logic               MemWrite;
+        load_ops_t          load_ops;
+        store_ops_t         store_ops;
+    }mem_signal_t;
+
+    typedef struct paked {
+        regfile_m_sel_t     regfile_m_sel;
+        logic               regf_we;
+    }wb_signal_t;
+
     typedef struct packed {
         logic   [31:0]      inst;
         logic   [31:0]      pc;
         logic   [63:0]      order;
         logic               is_stall;
 
-        // signal
-        alu_m1_sel_t        alu_m1_sel;
-        alu_m2_sel_t        alu_m2_sel;
-        alu_ops_t           alu_ops;
-        logic               MemRead;
-        logic               MemWrite;
-        logic               regf_we;
-        logic               MemReg;
+        // control signal
+        ex_signal_t     ex_signal;
+        mem_signal_t    mem_signal;
+        wb_signal_t     wb_signal;
         
         // value
-        logic   [31:0]      imm_v;
+        logic   [31:0]      i_imm;
+        logic   [31:0]      s_imm;
+        logic   [31:0]      b_imm;
+        logic   [31:0]      u_imm;
+        logic   [31:0]      j_imm;
         logic   [31:0]      rs1_v;
         logic   [31:0]      rs2_v;
         logic   [4:0]       rd_s;
     } id_ex_stage_reg_t;
-
-
-
 
 
 endpackage
