@@ -125,6 +125,14 @@ package rv32i_types;
     } alu_ops;
     
 
+    typedef struct packed {
+        logic   [31:0]      inst;
+        logic   [31:0]      pc;
+        logic   [63:0]      order;
+         
+
+    } if_id_stage_reg_t;
+
     // typedef enum logic {
     //     rs1_out = 1'b0
     //     ,pc_out = 1'b1
@@ -136,11 +144,17 @@ package rv32i_types;
     //     logic   [31:0]      inst;
     //     logic   [31:0]      pc;
     //     logic   [63:0]      order;
+    //     logic               nop_stall;
+    //     logic               flush;
 
     //     alu_m1_sel_t        alu_m1_sel;
         
     //     // what else?
     
     // } id_ex_stage_reg_t;
+
+
+
+
 
 endpackage
