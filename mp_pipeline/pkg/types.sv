@@ -122,36 +122,57 @@ package rv32i_types;
         alu_srl = 3'b101,
         alu_or  = 3'b110,
         alu_and = 3'b111
-    } alu_ops;
+    } alu_ops_t;
     
 
     typedef struct packed {
         logic   [31:0]      inst;
         logic   [31:0]      pc;
         logic   [63:0]      order;
-         
-
+        logic   [2:0]       funct3;
+        logic   [6:0]       funct7;
+        logic   [6:0]       opcode;
+        logic   [31:0]      i_imm;
+        logic   [31:0]      s_imm;
+        logic   [31:0]      b_imm;
+        logic   [31:0]      u_imm;
+        logic   [31:0]      j_imm;
+        logic   [4:0]       rs1_s;
+        logic   [4:0]       rs2_s;
+        logic   [4:0]       rd_s;
     } if_id_stage_reg_t;
 
-    // typedef enum logic {
-    //     rs1_out = 1'b0
-    //     ,pc_out = 1'b1
-    // } alu_m1_sel_t;
 
-    // // more mux def here
+    typedef enum [1:0]logic {
+        rs1v_out = 2'b00,
+        pc_out = 2'b01,
+        zero = 2'b10
+    } alu_m1_sel_t;
+    typedef enum logic {
+        rs2v_out = 1'b0,
+        imm_out = 1'b1
+    } alu_m2_sel_t;
+    typedef struct packed {
+        logic   [31:0]      inst;
+        logic   [31:0]      pc;
+        logic   [63:0]      order;
+        logic               is_stall;
 
-    // typedef struct packed {
-    //     logic   [31:0]      inst;
-    //     logic   [31:0]      pc;
-    //     logic   [63:0]      order;
-    //     logic               nop_stall;
-    //     logic               flush;
-
-    //     alu_m1_sel_t        alu_m1_sel;
+        // signal
+        alu_m1_sel_t        alu_m1_sel;
+        alu_m2_sel_t        alu_m2_sel;
+        alu_ops_t           alu_ops;
+        logic               MemRead;
+        logic               MemWrite;
+        logic               regf_we;
+        logic               MemReg;
         
-    //     // what else?
-    
-    // } id_ex_stage_reg_t;
+        // value
+        logic   [31:0]      imm_v;
+        logic   [31:0]      rs1_v;
+        logic   [31:0]      rs2_v;
+        logic   [4:0]       rd_s;
+    } id_ex_stage_reg_t;
 
 
 
