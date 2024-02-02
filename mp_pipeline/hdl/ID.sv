@@ -103,14 +103,69 @@ module ID_Stage(
                         wb_signal.regf_m_sel = br_en_wb;
                     end 
                     sr_funct3: begin 
-                        
-
+                        ex_signal.alu_m1_sel = rs1_value_alu_ex;
+                        ex_signal.alu_m2_sel = i_imm_alu_ex;
+                        if (funct7[5]) begin 
+                            ex_signal.alu_ops = sra_alu_op;
+                            wb_signal.regf_m_sel = alu_out_wb;
+                        end else begin 
+                            ex_signal.alu_ops = srl_alu_op;
+                            wb_signal.regf_m_sel = alu_out_wb;
+                        end 
                     end 
-
+                    default: begin 
+                        ex_signal.alu_m1_sel = rs1_value_alu_ex;
+                        ex_signal.alu_m2_sel = i_imm_alu_ex;
+                        ex_signal.alu_ops = funct3;
+                        wb_signal.regf_m_sel = alu_out_wb;
+                    end 
                 endcase
             end
+            reg_opcode: begin 
+                wb_signal.regf_we = '1;
+                case (funct3)  
+                    slt_funct3: begin 
+                        ex_signal.cmp_m_sel = rs2_value_cmp_ex;
+                        ex_signal.cmp_ops = blt_cmp_op;
+                        wb_signal.regf_m_sel = br_en_wb;
+                    end 
+                    sltu_funct3: begin 
+                        ex_signal.cmp_m_sel = rs2_value_cmp_ex;
+                        ex_signal.cmp_ops = bltu_cmp_op;
+                        wb_signal.regf_m_sel = br_en_wb;
+                    end
+                    sr_funct3: begin 
+                        ex_signal.alu_m1_sel = rs1_value_alu_ex;
+                        ex_signal.alu_m2_sel = rs2_value_alu_ex;
+                        if (funct7[5]) begin 
+                            ex_signal.alu_ops = sra_alu_op;
+                            wb_signal.regf_m_sel = alu_out_wb;
+                        end else begin 
+                            ex_signal.alu_ops = srl_alu_op;
+                            wb_signal.regf_m_sel = alu_out_wb;
+                        end 
+                    end
+                    add_funct3: begin 
+                        ex_signal.alu_m1_sel = rs1_value_alu_ex;
+                        ex_signal.alu_m2_sel = rs2_value_alu_ex;
+                        if (funct7[5]) begin 
+                            ex_signal.alu_ops = sub_alu_op;
+                            wb_signal.regf_m_sel = alu_out_wb;
+                        end else begin 
+                            ex_signal.alu_ops = add_alu_op;
+                            wb_signal.regf_m_sel = alu_out_wb;
+                        end 
+                    end 
+                    default: begin 
+                        ex_signal.alu_m1_sel = rs1_value_alu_ex;
+                        ex_signal.alu_m2_sel = rs2_value_alu_ex;
+                        ex_signal.alu_ops = funct3;
+                        wb_signal.regf_m_sel = alu_out_wb;
+                    end 
 
+                endcase 
 
+            end
 
         endcase
 
@@ -120,7 +175,7 @@ module ID_Stage(
         id_ex_stage_reg.inst = inst;
         id_ex_stage_reg.pc = pc;
         id_ex_stage_reg.order = order;
-        id_ex_stage_reg.is_stall = 1'b0;
+        id_ex_stage_reg.is_stall = 1'b0; // default is not stall
         id_ex_stage_reg.ex_signal = ex_signal;
         id_ex_stage_reg.mem_signal = mem_signal;
         id_ex_stage_reg.wb_signal = wb_signal;

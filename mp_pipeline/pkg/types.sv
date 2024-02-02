@@ -84,6 +84,26 @@ package rv32i_types;
         aor_funt3  = 3'b110,
         aand_funct3 = 3'b111
     } arith_funct3_t;
+    typedef enum bit [2:0] {
+        beq_funct3  = 3'b000,
+        bne_funct3  = 3'b001,
+        blt_funct3  = 3'b100,
+        bge_funct3  = 3'b101,
+        bltu_funct3 = 3'b110,
+        bgeu_funct3 = 3'b111
+    } branch_funct3_t;
+    typedef enum bit [2:0] {
+        lb_funct3  = 3'b000,
+        lh_funct3  = 3'b001,
+        lw_funct3  = 3'b010,
+        lbu_funct3 = 3'b100,
+        lhu_funct3 = 3'b101
+    } load_funct3_t;
+    typedef enum bit [2:0] {
+        sb_funct3 = 3'b000,
+        sh_funct3 = 3'b001,
+        sw_funct3 = 3'b010
+    } store_funct3_t;
     typedef enum bit [6:0] {
         base_funct7    = 7'b0000000,
         variant_funct7 = 7'b0100000
