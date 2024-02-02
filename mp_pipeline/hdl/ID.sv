@@ -98,7 +98,9 @@ module ID_Stage(
         wb_signal.regf_we = 'x;
 
         case (opcode) 
-
+            op_lui: begin
+                
+            end
 
 
 
