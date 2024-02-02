@@ -163,7 +163,7 @@ package rv32i_types;
         ,lbu_wb       = 4'b0110  // unsigned byte
         ,lh_wb        = 4'b0111
         ,lhu_wb       = 4'b1000  // unsigned halfword
-    } regfile_m_sel_t;
+    } regf_m_sel_t;
 
     typedef struct packed {
         // signal for alu
@@ -184,7 +184,7 @@ package rv32i_types;
     }mem_signal_t;
 
     typedef struct packed {
-        regfile_m_sel_t     regfile_m_sel;
+        regf_m_sel_t        regf_m_sel;
         logic               regf_we;
     }wb_signal_t;
 
@@ -207,8 +207,9 @@ package rv32i_types;
         logic   [31:0]      j_imm;
         logic   [31:0]      rs1_v;
         logic   [31:0]      rs2_v;
+        logic   [4:0]       rs1_s;
+        logic   [4:0]       rs2_s;
         logic   [4:0]       rd_s;
     } id_ex_stage_reg_t;
-
 
 endpackage

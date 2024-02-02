@@ -11,9 +11,6 @@ import rv32i_types::*;
 
     // for stall purpose
     input   logic           pc_en,
-    // branch or jump pc input
-    input   logic           pc_sel,
-    input   logic [31:0]    pc_br_jp,
     output  if_id_stage_reg_t if_id_stage_reg
 );      
 
@@ -62,10 +59,7 @@ import rv32i_types::*;
 
     // next_pc update
     always_comb begin
-        case (pc_sel)
-            0: next_pc = pc + 4;
-            1: next_pc = pc_br_jp;
-        endcase
+        next_pc = pc + 4;
     end
 
     ir ir (
