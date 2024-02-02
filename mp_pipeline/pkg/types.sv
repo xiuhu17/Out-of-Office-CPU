@@ -74,7 +74,6 @@ package rv32i_types;
         reg_opcode   = 7'b0110011  // arith ops with register operands (R type)
         csr_opcode   = 7'b1110011  // I control and status register 
     } rv32i_opcode;
-
     typedef enum bit [2:0] {
         add_funct3  = 3'b000, //check bit 30 for sub if op_reg opcode
         sll_funct3  = 3'b001,
@@ -82,21 +81,9 @@ package rv32i_types;
         sltu_funct3 = 3'b011,
         axor_funct3 = 3'b100,
         sr_funct3   = 3'b101, //check bit 30 for logical/arithmetic
-        aor  = 3'b110,
-        aand = 3'b111
+        aor_funt3  = 3'b110,
+        aand_funct3 = 3'b111
     } arith_funct3_t;
-
-    typedef enum bit [2:0] {
-        add_funct3  = 3'b000, //check bit 30 for sub if op_reg opcode
-        sll_funct3  = 3'b001,
-        slt_funct3  = 3'b010,
-        sltu_funct3 = 3'b011,
-        axor_funct3 = 3'b100,
-        sr_funct3   = 3'b101, //check bit 30 for logical/arithmetic
-        aor  = 3'b110,
-        aand = 3'b111
-    } arith_funct3_t;
-
     typedef enum bit [6:0] {
         base_funct7    = 7'b0000000,
         variant_funct7 = 7'b0100000
@@ -112,7 +99,6 @@ package rv32i_types;
         or_alu_op  = 3'b110,
         and_alu_op = 3'b111
     } alu_ops_t;
-
     typedef enum bit [2:0] {
         beq_cmp_op  = 3'b000,
         bne_cmp_op  = 3'b001,
@@ -121,25 +107,6 @@ package rv32i_types;
         bltu_cmp_op = 3'b110,
         bgeu_cmp_op = 3'b111
     } cmp_ops_t;
-
-
-    //////////////////////////////////////////
-    typedef struct packed {
-        logic   [31:0]      inst;
-        logic   [31:0]      pc;
-        logic   [63:0]      order;
-        logic   [2:0]       funct3;
-        logic   [6:0]       funct7;
-        logic   [6:0]       opcode;
-        logic   [31:0]      i_imm;
-        logic   [31:0]      s_imm;
-        logic   [31:0]      b_imm;
-        logic   [31:0]      u_imm;
-        logic   [31:0]      j_imm;
-        logic   [4:0]       rs1_s;
-        logic   [4:0]       rs2_s;
-        logic   [4:0]       rd_s;
-    } if_id_stage_reg_t;
 
 
     typedef enum bit {
@@ -192,19 +159,33 @@ package rv32i_types;
         cmp_m_sel_t         cmp_m_sel;
         cmp_ops_t           cmp_ops;
     }ex_signal_t;
-
     typedef struct packed {
         logic               MemRead;
         logic               MemWrite;
         load_ops_t          load_ops;
         store_ops_t         store_ops;
     }mem_signal_t;
-
     typedef struct packed {
         regf_m_sel_t        regf_m_sel;
         logic               regf_we;
     }wb_signal_t;
 
+    typedef struct packed {
+        logic   [31:0]      inst;
+        logic   [31:0]      pc;
+        logic   [63:0]      order;
+        logic   [2:0]       funct3;
+        logic   [6:0]       funct7;
+        logic   [6:0]       opcode;
+        logic   [31:0]      i_imm;
+        logic   [31:0]      s_imm;
+        logic   [31:0]      b_imm;
+        logic   [31:0]      u_imm;
+        logic   [31:0]      j_imm;
+        logic   [4:0]       rs1_s;
+        logic   [4:0]       rs2_s;
+        logic   [4:0]       rd_s;
+    } if_id_stage_reg_t;
     typedef struct packed {
         logic   [31:0]      inst;
         logic   [31:0]      pc;
@@ -228,8 +209,6 @@ package rv32i_types;
         logic   [4:0]       rs2_s;
         logic   [4:0]       rd_s;
     } id_ex_stage_reg_t;
-
-
     typedef struct packed {
         logic   [31:0]      inst;
         logic   [31:0]      pc;
@@ -251,8 +230,6 @@ package rv32i_types;
         logic   [4:0]       rs2_s;
         logic   [4:0]       rd_s;
     } ex_mem_stage_reg_t;
-
-
     typedef struct packed {
         logic   [31:0]      inst;
         logic   [31:0]      pc;

@@ -33,26 +33,6 @@ module ID_Stage(
     logic   [6:0]       funct7;
     logic   [6:0]       opcode;
 
-    always_comb begin 
-        id_ex_stage_reg.inst = inst;
-        id_ex_stage_reg.pc = pc;
-        id_ex_stage_reg.order = order;
-        id_ex_stage_reg.is_stall = 1'b0;
-        id_ex_stage_reg.ex_signal = ex_signal;
-        id_ex_stage_reg.mem_signal = mem_signal;
-        id_ex_stage_reg.wb_signal = wb_signal;
-        id_ex_stage_reg.i_imm = i_imm;
-        id_ex_stage_reg.s_imm = s_imm;
-        id_ex_stage_reg.b_imm = b_imm;
-        id_ex_stage_reg.u_imm = u_imm;
-        id_ex_stage_reg.j_imm = j_imm;
-        id_ex_stage_reg.rs1_v = rs1_v;
-        id_ex_stage_reg.rs2_v = rs2_v;
-        id_ex_stage_reg.rs1_s = rs1_s;
-        id_ex_stage_reg.rs2_s = rs2_s;
-        id_ex_stage_reg.rd_s = rd_s;
-    end
-
     always_comb begin
         inst = if_id_stage_reg.inst;
         pc = if_id_stage_reg.pc;
@@ -89,19 +69,45 @@ module ID_Stage(
         ex_signal.cmp_m_sel = 'x;
         ex_signal.cmp_ops = 'x;
 
-        mem_signal.MemRead = 'x;
-        mem_signal.MemWrite = 'x;
+        mem_signal.MemRead = '0;
+        mem_signal.MemWrite = '0;
         mem_signal.load_ops = 'x;
         mem_signal.store_ops = 'x;
 
         wb_signal.regf_m_sel = 'x;
-        wb_signal.regf_we = 'x;
+        wb_signal.regf_we = '0;
 
         case (opcode) 
-            op_lui: begin
-                mem_signal.MemRead = '0;
-                mem_signal.MemWrite = '0;
-                wb_signal.regf_m_sel = 
+            lui_opcode: begin
+                wb_signal.regf_m_sel = u_imm_wb;
+                wb_signal.regf_we = '1;
+            end
+            auipc_opcode: begin
+                ex_signal.alu_m1_sel = pc_out_alu_ex;
+                ex_signal.alu_m2_sel = u_imm_alu_ex;
+                ex_signal.alu_ops = add_alu_op;
+                wb_signal.regf_m_sel = alu_out_wb;
+                wb_signal.regf_we = '1;
+            end
+            imm_opcode: begin 
+                wb_signal.regf_we = '1;
+                case (funct3)
+                    slt_funct3: begin 
+                        ex_signal.cmp_m_sel = i_imm_cmp_ex;
+                        ex_signal.cmp_ops = blt_cmp_op;
+                        wb_signal.regf_m_sel = br_en_wb;
+                    end
+                    sltu_funct3: begin 
+                        ex_signal.cmp_m_sel = i_imm_cmp_ex;
+                        ex_signal.cmp_ops = bltu_cmp_op;
+                        wb_signal.regf_m_sel = br_en_wb;
+                    end 
+                    sr_funct3: begin 
+                        
+
+                    end 
+
+                endcase
             end
 
 
@@ -110,5 +116,24 @@ module ID_Stage(
 
     end 
 
+    always_comb begin 
+        id_ex_stage_reg.inst = inst;
+        id_ex_stage_reg.pc = pc;
+        id_ex_stage_reg.order = order;
+        id_ex_stage_reg.is_stall = 1'b0;
+        id_ex_stage_reg.ex_signal = ex_signal;
+        id_ex_stage_reg.mem_signal = mem_signal;
+        id_ex_stage_reg.wb_signal = wb_signal;
+        id_ex_stage_reg.i_imm = i_imm;
+        id_ex_stage_reg.s_imm = s_imm;
+        id_ex_stage_reg.b_imm = b_imm;
+        id_ex_stage_reg.u_imm = u_imm;
+        id_ex_stage_reg.j_imm = j_imm;
+        id_ex_stage_reg.rs1_v = rs1_v;
+        id_ex_stage_reg.rs2_v = rs2_v;
+        id_ex_stage_reg.rs1_s = rs1_s;
+        id_ex_stage_reg.rs2_s = rs2_s;
+        id_ex_stage_reg.rd_s = rd_s;
+    end
 
 endmodule
