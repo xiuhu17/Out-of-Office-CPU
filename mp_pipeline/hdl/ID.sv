@@ -99,7 +99,9 @@ module ID_Stage(
 
         case (opcode) 
             op_lui: begin
-                
+                mem_signal.MemRead = '0;
+                mem_signal.MemWrite = '0;
+                wb_signal.regf_m_sel = 
             end
 
 

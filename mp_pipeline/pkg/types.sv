@@ -63,46 +63,63 @@ package rv32i_types;
     import regfilemux::*;
 
     typedef enum bit [6:0] {
-        op_lui   = 7'b0110111, // load upper immediate (U type)
-        op_auipc = 7'b0010111, // add upper immediate PC (U type)
-        op_jal   = 7'b1101111, // jump and link (J type)
-        op_jalr  = 7'b1100111, // jump and link register (I type)
-        op_br    = 7'b1100011, // branch (B type)
-        op_load  = 7'b0000011, // load (I type)
-        op_store = 7'b0100011, // store (S type)
-        op_imm   = 7'b0010011, // arith ops with register/immediate operands (I type)
-        op_reg   = 7'b0110011  // arith ops with register operands (R type)
-        op_csr   = 7'b1110011  // I control and status register 
+        lui_opcode   = 7'b0110111, // load upper immediate (U type)
+        auipc_opcode = 7'b0010111, // add upper immediate PC (U type)
+        jal_opcode   = 7'b1101111, // jump and link (J type)
+        jalr_opcode  = 7'b1100111, // jump and link register (I type)
+        br_opcode    = 7'b1100011, // branch (B type)
+        load_opcode  = 7'b0000011, // load (I type)
+        store_opcode = 7'b0100011, // store (S type)
+        imm_opcode   = 7'b0010011, // arith ops with register/immediate operands (I type)
+        reg_opcode   = 7'b0110011  // arith ops with register operands (R type)
+        csr_opcode   = 7'b1110011  // I control and status register 
     } rv32i_opcode;
 
     typedef enum bit [2:0] {
-        add  = 3'b000, //check bit 30 for sub if op_reg opcode
-        sll  = 3'b001,
-        slt  = 3'b010,
-        sltu = 3'b011,
-        axor = 3'b100,
-        sr   = 3'b101, //check bit 30 for logical/arithmetic
+        add_funct3  = 3'b000, //check bit 30 for sub if op_reg opcode
+        sll_funct3  = 3'b001,
+        slt_funct3  = 3'b010,
+        sltu_funct3 = 3'b011,
+        axor_funct3 = 3'b100,
+        sr_funct3   = 3'b101, //check bit 30 for logical/arithmetic
         aor  = 3'b110,
         aand = 3'b111
     } arith_funct3_t;
 
     typedef enum bit [2:0] {
-        alu_add = 3'b000,
-        alu_sll = 3'b001,
-        alu_sra = 3'b010,
-        alu_sub = 3'b011,
-        alu_xor = 3'b100,
-        alu_srl = 3'b101,
-        alu_or  = 3'b110,
-        alu_and = 3'b111
-    } alu_ops_t;
+        add_funct3  = 3'b000, //check bit 30 for sub if op_reg opcode
+        sll_funct3  = 3'b001,
+        slt_funct3  = 3'b010,
+        sltu_funct3 = 3'b011,
+        axor_funct3 = 3'b100,
+        sr_funct3   = 3'b101, //check bit 30 for logical/arithmetic
+        aor  = 3'b110,
+        aand = 3'b111
+    } arith_funct3_t;
+
+    typedef enum bit [6:0] {
+        base_funct7    = 7'b0000000,
+        variant_funct7 = 7'b0100000
+    } arith_funct7_t;
+
     typedef enum bit [2:0] {
-        beq  = 3'b000,
-        bne  = 3'b001,
-        blt  = 3'b100,
-        bge  = 3'b101,
-        bltu = 3'b110,
-        bgeu = 3'b111
+        add_alu_op = 3'b000,
+        sll_alu_op = 3'b001,
+        sra_alu_op = 3'b010,
+        sub_alu_op = 3'b011,
+        xor_alu_op = 3'b100,
+        srl_alu_op = 3'b101,
+        or_alu_op  = 3'b110,
+        and_alu_op = 3'b111
+    } alu_ops_t;
+
+    typedef enum bit [2:0] {
+        beq_cmp_op  = 3'b000,
+        bne_cmp_op  = 3'b001,
+        blt_cmp_op  = 3'b100,
+        bge_cmp_op  = 3'b101,
+        bltu_cmp_op = 3'b110,
+        bgeu_cmp_op = 3'b111
     } cmp_ops_t;
 
 
@@ -126,32 +143,32 @@ package rv32i_types;
 
 
     typedef enum bit {
-        rs1_value_alu = 1'b0,
-        pc_out_alu = 1'b1
+        rs1_value_alu_ex = 1'b0,
+        pc_out_alu_ex = 1'b1
     } alu_m1_sel_t;
     typedef enum bit [2:0] {
-        i_imm_alu    = 3'b000, 
-        u_imm_alu   = 3'b001, 
-        b_imm_alu   = 3'b010,
-        s_imm_alu   = 3'b011,
-        j_imm_alu   = 3'b100,
-        rs2_value_alu = 3'b101
+        i_imm_alu_ex    = 3'b000, 
+        u_imm_alu_ex   = 3'b001, 
+        b_imm_alu_ex   = 3'b010,
+        s_imm_alu_ex   = 3'b011,
+        j_imm_alu_ex   = 3'b100,
+        rs2_value_alu_ex = 3'b101
     } alu_m2_sel_t;
     typedef enum bit {
-        rs2_value_cmp = 1'b0,
-        i_imm_cmp = 1'b1
+        rs2_value_cmp_ex = 1'b0,
+        i_imm_cmp_ex = 1'b1
     } cmp_m_sel_t;
     typedef enum bit [2:0] {
-        lb  = 3'b000,
-        lh  = 3'b001,
-        lw  = 3'b010,
-        lbu = 3'b100,
-        lhu = 3'b101
+        lb_mem  = 3'b000,
+        lh_mem  = 3'b001,
+        lw_mem  = 3'b010,
+        lbu_mem = 3'b100,
+        lhu_mem = 3'b101
     } load_ops_t;
     typedef enum bit [2:0] {
-        sb = 3'b000,
-        sh = 3'b001,
-        sw = 3'b010
+        sb_mem = 3'b000,
+        sh_mem = 3'b001,
+        sw_mem = 3'b010
     } store_ops_t;
     typedef enum bit [3:0] {
         alu_out_wb   = 4'b0000
@@ -211,5 +228,52 @@ package rv32i_types;
         logic   [4:0]       rs2_s;
         logic   [4:0]       rd_s;
     } id_ex_stage_reg_t;
+
+
+    typedef struct packed {
+        logic   [31:0]      inst;
+        logic   [31:0]      pc;
+        logic   [63:0]      order;
+        logic               is_stall;
+
+        mem_signal_t    mem_signal;
+        wb_signal_t     wb_signal;
+        
+        // value
+        logic   [31:0]      i_imm;
+        logic   [31:0]      s_imm;
+        logic   [31:0]      b_imm;
+        logic   [31:0]      u_imm;
+        logic   [31:0]      j_imm;
+        logic   [31:0]      rs1_v;
+        logic   [31:0]      rs2_v;
+        logic   [4:0]       rs1_s;
+        logic   [4:0]       rs2_s;
+        logic   [4:0]       rd_s;
+    } ex_mem_stage_reg_t;
+
+
+    typedef struct packed {
+        logic   [31:0]      inst;
+        logic   [31:0]      pc;
+        logic   [63:0]      order;
+        logic               is_stall;
+
+        wb_signal_t     wb_signal;
+        
+        // value
+        logic   [31:0]      i_imm;
+        logic   [31:0]      s_imm;
+        logic   [31:0]      b_imm;
+        logic   [31:0]      u_imm;
+        logic   [31:0]      j_imm;
+        logic   [31:0]      rs1_v;
+        logic   [31:0]      rs2_v;
+        logic   [4:0]       rs1_s;
+        logic   [4:0]       rs2_s;
+        logic   [4:0]       rd_s;
+    } mem_wb_stage_reg_t;
+
+
 
 endpackage
