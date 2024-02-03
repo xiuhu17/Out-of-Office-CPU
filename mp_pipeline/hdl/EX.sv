@@ -5,16 +5,14 @@ import rv32i_types::*;
     output  ex_mem_stage_reg_t ex_mem_stage_reg
 );  
 
-
+    logic              valid;
     logic   [31:0]      inst;
     logic   [31:0]      pc;
     logic   [63:0]      order;
-
     // control signal
     ex_signal_t     ex_signal;
     mem_signal_t    mem_signal;
     wb_signal_t     wb_signal;
-    
     // value
     logic   [31:0]      i_imm;
     logic   [31:0]      s_imm;
@@ -32,6 +30,7 @@ import rv32i_types::*;
     logic               br_en_grab;
 
     always_comb begin 
+        valid = id_ex_stage_reg.valid;
         inst = id_ex_stage_reg.inst;
         pc = id_ex_stage_reg.pc;
         order = id_ex_stage_reg.order;
@@ -103,6 +102,7 @@ import rv32i_types::*;
 
 
     always_comb begin
+        ex_mem_stage_reg.valid = valid;
         ex_mem_stage_reg.inst = inst;
         ex_mem_stage_reg.pc = pc;
         ex_mem_stage_reg.order = order;
@@ -114,7 +114,10 @@ import rv32i_types::*;
         ex_mem_stage_reg.alu_out = alu_out_grab;
         ex_mem_stage_reg.br_en = {31'd0, br_en_grab};
         ex_mem_stage_reg.u_imm = u_imm;
+        ex_mem_stage_reg.rs1_v = rs1_v;
         ex_mem_stage_reg.rs2_v = rs2_v;
+        ex_mem_stage_reg.rs1_s = rs1_s;
+        ex_mem_stage_reg.rs2_s = rs2_s;
         ex_mem_stage_reg.rd_s = rd_s;   
     end 
 

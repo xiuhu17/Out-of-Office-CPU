@@ -12,6 +12,7 @@ import rv32i_types::*;
     input   logic           wb_regf_we
 );  
 
+    logic               valid;
     logic   [31:0]      inst;
     logic   [31:0]      pc;
     logic   [63:0]      order;
@@ -30,12 +31,12 @@ import rv32i_types::*;
     logic   [4:0]       rs1_s;
     logic   [4:0]       rs2_s;
     logic   [4:0]       rd_s;
-
     logic   [2:0]       funct3;
     logic   [6:0]       funct7;
     logic   [6:0]       opcode;
 
     always_comb begin
+        valid = if_id_stage_reg.valid;
         inst = if_id_stage_reg.inst;
         pc = if_id_stage_reg.pc;
         order = if_id_stage_reg.order;
@@ -174,6 +175,7 @@ import rv32i_types::*;
     end 
 
     always_comb begin 
+        id_ex_stage_reg.valid = valid;
         id_ex_stage_reg.inst = inst;
         id_ex_stage_reg.pc = pc;
         id_ex_stage_reg.order = order;

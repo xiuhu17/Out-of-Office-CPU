@@ -7,13 +7,12 @@ import rv32i_types::*;
     output      logic           wb_regf_we
 );
 
+    logic               valid;
     logic   [31:0]      inst;
     logic   [31:0]      pc;
     logic   [63:0]      order;
     logic               is_stall;
-
     wb_signal_t         wb_signal;
-    
     // value
     logic   [31:0]      alu_out;
     logic   [31:0]      br_en;
@@ -22,11 +21,18 @@ import rv32i_types::*;
     logic   [31:0]      lb;
     logic   [31:0]      lbu;
     logic   [31:0]      lh;
-    logic   [31:0]      lhu;
-    logic   [4:0]       rd_s; 
+    logic   [31:0]      lhu; 
+    logic   [31:0]      rs1_v;
+    logic   [31:0]      rs2_v;
+    logic   [4:0]       rs1_s;
+    logic   [4:0]       rs2_s;
+    logic   [4:0]       rd_s;
+
     logic   [31:0]      wb_rd_v_grab;
 
+
     always_comb begin
+        valid = mem_wb_stage_reg.valid;
         inst = mem_wb_stage_reg.inst;
         pc = mem_wb_stage_reg.pc;
         order = mem_wb_stage_reg.order;
@@ -41,6 +47,10 @@ import rv32i_types::*;
         lh = mem_wb_stage_reg.lh;
         lhu = mem_wb_stage_reg.lhu;
         rd_s = mem_wb_stage_reg.rd_s;
+        rs1_v = mem_wb_stage_reg.rs1_v;
+        rs2_v = mem_wb_stage_reg.rs2_v;
+        rs1_s = mem_wb_stage_reg.rs1_s;
+        rs2_s = mem_wb_stage_reg.rs2_s;
     end 
 
     always_comb begin 
@@ -62,6 +72,7 @@ import rv32i_types::*;
         wb_rd_s = rd_s;
         wb_rd_v = wb_rd_v_grab;
         wb_regf_we = wb_signal.regf_we;
+        valid = 1'b1;
     end 
 
 endmodule

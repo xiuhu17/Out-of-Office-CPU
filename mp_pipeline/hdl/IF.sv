@@ -83,5 +83,6 @@ import rv32i_types::*;
 
     assign if_id_stage_reg.order = order;
     assign if_id_stage_reg.pc = pc;
+    assign if_id_stage_reg.valid = 1'b0;
 
 endmodule
