@@ -34,9 +34,28 @@ module top_tb;
         .dmem_rmask     (mem_itf_d.rmask),
         .dmem_wmask     (mem_itf_d.wmask),
         .dmem_rdata     (mem_itf_d.rdata),
-        .dmem_wdata     (mem_itf_d.wdata),
-        .dmem_resp      (mem_itf_d.resp)
+        .dmem_wdata     (mem_itf_d.wdata)
+        // ,.dmem_resp      (mem_itf_d.resp)
     );
+
+    // always_comb begin 
+    //     mon_itf.valid = dut.wb_stage.valid;
+    //     mon_itf.order = dut.wb_stage.order;
+    //     mon_itf.inst = dut.wb_stage.inst;
+    //     mon_itf.rs1_addr = dut.wb_stage.rs1_s;
+    //     mon_itf.rs2_addr = dut.wb_stage.rs2_s;
+    //     mon_itf.rs1_rdata = dut.wb_stage.rs1_v;
+    //     mon_itf.rs2_rdata = dut.wb_stage.rs2_v;
+    //     mon_itf.rd_addr = dut.wb_stage.rd_s;
+    //     mon_itf.rd_wdata = dut.wb_stage.wb_rd_v_grab;
+    //     mon_itf.pc_rdata = dut.wb_stage.pc;
+    //     mon_itf.pc_wdata = dut.wb_stage.next_pc;
+    //     mon_itf.mem_addr = dut.wb_stage.mem_addr;
+    //     mon_itf.mem_rmask = dut.wb_stage.mem_rmask;
+    //     mon_itf.mem_wmask = dut.wb_stage.mem_wmask;
+    //     mon_itf.mem_rdata = dut.wb_stage.mem_rdata;
+    //     mon_itf.mem_wdata = dut.wb_stage.mem_wdata;
+    // end 
 
     `include "../../hvl/rvfi_reference.svh"
 

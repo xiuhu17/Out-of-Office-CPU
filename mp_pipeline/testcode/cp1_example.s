@@ -16,5 +16,6 @@ _start:
     addi x3, x1, 8  # x3 <= x1 + 8
 
     # Add your own test cases here!
+    addi x1, x0, 4  # x1 <= 4
 
     slti x0, x0, -256 # this is the magic instruction to end the simulation

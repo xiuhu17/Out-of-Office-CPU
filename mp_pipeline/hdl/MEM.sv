@@ -1,15 +1,12 @@
 module MEM_Stage
 import rv32i_types::*;
 (
-    input logic clk,
-    input logic rst,
 
     output  logic   [31:0]  dmem_addr,
     output  logic   [3:0]   dmem_rmask,
     output  logic   [3:0]   dmem_wmask,
     input   logic   [31:0]  dmem_rdata,
     output  logic   [31:0]  dmem_wdata,
-    input   logic           dmem_resp,
 
     input   ex_mem_stage_reg_t ex_mem_stage_reg,
     output  mem_wb_stage_reg_t mem_wb_stage_reg
@@ -87,7 +84,7 @@ import rv32i_types::*;
         mem_wb_stage_reg.mem_addr = ex_mem_stage_reg.mem_addr;
         mem_wb_stage_reg.mem_rmask = ex_mem_stage_reg.mem_rmask;
         mem_wb_stage_reg.mem_wmask = ex_mem_stage_reg.mem_wmask;
-        mem_wb_stage_reg.mem_rdata = 'x;
+        mem_wb_stage_reg.mem_rdata = dmem_rdata;
         mem_wb_stage_reg.mem_wdata = ex_mem_stage_reg.mem_wdata;
     end 
 

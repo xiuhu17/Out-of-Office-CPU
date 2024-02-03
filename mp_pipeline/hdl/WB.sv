@@ -30,15 +30,14 @@ import rv32i_types::*;
     logic   [31:0]      mem_addr;
     logic   [3:0]       mem_rmask;
     logic   [3:0]       mem_wmask;
-    logic   [3:0]       mem_rdata;
-    logic   [3:0]       mem_wdata;
+    logic   [31:0]       mem_rdata;
+    logic   [31:0]       mem_wdata;
 
     logic   [31:0]      wb_rd_v_grab;
     logic   [31:0]      next_pc;
 
 
     always_comb begin
-        valid = mem_wb_stage_reg.valid;
         inst = mem_wb_stage_reg.inst;
         pc = mem_wb_stage_reg.pc;
         order = mem_wb_stage_reg.order;
@@ -65,11 +64,22 @@ import rv32i_types::*;
     end 
 
     always_comb begin 
+        valid = '0;
         wb_rd_v_grab = 'x;
-        case (wb_signal.regf_m_sel)
-            alu_out_wb:         wb_rd_v_grab = alu_out;
-            br_en_wb:           wb_rd_v_grab = br_en;
-            u_imm_wb:           wb_rd_v_grab = u_imm;
+        if (pc != 0) begin 
+            case (wb_signal.regf_m_sel)
+            alu_out_wb: begin
+                wb_rd_v_grab = alu_out;
+                valid = '1;
+            end 
+            br_en_wb:   begin 
+                wb_rd_v_grab = br_en;
+                valid = '1;
+            end 
+            u_imm_wb:   begin       
+                wb_rd_v_grab = u_imm;
+                valid = '1;
+            end 
             lw_wb:              wb_rd_v_grab = lw;
             pc_plus4_wb:        wb_rd_v_grab = pc + 4;
             lb_wb:              wb_rd_v_grab = lb;
@@ -77,14 +87,13 @@ import rv32i_types::*;
             lh_wb:              wb_rd_v_grab = lh;
             lhu_wb:             wb_rd_v_grab = lhu;
         endcase
+        end 
     end 
 
     always_comb begin
         wb_rd_s = rd_s;
         wb_rd_v = wb_rd_v_grab;
         wb_regf_we = wb_signal.regf_we;
-        valid = 1'b1;
         next_pc = pc + 'd4;
     end 
-
 endmodule

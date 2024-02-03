@@ -27,7 +27,7 @@ import rv32i_types::*;
     logic   [31:0]      mem_addr;
     logic   [3:0]       mem_rmask;
     logic   [3:0]       mem_wmask;
-    logic   [3:0]       mem_wdata;
+    logic   [31:0]       mem_wdata;
 
 
     // value
@@ -52,10 +52,10 @@ import rv32i_types::*;
         rs1_s = id_ex_stage_reg.rs1_s;
         rs2_s = id_ex_stage_reg.rs2_s;
         rd_s = id_ex_stage_reg.rd_s;
-        mem_addr = 'x;
-        mem_rmask = 'x;
-        mem_wmask = 'x;
-        mem_wdata = 'x;
+        mem_addr = '0;
+        mem_rmask = '0;
+        mem_wmask = '0;
+        mem_wdata = '0;
     end 
 
 

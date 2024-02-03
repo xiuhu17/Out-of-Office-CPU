@@ -27,8 +27,9 @@ import rv32i_types::*;
         if (rst) begin 
             curr_state <= s_reset;
             pc <= 32'h60000000;
-            order <= 0;
+            order <= '0;
         end else begin 
+            curr_state <= next_state;
             if (pc_en) begin 
                 pc <= next_pc;
                 order <= order + 'd1;

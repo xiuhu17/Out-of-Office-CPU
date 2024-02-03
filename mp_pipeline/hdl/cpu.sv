@@ -13,8 +13,7 @@ import rv32i_types::*;
     output  logic   [3:0]   dmem_rmask,
     output  logic   [3:0]   dmem_wmask,
     input   logic   [31:0]  dmem_rdata,
-    output  logic   [31:0]  dmem_wdata,
-    input   logic           dmem_resp
+    output  logic   [31:0]  dmem_wdata
 );
 
 
@@ -79,14 +78,11 @@ import rv32i_types::*;
     end
 
     MEM_Stage mem_stage(
-        .clk(clk),
-        .rst(rst),
         .dmem_addr(dmem_addr),
         .dmem_rmask(dmem_rmask),
         .dmem_wmask(dmem_wmask),
         .dmem_rdata(dmem_rdata),
         .dmem_wdata(dmem_wdata),
-        .dmem_resp(dmem_resp),
         .ex_mem_stage_reg(curr_ex_mem_stage_reg),
         .mem_wb_stage_reg(next_mem_wb_stage_reg)
     );

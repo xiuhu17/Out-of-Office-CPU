@@ -171,22 +171,22 @@ package rv32i_types;
 
     typedef struct packed {
         // signal for alu
-        alu_m1_sel_t        alu_m1_sel;
-        alu_m2_sel_t        alu_m2_sel;
-        alu_ops_t           alu_ops;
+        logic                   alu_m1_sel;
+        logic [2:0]             alu_m2_sel;
+        logic [2:0]             alu_ops;
         // signal for cmp
         // default is rs1_v
-        cmp_m_sel_t         cmp_m_sel;
-        cmp_ops_t           cmp_ops;
+        logic                   cmp_m_sel;
+        logic [2:0]             cmp_ops;
     }ex_signal_t;
     typedef struct packed {
         logic               MemRead;
         logic               MemWrite;
-        load_ops_t          load_ops;
-        store_ops_t         store_ops;
+        logic [2:0]          load_ops;
+        logic [2:0]         store_ops;
     }mem_signal_t;
     typedef struct packed {
-        regf_m_sel_t        regf_m_sel;
+        logic [3:0]       regf_m_sel;
         logic               regf_we;
     }wb_signal_t;
 
