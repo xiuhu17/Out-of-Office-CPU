@@ -27,7 +27,7 @@ module EX_Stage(
 
     // value
     logic   [31:0]      alu_out_grab;
-    logic   [31:0]      br_en_grab;
+    logic               br_en_grab;
 
     always_comb begin 
         inst = id_ex_stage_reg.inst;
@@ -54,7 +54,7 @@ module EX_Stage(
     always_comb begin 
         alu_m1_sel_grab = 'x;
         case (ex_signal.alu_m1_sel)
-            rs1_value_alu_ex: alu_m1_sel_grab = rs1_v;
+            rs1_v_alu_ex: alu_m1_sel_grab = rs1_v;
             pc_out_alu_ex: alu_m1_sel_grab = pc;
         endcase
     end 
@@ -69,7 +69,7 @@ module EX_Stage(
             b_imm_alu_ex: alu_m2_sel_grab = b_imm;  
             s_imm_alu_ex: alu_m2_sel_grab = s_imm;  
             j_imm_alu_ex: alu_m2_sel_grab = j_imm;
-            rs2_value_alu_ex: alu_m2_sel_grab = rs2_v;
+            rs2_v_alu_ex: alu_m2_sel_grab = rs2_v;
         endcase
     end 
 
@@ -78,7 +78,7 @@ module EX_Stage(
     always_comb begin
         cmp_m_sel_grab = 'x;
         case (ex_signal.cmp_m_sel) 
-            rs2_value_cmp_ex: cmp_m_sel_grab = rs2_v;
+            rs2_v_cmp_ex: cmp_m_sel_grab = rs2_v;
             i_imm_cmp_ex: cmp_m_sel_grab = i_imm;
         endcase
     end 
@@ -110,7 +110,7 @@ module EX_Stage(
         ex_mem_stage_reg.wb_signal = wb_signal;
 
         ex_mem_stage_reg.alu_out = alu_out_grab;
-        ex_mem_stage_reg.br_en = br_en_grab;
+        ex_mem_stage_reg.br_en = {31'd0, br_en_grab};
         ex_mem_stage_reg.u_imm = u_imm;
         ex_mem_stage_reg.rs2_v = rs2_v;
         ex_mem_stage_reg.rd_s = rd_s;   

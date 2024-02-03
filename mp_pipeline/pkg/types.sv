@@ -130,7 +130,7 @@ package rv32i_types;
 
 
     typedef enum bit {
-        rs1_value_alu_ex = 1'b0,
+        rs1_v_alu_ex = 1'b0,
         pc_out_alu_ex = 1'b1
     } alu_m1_sel_t;
     typedef enum bit [2:0] {
@@ -139,10 +139,10 @@ package rv32i_types;
         b_imm_alu_ex   = 3'b010,
         s_imm_alu_ex   = 3'b011,
         j_imm_alu_ex   = 3'b100,
-        rs2_value_alu_ex = 3'b101
+        rs2_v_alu_ex = 3'b101
     } alu_m2_sel_t;
     typedef enum bit {
-        rs2_value_cmp_ex = 1'b0,
+        rs2_v_cmp_ex = 1'b0,
         i_imm_cmp_ex = 1'b1
     } cmp_m_sel_t;
     typedef enum bit [2:0] {
@@ -251,7 +251,7 @@ package rv32i_types;
         logic   [63:0]      order;
         logic               is_stall;
 
-        wb_signal_t     wb_signal;
+        wb_signal_t         wb_signal;
         
         // value
         logic   [31:0]      alu_out;
