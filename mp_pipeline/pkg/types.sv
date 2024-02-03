@@ -257,7 +257,11 @@ package rv32i_types;
         logic   [31:0]      alu_out;
         logic   [31:0]      br_en;
         logic   [31:0]      u_imm;
-        logic   [31:0]      rs2_v;
+        logic   [31:0]      lw;
+        logic   [31:0]      lb;
+        logic   [31:0]      lbu;
+        logic   [31:0]      lh;
+        logic   [31:0]      lhu;
         logic   [4:0]       rd_s;
     } mem_wb_stage_reg_t;
 
