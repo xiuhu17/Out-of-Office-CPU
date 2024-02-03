@@ -1,4 +1,6 @@
-module EX_Stage(
+module EX_Stage
+import rv32i_types::*;
+(
     input   id_ex_stage_reg_t id_ex_stage_reg,
     output  ex_mem_stage_reg_t ex_mem_stage_reg
 );  
@@ -96,7 +98,7 @@ module EX_Stage(
         .cmpop(ex_signal.cmp_ops),
         .a(rs1_v),
         .b(cmp_m_sel_grab),
-        .f(br_en_grab)
+        .br_en(br_en_grab)
     );
 
 

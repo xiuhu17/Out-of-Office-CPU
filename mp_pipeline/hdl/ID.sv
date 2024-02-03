@@ -1,4 +1,6 @@
-module ID_Stage(
+module ID_Stage
+import rv32i_types::*;
+(
     input   logic           clk,
     input   logic           rst,
     input   if_id_stage_reg_t if_id_stage_reg,

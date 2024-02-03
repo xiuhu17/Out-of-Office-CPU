@@ -71,7 +71,7 @@ package rv32i_types;
         load_opcode  = 7'b0000011, // load (I type)
         store_opcode = 7'b0100011, // store (S type)
         imm_opcode   = 7'b0010011, // arith ops with register/immediate operands (I type)
-        reg_opcode   = 7'b0110011  // arith ops with register operands (R type)
+        reg_opcode   = 7'b0110011,  // arith ops with register operands (R type)
         csr_opcode   = 7'b1110011  // I control and status register 
     } rv32i_opcode;
     typedef enum bit [2:0] {

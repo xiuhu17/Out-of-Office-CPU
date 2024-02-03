@@ -50,7 +50,7 @@ import rv32i_types::*;
             s_fetching: begin
                 imem_addr = pc;
                 imem_rmask = 4'b1111;
-                if (mem_resp) begin 
+                if (imem_resp) begin 
                     load_ir = 1'b1;
                 end     
             end
@@ -84,4 +84,4 @@ import rv32i_types::*;
     assign if_id_stage_reg.order = order;
     assign if_id_stage_reg.pc = pc;
 
-endmodule;
+endmodule

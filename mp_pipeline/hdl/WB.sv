@@ -1,4 +1,6 @@
-module WB_Stage(
+module WB_Stage
+import rv32i_types::*;
+(
     input       mem_wb_stage_reg_t mem_wb_stage_reg,
     output      logic [4:0]     wb_rd_s,
     output      logic [31:0]    wb_rd_v,

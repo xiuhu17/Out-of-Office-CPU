@@ -1,6 +1,8 @@
-module MEM_Stage(
-    input clk,
-    input rst,
+module MEM_Stage
+import rv32i_types::*;
+(
+    input logic clk,
+    input logic rst,
 
     output  logic   [31:0]  dmem_addr,
     output  logic   [3:0]   dmem_rmask,
@@ -68,5 +70,11 @@ module MEM_Stage(
         mem_wb_stage_reg.lhu = lhu;
         mem_wb_stage_reg.rd_s = rd_s;
     end 
+
+
+    assign  dmem_addr = 'x;
+    assign  dmem_rmask = 'x;
+    assign  dmem_wmask = 'x;
+    assign  dmem_wdata = 'x;
 
 endmodule
