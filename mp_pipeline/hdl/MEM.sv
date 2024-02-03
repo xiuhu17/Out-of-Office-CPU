@@ -53,11 +53,15 @@ import rv32i_types::*;
         rs1_s = ex_mem_stage_reg.rs1_s;
         rs2_s = ex_mem_stage_reg.rs2_s;
         rd_s = ex_mem_stage_reg.rd_s;
-        lw = '0;
-        lb = '0;
-        lbu = '0;
-        lh = '0;
-        lhu = '0;
+        lw = 'x;
+        lb = 'x;
+        lbu = 'x;
+        lh = 'x;
+        lhu = 'x;
+        dmem_addr = ex_mem_stage_reg.mem_addr;
+        dmem_rmask = ex_mem_stage_reg.mem_rmask;
+        dmem_wmask = ex_mem_stage_reg.mem_wmask;
+        dmem_wdata =  ex_mem_stage_reg.mem_wdata;
     end 
 
     always_comb begin 
@@ -80,12 +84,11 @@ import rv32i_types::*;
         mem_wb_stage_reg.rs1_s = rs1_s;
         mem_wb_stage_reg.rs2_s = rs2_s;
         mem_wb_stage_reg.rd_s = rd_s;
+        mem_wb_stage_reg.mem_addr = ex_mem_stage_reg.mem_addr;
+        mem_wb_stage_reg.mem_rmask = ex_mem_stage_reg.mem_rmask;
+        mem_wb_stage_reg.mem_wmask = ex_mem_stage_reg.mem_wmask;
+        mem_wb_stage_reg.mem_rdata = 'x;
+        mem_wb_stage_reg.mem_wdata = ex_mem_stage_reg.mem_wdata;
     end 
-
-
-    assign  dmem_addr = 'x;
-    assign  dmem_rmask = 'x;
-    assign  dmem_wmask = 'x;
-    assign  dmem_wdata = 'x;
 
 endmodule

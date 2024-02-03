@@ -24,6 +24,11 @@ import rv32i_types::*;
     logic   [4:0]       rs1_s;
     logic   [4:0]       rs2_s;
     logic   [4:0]       rd_s;
+    logic   [31:0]      mem_addr;
+    logic   [3:0]       mem_rmask;
+    logic   [3:0]       mem_wmask;
+    logic   [3:0]       mem_wdata;
+
 
     // value
     logic   [31:0]      alu_out_grab;
@@ -47,6 +52,10 @@ import rv32i_types::*;
         rs1_s = id_ex_stage_reg.rs1_s;
         rs2_s = id_ex_stage_reg.rs2_s;
         rd_s = id_ex_stage_reg.rd_s;
+        mem_addr = 'x;
+        mem_rmask = 'x;
+        mem_wmask = 'x;
+        mem_wdata = 'x;
     end 
 
 
@@ -119,6 +128,10 @@ import rv32i_types::*;
         ex_mem_stage_reg.rs1_s = rs1_s;
         ex_mem_stage_reg.rs2_s = rs2_s;
         ex_mem_stage_reg.rd_s = rd_s;   
+        ex_mem_stage_reg.mem_addr = mem_addr;
+        ex_mem_stage_reg.mem_rmask = mem_rmask;
+        ex_mem_stage_reg.mem_wmask = mem_wmask;
+        ex_mem_stage_reg.mem_wdata = mem_wdata;
     end 
 
 endmodule

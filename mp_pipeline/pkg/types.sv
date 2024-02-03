@@ -250,6 +250,11 @@ package rv32i_types;
         logic   [4:0]       rs1_s;
         logic   [4:0]       rs2_s;
         logic   [4:0]       rd_s;
+
+        logic   [31:0]      mem_addr;
+        logic   [3:0]       mem_rmask;
+        logic   [3:0]       mem_wmask;
+        logic   [31:0]      mem_wdata;
     } ex_mem_stage_reg_t;
     typedef struct packed {
         logic               valid;
@@ -274,6 +279,13 @@ package rv32i_types;
         logic   [4:0]       rs1_s;
         logic   [4:0]       rs2_s;
         logic   [4:0]       rd_s;
+
+
+        logic   [31:0]      mem_addr;
+        logic   [3:0]       mem_rmask;
+        logic   [3:0]       mem_wmask;
+        logic   [31:0]      mem_rdata;
+        logic   [31:0]      mem_wdata;
     } mem_wb_stage_reg_t;
 
 endpackage

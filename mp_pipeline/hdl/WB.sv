@@ -27,8 +27,14 @@ import rv32i_types::*;
     logic   [4:0]       rs1_s;
     logic   [4:0]       rs2_s;
     logic   [4:0]       rd_s;
+    logic   [31:0]      mem_addr;
+    logic   [3:0]       mem_rmask;
+    logic   [3:0]       mem_wmask;
+    logic   [3:0]       mem_rdata;
+    logic   [3:0]       mem_wdata;
 
     logic   [31:0]      wb_rd_v_grab;
+    logic   [31:0]      next_pc;
 
 
     always_comb begin
@@ -51,6 +57,11 @@ import rv32i_types::*;
         rs2_v = mem_wb_stage_reg.rs2_v;
         rs1_s = mem_wb_stage_reg.rs1_s;
         rs2_s = mem_wb_stage_reg.rs2_s;
+        mem_addr = mem_wb_stage_reg.mem_addr;
+        mem_rmask = mem_wb_stage_reg.mem_rmask;
+        mem_wmask = mem_wb_stage_reg.mem_wmask;
+        mem_rdata = mem_wb_stage_reg.mem_rdata;
+        mem_wdata = mem_wb_stage_reg.mem_wdata;
     end 
 
     always_comb begin 
@@ -73,6 +84,7 @@ import rv32i_types::*;
         wb_rd_v = wb_rd_v_grab;
         wb_regf_we = wb_signal.regf_we;
         valid = 1'b1;
+        next_pc = pc + 'd4;
     end 
 
 endmodule
