@@ -235,19 +235,14 @@ package rv32i_types;
         logic   [63:0]      order;
         logic               is_stall;
 
-        mem_signal_t    mem_signal;
-        wb_signal_t     wb_signal;
+        mem_signal_t        mem_signal;
+        wb_signal_t         wb_signal;
         
         // value
-        logic   [31:0]      i_imm;
-        logic   [31:0]      s_imm;
-        logic   [31:0]      b_imm;
+        logic   [31:0]      alu_out;
+        logic   [31:0]      br_en;
         logic   [31:0]      u_imm;
-        logic   [31:0]      j_imm;
-        logic   [31:0]      rs1_v;
         logic   [31:0]      rs2_v;
-        logic   [4:0]       rs1_s;
-        logic   [4:0]       rs2_s;
         logic   [4:0]       rd_s;
     } ex_mem_stage_reg_t;
     typedef struct packed {
@@ -259,18 +254,11 @@ package rv32i_types;
         wb_signal_t     wb_signal;
         
         // value
-        logic   [31:0]      i_imm;
-        logic   [31:0]      s_imm;
-        logic   [31:0]      b_imm;
+        logic   [31:0]      alu_out;
+        logic   [31:0]      br_en;
         logic   [31:0]      u_imm;
-        logic   [31:0]      j_imm;
-        logic   [31:0]      rs1_v;
         logic   [31:0]      rs2_v;
-        logic   [4:0]       rs1_s;
-        logic   [4:0]       rs2_s;
         logic   [4:0]       rd_s;
     } mem_wb_stage_reg_t;
-
-
 
 endpackage
