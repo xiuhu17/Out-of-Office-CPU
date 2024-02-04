@@ -66,7 +66,7 @@ import rv32i_types::*;
     always_comb begin 
         valid = '0;
         wb_rd_v_grab = 'x;
-        if (pc != 0) begin 
+        if (mem_wb_stage_reg.pc != '0) begin 
             case (wb_signal.regf_m_sel)
             alu_out_wb: begin
                 wb_rd_v_grab = alu_out;

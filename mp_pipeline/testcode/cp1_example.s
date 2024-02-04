@@ -16,6 +16,26 @@ _start:
     addi x3, x1, 8  # x3 <= x1 + 8
 
     # Add your own test cases here!
-    addi x1, x0, 4  # x1 <= 4
+    addi x10, x0, 4  # x1 <= 4
+
+    LUI     x9, 0x1F            # Load upper immediate to x1
+    AUIPC   x2, 0x20            # Add PC to immediate, store in x2
+    NOP
+    NOP
+    NOP
+    AUIPC   x2, 0x20            # Add PC to immediate, store in x2
+
+    NOP
+    NOP
+    ADDI    x3, x1, 10          # Add immediate to x1, store in x3
+    NOP
+    NOP
+    AUIPC   x2, 0x20            # Add PC to immediate, store in x2
+
+    NOP
+    NOP
+
+    AUIPC   x2, 0x20            # Add PC to immediate, store in x2
+    
 
     slti x0, x0, -256 # this is the magic instruction to end the simulation

@@ -5,7 +5,6 @@ import rv32i_types::*;
     output  ex_mem_stage_reg_t ex_mem_stage_reg
 );  
 
-    logic              valid;
     logic   [31:0]      inst;
     logic   [31:0]      pc;
     logic   [63:0]      order;
@@ -35,7 +34,6 @@ import rv32i_types::*;
     logic               br_en_grab;
 
     always_comb begin 
-        valid = id_ex_stage_reg.valid;
         inst = id_ex_stage_reg.inst;
         pc = id_ex_stage_reg.pc;
         order = id_ex_stage_reg.order;
@@ -111,7 +109,6 @@ import rv32i_types::*;
 
 
     always_comb begin
-        ex_mem_stage_reg.valid = valid;
         ex_mem_stage_reg.inst = inst;
         ex_mem_stage_reg.pc = pc;
         ex_mem_stage_reg.order = order;

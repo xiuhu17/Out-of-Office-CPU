@@ -6,13 +6,15 @@ import rv32i_types::*;
     input   if_id_stage_reg_t if_id_stage_reg,
     output  id_ex_stage_reg_t id_ex_stage_reg,
 
+    input   logic           imem_resp,
+    input   logic   [31:0]  imem_rdata,
+
     // Control signals, comes from the wb stage
     input   logic [4:0]     wb_rd_s,
     input   logic [31:0]    wb_rd_v,
     input   logic           wb_regf_we
 );  
 
-    logic               valid;
     logic   [31:0]      inst;
     logic   [31:0]      pc;
     logic   [63:0]      order;
@@ -36,21 +38,37 @@ import rv32i_types::*;
     logic   [6:0]       opcode;
 
     always_comb begin
-        valid = if_id_stage_reg.valid;
-        inst = if_id_stage_reg.inst;
-        pc = if_id_stage_reg.pc;
-        order = if_id_stage_reg.order;
-        funct3 = if_id_stage_reg.funct3;
-        funct7 = if_id_stage_reg.funct7;
-        opcode = if_id_stage_reg.opcode;
-        i_imm = if_id_stage_reg.i_imm;
-        s_imm = if_id_stage_reg.s_imm;
-        b_imm = if_id_stage_reg.b_imm;
-        u_imm = if_id_stage_reg.u_imm;
-        j_imm = if_id_stage_reg.j_imm;
-        rs1_s = if_id_stage_reg.rs1_s;
-        rs2_s = if_id_stage_reg.rs2_s;
-        rd_s = if_id_stage_reg.rd_s;
+        if (imem_resp) begin 
+            inst = imem_rdata;
+            pc = if_id_stage_reg.pc;
+            order = if_id_stage_reg.order;
+            funct3 = imem_rdata[14:12];
+            funct7 = imem_rdata[31:25];
+            opcode = imem_rdata[6:0];
+            i_imm = {{21{imem_rdata[31]}}, imem_rdata[30:20]};
+            s_imm = {{21{imem_rdata[31]}}, imem_rdata[30:25], imem_rdata[11:7]};
+            b_imm = {{20{imem_rdata[31]}}, imem_rdata[7], imem_rdata[30:25], imem_rdata[11:8], 1'b0};
+            u_imm = {imem_rdata[31:12], 12'h000};
+            j_imm = {{12{imem_rdata[31]}}, imem_rdata[19:12], imem_rdata[20], imem_rdata[30:21], 1'b0};
+            rs1_s = imem_rdata[19:15];
+            rs2_s = imem_rdata[24:20];
+            rd_s = imem_rdata[11:7];
+        end else begin 
+            inst = 'x;
+            pc = 'x;
+            order = 'x;
+            funct3 = 'x;
+            funct7 = 'x;
+            opcode = 'x;
+            i_imm = 'x;
+            s_imm = 'x;
+            b_imm = 'x;
+            u_imm = 'x;
+            j_imm = 'x;
+            rs1_s = 'x;
+            rs2_s = 'x;
+            rd_s = 'x;
+        end 
     end
 
     regfile regfile(
@@ -175,7 +193,6 @@ import rv32i_types::*;
     end 
 
     always_comb begin 
-        id_ex_stage_reg.valid = valid;
         id_ex_stage_reg.inst = inst;
         id_ex_stage_reg.pc = pc;
         id_ex_stage_reg.order = order;

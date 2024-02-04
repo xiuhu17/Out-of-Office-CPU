@@ -32,8 +32,6 @@ import rv32i_types::*;
         .rst(rst),
         .imem_addr(imem_addr),
         .imem_rmask(imem_rmask),
-        .imem_rdata(imem_rdata),
-        .imem_resp(imem_resp),
         .pc_en(not_stall),
         .if_id_stage_reg(next_if_id_stage_reg)
     );
@@ -51,6 +49,8 @@ import rv32i_types::*;
         .rst(rst),
         .if_id_stage_reg(curr_if_id_stage_reg),
         .id_ex_stage_reg(next_id_ex_stage_reg),
+        .imem_rdata(imem_rdata),
+        .imem_resp(imem_resp),
         .wb_rd_s(wb_rd_s),
         .wb_rd_v(wb_rd_v),
         .wb_regf_we(wb_regf_we)
