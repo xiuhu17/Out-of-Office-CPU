@@ -19,48 +19,27 @@ import rv32i_types::*;
     logic   [31:0]  inst;
     logic           load_ir;
 
-    enum int unsigned {
-        s_reset, s_fetching
-    } curr_state, next_state;
-
     always_ff @( posedge clk ) begin
         if (rst) begin 
-            curr_state <= s_reset;
             pc <= 32'h60000000;
             order <= '0;
         end else begin 
-            curr_state <= next_state;
             if (pc_en) begin 
-                pc <= next_pc;
+                pc <= pc + 'd4;
                 order <= order + 'd1;
             end
         end 
     end
 
-
     // next_state update
     always_comb begin
-        next_state = curr_state;
-        imem_addr = 'x;
-        imem_rmask = 4'b0;
-        load_ir = 1'b0;
-        case (curr_state) 
-            s_reset: begin
-                next_state = s_fetching;
-            end
-            s_fetching: begin
-                imem_addr = pc;
-                imem_rmask = 4'b1111;
-                if (imem_resp) begin 
-                    load_ir = 1'b1;
-                end     
-            end
-        endcase
-    end
-
-    // next_pc update
-    always_comb begin
-        next_pc = pc + 4;
+        imem_addr = pc;
+        imem_rmask = 4'b1111;
+        if (imem_resp) begin 
+            load_ir = 1'b1;
+        end else begin 
+            load_ir = 1'b0;
+        end
     end
 
     ir ir (
@@ -82,8 +61,8 @@ import rv32i_types::*;
         .rd_s(if_id_stage_reg.rd_s)
     );
 
-    assign if_id_stage_reg.order = order;
-    assign if_id_stage_reg.pc = pc;
+    assign if_id_stage_reg.order = order - 'd2;
+    assign if_id_stage_reg.pc = pc - 'd8;
     assign if_id_stage_reg.valid = 1'b0;
 
 endmodule
