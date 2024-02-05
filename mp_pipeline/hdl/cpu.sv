@@ -13,7 +13,8 @@ import rv32i_types::*;
     output  logic   [3:0]   dmem_rmask,
     output  logic   [3:0]   dmem_wmask,
     input   logic   [31:0]  dmem_rdata,
-    output  logic   [31:0]  dmem_wdata
+    output  logic   [31:0]  dmem_wdata,
+    input   logic           dmem_resp
 );
 
 
@@ -84,7 +85,8 @@ import rv32i_types::*;
         .dmem_rdata(dmem_rdata),
         .dmem_wdata(dmem_wdata),
         .ex_mem_stage_reg(curr_ex_mem_stage_reg),
-        .mem_wb_stage_reg(next_mem_wb_stage_reg)
+        .mem_wb_stage_reg(next_mem_wb_stage_reg),
+        .dmem_resp(dmem_resp)
     );
 
     always_ff @ (posedge clk ) begin 

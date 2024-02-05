@@ -35,7 +35,7 @@ module top_tb;
         .dmem_wmask     (mem_itf_d.wmask),
         .dmem_rdata     (mem_itf_d.rdata),
         .dmem_wdata     (mem_itf_d.wdata)
-        // ,.dmem_resp      (mem_itf_d.resp)
+        ,.dmem_resp      (mem_itf_d.resp)
     );
 
 
