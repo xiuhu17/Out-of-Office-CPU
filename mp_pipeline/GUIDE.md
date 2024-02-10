@@ -326,7 +326,7 @@ module random_tb
 import rv32i_types::*;
 (
   mem_itf.mem itf_i,
-  mem_itf.mem itf_d`,
+  mem_itf.mem itf_d,
 );
 ```
 

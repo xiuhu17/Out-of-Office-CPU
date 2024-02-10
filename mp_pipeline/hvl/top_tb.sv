@@ -6,7 +6,6 @@ module top_tb;
     int clock_half_period_ps = 5;
 
     bit clk;
-    initial clk = 1'b1;
     always #(clock_half_period_ps) clk = ~clk;
 
     bit rst;

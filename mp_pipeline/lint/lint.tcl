@@ -3,8 +3,6 @@ read_file -type awl lint.awl
 
 set_option top cpu
 set_option language_mode verilog
-set_option designread_enable_synthesis no
-set_option designread_disable_flatten no
 set_option enableSV09 yes
 set_option enable_save_restore no
 

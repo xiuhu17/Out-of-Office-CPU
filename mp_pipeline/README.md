@@ -161,7 +161,8 @@ For CP3, the point breakdown is as follows:
   akin to the constrained random testbench you wrote for part 3 of `mp_verif`, so we recommend utilizing that code!
 - **CoreMark**: CoreMark is a microprocessor benchmark program which runs a large set of RV32I instructions.
 
-If your design contains any warnings from lint/compile/synthesis, your final score will be multiplied by 0.9.
+If your design contains any warnings from lint/compile/synthesis, your score at CP2 and CP3 will be multiplied by 0.9.
+SpyGlass lints, DC warnings, and VCS warnings/lints do not result in deductions for CP1.
 
 **Failure to satisfy any of these four requirements will result in a 0 on the entire MP:**
 - Area <= 20,000 um<sup>2</sup>

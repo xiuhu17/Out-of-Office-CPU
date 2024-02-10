@@ -10,6 +10,9 @@ module ordinary_dual_port #(
     logic [31:0] tag_i [logic [2:0]];
     logic [31:0] tag_d [logic [2:0]];
 
+    int i_delay;
+    int d_delay;
+
     always @(posedge itf_i.clk iff itf_i.rst) begin
         internal_memory_array.delete();
         for (int i = 0; i < 8; i++) begin
@@ -85,7 +88,13 @@ module ordinary_dual_port #(
             begin
                 if (tag_i[i_cached_addr[4:2]] != i_cached_addr) begin
                     itf_i.resp <= 1'b0;
-                    repeat (5) @(posedge itf_i.clk);
+                    std::randomize(i_delay) with {
+                        i_delay dist {
+                            [5:7] := 80,
+                            [8:15] := 20
+                        };
+                    };
+                    repeat (i_delay) @(posedge itf_i.clk);
                     tag_i[i_cached_addr[4:2]] = i_cached_addr;
                 end
                 for (int i = 0; i < 4; i++) begin
@@ -119,7 +128,13 @@ module ordinary_dual_port #(
             begin
                 if (tag_d[d_cached_addr[4:2]] != d_cached_addr) begin
                     itf_d.resp <= 1'b0;
-                    repeat (5) @(posedge itf_d.clk);
+                    std::randomize(d_delay) with {
+                        d_delay dist {
+                            [5:7] := 80,
+                            [8:15] := 20
+                        };
+                    };
+                    repeat (d_delay) @(posedge itf_d.clk);
                     tag_d[d_cached_addr[4:2]] = d_cached_addr;
                 end
                 for (int i = 0; i < 4; i++) begin
