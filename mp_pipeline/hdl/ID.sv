@@ -183,20 +183,38 @@ import rv32i_types::*;
                         ex_signal.alu_ops = funct3;
                         wb_signal.regf_m_sel = alu_out_wb;
                     end 
-
                 endcase 
-
             end
-
+            load_opcode: begin 
+                ex_signal.alu_m1_sel = rs1_v_alu_ex;
+                ex_signal.alu_m2_sel = i_imm_alu_ex;
+                ex_signal.alu_ops = add_alu_op;
+                mem_signal.MemRead = '1;
+                mem_signal.load_ops = funct3;
+                wb_signal.regf_we = '1;
+                case (funct3)  
+                    lb_funct3:  wb_signal.regf_m_sel = lb_wb;
+                    lh_funct3:  wb_signal.regf_m_sel = lh_wb;
+                    lw_funct3:  wb_signal.regf_m_sel = lw_wb;
+                    lbu_funct3: wb_signal.regf_m_sel = lbu_wb;
+                    lhu_funct3: wb_signal.regf_m_sel = lhu_wb;   
+                endcase 
+            end
+            store_opcode: begin 
+                ex_signal.alu_m1_sel = rs1_v_alu_ex;
+                ex_signal.alu_m2_sel = s_imm_alu_ex;
+                ex_signal.alu_ops = add_alu_op;
+                mem_signal.MemWrite = '1;
+                mem_signal.store_ops = funct3;
+            end 
         endcase
-
     end 
 
     always_comb begin 
         id_ex_stage_reg.inst = inst;
         id_ex_stage_reg.pc = pc;
         id_ex_stage_reg.order = order;
-        id_ex_stage_reg.is_stall = 1'b0; // default is not stall
+        id_ex_stage_reg.is_stall = 1'b0; // default is not stall ///////////////
         id_ex_stage_reg.ex_signal = ex_signal;
         id_ex_stage_reg.mem_signal = mem_signal;
         id_ex_stage_reg.wb_signal = wb_signal;

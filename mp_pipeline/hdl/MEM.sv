@@ -5,10 +5,8 @@ import rv32i_types::*;
     output  logic   [31:0]  dmem_addr,
     output  logic   [3:0]   dmem_rmask,
     output  logic   [3:0]   dmem_wmask,
-    input   logic   [31:0]  dmem_rdata,
     output  logic   [31:0]  dmem_wdata,
-    input   logic           dmem_resp, 
-
+ 
     input   ex_mem_stage_reg_t ex_mem_stage_reg,
     output  mem_wb_stage_reg_t mem_wb_stage_reg
 );
@@ -49,11 +47,6 @@ import rv32i_types::*;
         rs1_s = ex_mem_stage_reg.rs1_s;
         rs2_s = ex_mem_stage_reg.rs2_s;
         rd_s = ex_mem_stage_reg.rd_s;
-        lw = 'x;
-        lb = 'x;
-        lbu = 'x;
-        lh = 'x;
-        lhu = 'x;
         dmem_addr = ex_mem_stage_reg.mem_addr;
         dmem_rmask = ex_mem_stage_reg.mem_rmask;
         dmem_wmask = ex_mem_stage_reg.mem_wmask;
@@ -65,15 +58,11 @@ import rv32i_types::*;
         mem_wb_stage_reg.pc = pc;
         mem_wb_stage_reg.order = order;
         mem_wb_stage_reg.is_stall = 1'b0; // default value
+        mem_wb_stage_reg.mem_signal = mem_signal;
         mem_wb_stage_reg.wb_signal = wb_signal;
         mem_wb_stage_reg.alu_out = alu_out;
         mem_wb_stage_reg.br_en = br_en;
         mem_wb_stage_reg.u_imm = u_imm;
-        mem_wb_stage_reg.lw = lw;
-        mem_wb_stage_reg.lb = lb;
-        mem_wb_stage_reg.lbu = lbu;
-        mem_wb_stage_reg.lh = lh;
-        mem_wb_stage_reg.lhu = lhu;
         mem_wb_stage_reg.rs1_v = rs1_v;
         mem_wb_stage_reg.rs2_v = rs2_v; 
         mem_wb_stage_reg.rs1_s = rs1_s;
@@ -82,11 +71,6 @@ import rv32i_types::*;
         mem_wb_stage_reg.mem_addr = ex_mem_stage_reg.mem_addr;
         mem_wb_stage_reg.mem_rmask = ex_mem_stage_reg.mem_rmask;
         mem_wb_stage_reg.mem_wmask = ex_mem_stage_reg.mem_wmask;
-        if (dmem_resp) begin 
-            mem_wb_stage_reg.mem_rdata = dmem_rdata;
-        end else begin 
-            mem_wb_stage_reg.mem_rdata = 'x;
-        end
         mem_wb_stage_reg.mem_wdata = ex_mem_stage_reg.mem_wdata;
     end 
 

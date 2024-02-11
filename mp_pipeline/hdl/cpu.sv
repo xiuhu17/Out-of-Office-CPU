@@ -82,11 +82,9 @@ import rv32i_types::*;
         .dmem_addr(dmem_addr),
         .dmem_rmask(dmem_rmask),
         .dmem_wmask(dmem_wmask),
-        .dmem_rdata(dmem_rdata),
         .dmem_wdata(dmem_wdata),
         .ex_mem_stage_reg(curr_ex_mem_stage_reg),
-        .mem_wb_stage_reg(next_mem_wb_stage_reg),
-        .dmem_resp(dmem_resp)
+        .mem_wb_stage_reg(next_mem_wb_stage_reg)
     );
 
     always_ff @ (posedge clk ) begin 
@@ -99,6 +97,10 @@ import rv32i_types::*;
 
     WB_Stage wb_stage(
         .mem_wb_stage_reg(curr_mem_wb_stage_reg),
+
+        .dmem_resp(dmem_resp),
+        .dmem_rdata(dmem_rdata),
+
         .wb_rd_s(wb_rd_s),
         .wb_rd_v(wb_rd_v),
         .wb_regf_we(wb_regf_we)

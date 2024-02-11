@@ -2,6 +2,10 @@ module WB_Stage
 import rv32i_types::*;
 (
     input       mem_wb_stage_reg_t mem_wb_stage_reg,
+
+    input   logic           dmem_resp,
+    input   logic   [31:0]  dmem_rdata,
+
     output      logic [4:0]     wb_rd_s,
     output      logic [31:0]    wb_rd_v,
     output      logic           wb_regf_we
@@ -12,6 +16,7 @@ import rv32i_types::*;
     logic   [31:0]      pc;
     logic   [63:0]      order;
     logic               is_stall;
+    mem_signal_t        mem_signal;
     wb_signal_t         wb_signal;
     // value
     logic   [31:0]      alu_out;
@@ -42,15 +47,11 @@ import rv32i_types::*;
         pc = mem_wb_stage_reg.pc;
         order = mem_wb_stage_reg.order;
         is_stall = mem_wb_stage_reg.is_stall;
+        mem_signal = mem_wb_stage_reg.mem_signal;
         wb_signal = mem_wb_stage_reg.wb_signal;
         alu_out = mem_wb_stage_reg.alu_out;
         br_en = mem_wb_stage_reg.br_en;
         u_imm = mem_wb_stage_reg.u_imm;
-        lw = mem_wb_stage_reg.lw;
-        lb = mem_wb_stage_reg.lb;
-        lbu = mem_wb_stage_reg.lbu;
-        lh = mem_wb_stage_reg.lh;
-        lhu = mem_wb_stage_reg.lhu;
         rd_s = mem_wb_stage_reg.rd_s;
         rs1_v = mem_wb_stage_reg.rs1_v;
         rs2_v = mem_wb_stage_reg.rs2_v;
@@ -59,9 +60,28 @@ import rv32i_types::*;
         mem_addr = mem_wb_stage_reg.mem_addr;
         mem_rmask = mem_wb_stage_reg.mem_rmask;
         mem_wmask = mem_wb_stage_reg.mem_wmask;
-        mem_rdata = mem_wb_stage_reg.mem_rdata;
         mem_wdata = mem_wb_stage_reg.mem_wdata;
     end 
+
+    // dmem
+    always_comb begin 
+        mem_rdata = 'x;
+        lb = 'x;
+        lbu = 'x;
+        lh = 'x;
+        lhu = 'x;
+        lw = 'x;
+
+        if (mem_signal.MemRead & dmem_resp) begin
+            case (mem_signal.load_ops)
+                lb_mem: lb = {{24{dmem_rdata[7 +8 * mem_addr[1:0]]}}, dmem_rdata[8 * mem_addr[1:0] +: 8 ]};
+                lbu_mem: lbu = {{24{1'b0}}                          , dmem_rdata[8 * mem_addr[1:0] +: 8 ]};
+                lh_mem: lh = {{16{dmem_rdata[15+16*mem_addr[1]  ]}}, dmem_rdata[16 * mem_addr[1]   +: 16]};
+                lhu_mem: lhu = {{16{1'b0}}                          , dmem_rdata[16*mem_addr[1]   +: 16]};
+                lw_mem: lw = dmem_rdata;
+            endcase
+        end
+    end
 
     always_comb begin 
         valid = '0;
@@ -80,12 +100,27 @@ import rv32i_types::*;
                 wb_rd_v_grab = u_imm;
                 valid = '1;
             end 
-            lw_wb:              wb_rd_v_grab = lw;
+            lw_wb:  begin             
+                wb_rd_v_grab = lw;
+                valid = '1;
+            end
+            lb_wb:  begin            
+                wb_rd_v_grab = lb;
+                valid = '1;
+            end
+            lbu_wb: begin            
+                wb_rd_v_grab = lbu;
+                valid = '1;
+            end
+            lh_wb:  begin            
+                wb_rd_v_grab = lh;
+                valid = '1;
+            end
+            lhu_wb: begin             
+                wb_rd_v_grab = lhu;
+                valid = '1;
+            end
             pc_plus4_wb:        wb_rd_v_grab = pc + 4;
-            lb_wb:              wb_rd_v_grab = lb;
-            lbu_wb:             wb_rd_v_grab = lbu;
-            lh_wb:              wb_rd_v_grab = lh;
-            lhu_wb:             wb_rd_v_grab = lhu;
         endcase
         end 
     end 

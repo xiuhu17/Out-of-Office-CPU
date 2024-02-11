@@ -50,10 +50,6 @@ import rv32i_types::*;
         rs1_s = id_ex_stage_reg.rs1_s;
         rs2_s = id_ex_stage_reg.rs2_s;
         rd_s = id_ex_stage_reg.rd_s;
-        mem_addr = '0;
-        mem_rmask = '0;
-        mem_wmask = '0;
-        mem_wdata = '0;
     end 
 
 
@@ -108,11 +104,40 @@ import rv32i_types::*;
     );
 
 
+    // dmem
+    always_comb begin
+        mem_addr = alu_out_grab;
+        mem_wdata = 'x;
+        mem_rmask = 'x;
+        mem_wmask = 'x;
+
+        case (mem_signal.load_ops) 
+            lb_mem, lbu_mem: mem_rmask = 4'b0001 << mem_addr[1:0];
+            lh_mem, lhu_mem: mem_rmask = 4'b0011 << mem_addr[1:0];
+            lw_mem: mem_rmask = 4'b1111;
+        endcase
+
+        case (mem_signal.store_ops)
+            sb_mem: begin 
+                mem_wmask = 4'b0001 << mem_addr[1:0];
+                mem_wdata[8 * mem_addr[1:0] +: 8] = rs2_v[7:0];
+            end
+            sh_mem: begin  
+                mem_wmask = 4'b0011 << mem_addr[1:0];
+                mem_wdata[16 * mem_addr[1] +: 16] = rs2_v[15:0];
+            end
+            sw_mem: begin
+                mem_wmask = 4'b1111;
+                mem_wdata = rs2_v;
+            end
+        endcase
+    end 
+
     always_comb begin
         ex_mem_stage_reg.inst = inst;
         ex_mem_stage_reg.pc = pc;
         ex_mem_stage_reg.order = order;
-        ex_mem_stage_reg.is_stall = 1'b0; // default value
+        ex_mem_stage_reg.is_stall = 1'b0; // default value ///////////////
 
         ex_mem_stage_reg.mem_signal = mem_signal;
         ex_mem_stage_reg.wb_signal = wb_signal;

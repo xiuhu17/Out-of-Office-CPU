@@ -182,11 +182,11 @@ package rv32i_types;
     typedef struct packed {
         logic               MemRead;
         logic               MemWrite;
-        logic [2:0]          load_ops;
+        logic [2:0]         load_ops;
         logic [2:0]         store_ops;
     }mem_signal_t;
     typedef struct packed {
-        logic [3:0]       regf_m_sel;
+        logic [3:0]         regf_m_sel;
         logic               regf_we;
     }wb_signal_t;
 
@@ -247,17 +247,13 @@ package rv32i_types;
         logic   [63:0]      order;
         logic               is_stall;
 
+        mem_signal_t        mem_signal;
         wb_signal_t         wb_signal;
         
         // value
         logic   [31:0]      alu_out;
         logic   [31:0]      br_en;
         logic   [31:0]      u_imm;
-        logic   [31:0]      lw;
-        logic   [31:0]      lb;
-        logic   [31:0]      lbu;
-        logic   [31:0]      lh;
-        logic   [31:0]      lhu;
         logic   [31:0]      rs1_v;
         logic   [31:0]      rs2_v;
         logic   [4:0]       rs1_s;
@@ -268,7 +264,6 @@ package rv32i_types;
         logic   [31:0]      mem_addr;
         logic   [3:0]       mem_rmask;
         logic   [3:0]       mem_wmask;
-        logic   [31:0]      mem_rdata;
         logic   [31:0]      mem_wdata;
     } mem_wb_stage_reg_t;
 
