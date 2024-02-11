@@ -106,31 +106,45 @@ import rv32i_types::*;
 
     // dmem
     always_comb begin
-        mem_addr = alu_out_grab;
+        mem_addr = 'x;
         mem_wdata = 'x;
-        mem_rmask = 'x;
-        mem_wmask = 'x;
+        mem_rmask = '0;
+        mem_wmask = '0;
 
-        case (mem_signal.load_ops) 
-            lb_mem, lbu_mem: mem_rmask = 4'b0001 << mem_addr[1:0];
-            lh_mem, lhu_mem: mem_rmask = 4'b0011 << mem_addr[1:0];
-            lw_mem: mem_rmask = 4'b1111;
-        endcase
-
-        case (mem_signal.store_ops)
-            sb_mem: begin 
-                mem_wmask = 4'b0001 << mem_addr[1:0];
-                mem_wdata[8 * mem_addr[1:0] +: 8] = rs2_v[7:0];
-            end
-            sh_mem: begin  
-                mem_wmask = 4'b0011 << mem_addr[1:0];
-                mem_wdata[16 * mem_addr[1] +: 16] = rs2_v[15:0];
-            end
-            sw_mem: begin
-                mem_wmask = 4'b1111;
-                mem_wdata = rs2_v;
-            end
-        endcase
+        if (mem_signal.MemRead) begin
+            case (mem_signal.load_ops) 
+                lb_mem, lbu_mem: begin 
+                    mem_rmask = 4'b0001 << mem_addr[1:0];
+                    mem_addr = alu_out_grab;
+                end
+                lh_mem, lhu_mem: begin 
+                    mem_rmask = 4'b0011 << mem_addr[1:0];
+                    mem_addr = alu_out_grab;
+                end 
+                lw_mem: begin
+                    mem_rmask = 4'b1111;
+                    mem_addr = alu_out_grab;
+                end 
+            endcase
+        end else if (mem_signal.MemWrite) begin 
+            case (mem_signal.store_ops)
+                sb_mem: begin 
+                    mem_wmask = 4'b0001 << mem_addr[1:0];
+                    mem_wdata[8 * mem_addr[1:0] +: 8] = rs2_v[7:0];
+                    mem_addr = alu_out_grab;
+                end
+                sh_mem: begin  
+                    mem_wmask = 4'b0011 << mem_addr[1:0];
+                    mem_wdata[16 * mem_addr[1] +: 16] = rs2_v[15:0];
+                    mem_addr = alu_out_grab;
+                end
+                sw_mem: begin
+                    mem_wmask = 4'b1111;
+                    mem_wdata = rs2_v;
+                    mem_addr = alu_out_grab;
+                end
+            endcase
+        end
     end 
 
     always_comb begin
