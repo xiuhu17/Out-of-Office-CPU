@@ -37,6 +37,7 @@ import rv32i_types::*;
     always_comb begin 
         if_id_stage_reg.pc = pc;
         if_id_stage_reg.order = order;
+        if_id_stage_reg.valid = 1'b1;
     end 
 
 endmodule

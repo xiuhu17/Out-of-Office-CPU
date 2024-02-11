@@ -193,12 +193,13 @@ package rv32i_types;
     typedef struct packed {
         logic   [31:0]      pc;
         logic   [63:0]      order;
+        logic               valid;
     } if_id_stage_reg_t;
     typedef struct packed {
         logic   [31:0]      inst;
         logic   [31:0]      pc;
         logic   [63:0]      order;
-        logic               is_stall;
+        logic               valid;
 
         // control signal
         ex_signal_t     ex_signal;
@@ -221,7 +222,7 @@ package rv32i_types;
         logic   [31:0]      inst;
         logic   [31:0]      pc;
         logic   [63:0]      order;
-        logic               is_stall;
+        logic               valid;
 
         mem_signal_t        mem_signal;
         wb_signal_t         wb_signal;
@@ -245,7 +246,7 @@ package rv32i_types;
         logic   [31:0]      inst;
         logic   [31:0]      pc;
         logic   [63:0]      order;
-        logic               is_stall;
+        logic               valid;
 
         mem_signal_t        mem_signal;
         wb_signal_t         wb_signal;

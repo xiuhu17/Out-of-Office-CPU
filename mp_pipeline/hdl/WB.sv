@@ -11,11 +11,10 @@ import rv32i_types::*;
     output      logic           wb_regf_we
 );
 
-    logic               valid;
     logic   [31:0]      inst;
     logic   [31:0]      pc;
     logic   [63:0]      order;
-    logic               is_stall;
+    logic               valid;
     mem_signal_t        mem_signal;
     wb_signal_t         wb_signal;
     // value
@@ -46,7 +45,6 @@ import rv32i_types::*;
         inst = mem_wb_stage_reg.inst;
         pc = mem_wb_stage_reg.pc;
         order = mem_wb_stage_reg.order;
-        is_stall = mem_wb_stage_reg.is_stall;
         mem_signal = mem_wb_stage_reg.mem_signal;
         wb_signal = mem_wb_stage_reg.wb_signal;
         alu_out = mem_wb_stage_reg.alu_out;
@@ -107,10 +105,8 @@ import rv32i_types::*;
 
     // write back
     always_comb begin 
-        valid = '0;
         wb_rd_v_grab = '0;
         if (mem_wb_stage_reg.pc != '0) begin
-            valid = '1; 
             case (wb_signal.regf_m_sel)
             alu_out_wb: begin
                 wb_rd_v_grab = alu_out;
@@ -145,5 +141,9 @@ import rv32i_types::*;
         wb_rd_s = rd_s;
         wb_rd_v = wb_rd_v_grab;
         wb_regf_we = wb_signal.regf_we;
+        valid = '0;
+        if (mem_wb_stage_reg.valid) begin
+            valid = '1;
+        end
     end 
 endmodule

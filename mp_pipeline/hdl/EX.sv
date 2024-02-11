@@ -8,6 +8,7 @@ import rv32i_types::*;
     logic   [31:0]      inst;
     logic   [31:0]      pc;
     logic   [63:0]      order;
+    logic               valid;
     // control signal
     ex_signal_t     ex_signal;
     mem_signal_t    mem_signal;
@@ -37,6 +38,7 @@ import rv32i_types::*;
         inst = id_ex_stage_reg.inst;
         pc = id_ex_stage_reg.pc;
         order = id_ex_stage_reg.order;
+        valid = id_ex_stage_reg.valid;
         ex_signal = id_ex_stage_reg.ex_signal;
         mem_signal = id_ex_stage_reg.mem_signal;
         wb_signal = id_ex_stage_reg.wb_signal;
@@ -114,34 +116,34 @@ import rv32i_types::*;
         if (mem_signal.MemRead) begin
             case (mem_signal.load_ops) 
                 lb_mem, lbu_mem: begin 
-                    mem_rmask = 4'b0001 << mem_addr[1:0];
                     mem_addr = alu_out_grab;
+                    mem_rmask = 4'b0001 << mem_addr[1:0];
                 end
                 lh_mem, lhu_mem: begin 
-                    mem_rmask = 4'b0011 << mem_addr[1:0];
                     mem_addr = alu_out_grab;
+                    mem_rmask = 4'b0011 << mem_addr[1:0];
                 end 
                 lw_mem: begin
-                    mem_rmask = 4'b1111;
                     mem_addr = alu_out_grab;
+                    mem_rmask = 4'b1111;
                 end 
             endcase
         end else if (mem_signal.MemWrite) begin 
             case (mem_signal.store_ops)
                 sb_mem: begin 
+                    mem_addr = alu_out_grab;
                     mem_wmask = 4'b0001 << mem_addr[1:0];
                     mem_wdata[8 * mem_addr[1:0] +: 8] = rs2_v[7:0];
-                    mem_addr = alu_out_grab;
                 end
                 sh_mem: begin  
+                    mem_addr = alu_out_grab;
                     mem_wmask = 4'b0011 << mem_addr[1:0];
                     mem_wdata[16 * mem_addr[1] +: 16] = rs2_v[15:0];
-                    mem_addr = alu_out_grab;
                 end
                 sw_mem: begin
+                    mem_addr = alu_out_grab;
                     mem_wmask = 4'b1111;
                     mem_wdata = rs2_v;
-                    mem_addr = alu_out_grab;
                 end
             endcase
         end
@@ -151,11 +153,9 @@ import rv32i_types::*;
         ex_mem_stage_reg.inst = inst;
         ex_mem_stage_reg.pc = pc;
         ex_mem_stage_reg.order = order;
-        ex_mem_stage_reg.is_stall = 1'b0; // default value ///////////////
-
+        ex_mem_stage_reg.valid = valid; 
         ex_mem_stage_reg.mem_signal = mem_signal;
         ex_mem_stage_reg.wb_signal = wb_signal;
-
         ex_mem_stage_reg.alu_out = alu_out_grab;
         ex_mem_stage_reg.br_en = {31'd0, br_en_grab};
         ex_mem_stage_reg.u_imm = u_imm;

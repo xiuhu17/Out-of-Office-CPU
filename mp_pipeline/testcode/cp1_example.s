@@ -20,7 +20,7 @@ _start:
     nop
     nop
     lui x7, 0x70004
-    sw x1, 8(x8)
+    sw x8, 8(x8)
     nop
     nop
     nop
@@ -29,16 +29,23 @@ _start:
     sw x1, 4(x8)
     nop
     nop
-    nop
-    nop
-    nop
-    lw x1, 8(x8)
+
     nop
     nop
     nop
     nop
     nop
-    lw x1, 4(x8)
+    lhu x1, 4(x8)
+
+    lb x2, 7(x8)
+    nop
+
+    nop
+    nop
+    nop
+    nop
+    sh x2, 6(x8)
+
 
 
 
