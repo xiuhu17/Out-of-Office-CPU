@@ -43,8 +43,35 @@ import rv32i_types::*;
     logic   [6:0]       funct7;
     logic   [6:0]       opcode;
 
+    // TODO:
+    logic [31:0] imem_rdata_stall;
+    logic        stall_stall;
+    always_ff @ ( posedge clk ) begin   
+        if (rst) begin 
+            imem_rdata_stall <= '0;
+            stall_stall <= '0;
+        end else begin 
+            imem_rdata_stall <= imem_rdata;
+            stall_stall <= stall;
+        end     
+    end 
     always_comb begin
-        if (imem_resp) begin 
+        inst = 'x;
+        pc = 'x;
+        order = 'x;
+        valid = 'x;
+        funct3 = 'x;
+        funct7 = 'x;
+        opcode = 'x;
+        i_imm = 'x;
+        s_imm = 'x;
+        b_imm = 'x;
+        u_imm = 'x;
+        j_imm = 'x;
+        id_rs1_s = 'x;
+        id_rs2_s = 'x;
+        rd_s = 'x;
+        if (imem_resp && stall_stall == '0) begin 
             inst = imem_rdata;
             pc = if_id_stage_reg.pc;
             order = if_id_stage_reg.order;
@@ -60,22 +87,22 @@ import rv32i_types::*;
             id_rs1_s = imem_rdata[19:15];
             id_rs2_s = imem_rdata[24:20];
             rd_s = imem_rdata[11:7];
-        end else begin 
-            inst = 'x;
-            pc = 'x;
-            order = 'x;
-            valid = 'x;
-            funct3 = 'x;
-            funct7 = 'x;
-            opcode = 'x;
-            i_imm = 'x;
-            s_imm = 'x;
-            b_imm = 'x;
-            u_imm = 'x;
-            j_imm = 'x;
-            id_rs1_s = 'x;
-            id_rs2_s = 'x;
-            rd_s = 'x;
+        end else if (stall_stall) begin
+            inst = imem_rdata_stall;
+            pc = if_id_stage_reg.pc;
+            order = if_id_stage_reg.order;
+            valid = if_id_stage_reg.valid;
+            funct3 = imem_rdata_stall[14:12];
+            funct7 = imem_rdata_stall[31:25];
+            opcode = imem_rdata_stall[6:0];
+            i_imm = {{21{imem_rdata_stall[31]}}, imem_rdata_stall[30:20]};
+            s_imm = {{21{imem_rdata_stall[31]}}, imem_rdata_stall[30:25], imem_rdata_stall[11:7]};
+            b_imm = {{20{imem_rdata_stall[31]}}, imem_rdata_stall[7], imem_rdata_stall[30:25], imem_rdata_stall[11:8], 1'b0};
+            u_imm = {imem_rdata_stall[31:12], 12'h000};
+            j_imm = {{12{imem_rdata_stall[31]}}, imem_rdata_stall[19:12], imem_rdata_stall[20], imem_rdata_stall[30:21], 1'b0};
+            id_rs1_s = imem_rdata_stall[19:15];
+            id_rs2_s = imem_rdata_stall[24:20];
+            rd_s = imem_rdata_stall[11:7];
         end 
     end
 
