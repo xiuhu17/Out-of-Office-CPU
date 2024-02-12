@@ -168,6 +168,25 @@ package rv32i_types;
         ,lh_wb        = 4'b0111
         ,lhu_wb       = 4'b1000  // unsigned halfword
     } regf_m_sel_t;
+    typedef enum bit[1:0] {
+        rs1_s_ex_ex = 2'b00,
+        rs1_s_mem_ex = 2'b01,
+        rs1_s_wb_ex = 2'b10 
+    } ex_rs1_forward_sel_t;
+    typedef enum bit[1:0] {
+        rs2_s_ex_ex = 2'b00,
+        rs2_s_mem_ex = 2'b01,
+        rs2_s_wb_ex = 2'b10 
+    } ex_rs2_forward_sel_t;
+    // transparent register
+    typedef enum bit {
+        rs1_s_id_id = 1'b0,
+        rs1_s_wb_id = 1'b1
+    } id_rs1_forward_sel_t;
+    typedef enum bit {
+        rs2_s_id_id = 1'b0,
+        rs2_s_wb_id = 1'b1
+    } id_rs2_forward_sel_t;
 
     typedef struct packed {
         // signal for alu
