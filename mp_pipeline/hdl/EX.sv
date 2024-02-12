@@ -2,7 +2,13 @@ module EX_Stage
 import rv32i_types::*;
 (
     input   id_ex_stage_reg_t id_ex_stage_reg,
-    output  ex_mem_stage_reg_t ex_mem_stage_reg
+    output  ex_mem_stage_reg_t ex_mem_stage_reg,
+
+    input   ex_mem_stage_reg_t ex_mem_stage_reg_curr,
+    input   logic[31:0]         wb_rd_v,
+
+    input ex_rs1_forward_sel_t         ex_rs1_forward_sel,
+    input ex_rs2_forward_sel_t         ex_rs2_forward_sel
 );  
 
     logic   [31:0]      inst;
@@ -20,7 +26,13 @@ import rv32i_types::*;
     logic   [31:0]      u_imm;
     logic   [31:0]      j_imm;
     logic   [31:0]      rs1_v;
+    logic   [31:0]      rs1_v_ex;
+    logic   [31:0]      rs1_v_mem;
+    logic   [31:0]      rs1_v_wb;
     logic   [31:0]      rs2_v;
+    logic   [31:0]      rs2_v_ex;
+    logic   [31:0]      rs2_v_mem;
+    logic   [31:0]      rs2_v_wb;
     logic   [4:0]       rs1_s;
     logic   [4:0]       rs2_s;
     logic   [4:0]       rd_s;
@@ -47,13 +59,56 @@ import rv32i_types::*;
         b_imm = id_ex_stage_reg.b_imm;
         u_imm = id_ex_stage_reg.u_imm;
         j_imm = id_ex_stage_reg.j_imm;
-        rs1_v = id_ex_stage_reg.rs1_v;
-        rs2_v = id_ex_stage_reg.rs2_v;
+        rs1_v_ex = id_ex_stage_reg.rs1_v;
+        rs2_v_ex = id_ex_stage_reg.rs2_v;
         rs1_s = id_ex_stage_reg.rs1_s;
         rs2_s = id_ex_stage_reg.rs2_s;
         rd_s = id_ex_stage_reg.rd_s;
     end 
 
+    // forwarding
+    always_comb begin 
+        rs1_v_mem = 'x;
+        rs2_v_mem = 'x;
+        case(ex_mem_stage_reg_curr.wb_signal.regf_m_sel) 
+            alu_out_wb: begin
+                rs1_v_mem = ex_mem_stage_reg_curr.alu_out;
+                rs2_v_mem = ex_mem_stage_reg_curr.alu_out;
+            end 
+            br_en_wb:   begin 
+                rs1_v_mem = ex_mem_stage_reg_curr.br_en;
+                rs2_v_mem = ex_mem_stage_reg_curr.br_en;
+            end 
+            u_imm_wb:   begin       
+                rs1_v_mem = ex_mem_stage_reg_curr.u_imm;
+                rs2_v_mem = ex_mem_stage_reg_curr.u_imm;
+            end 
+            pc_plus4_wb: begin 
+                rs1_v_mem = ex_mem_stage_reg_curr.pc + 4;
+                rs2_v_mem = ex_mem_stage_reg_curr.pc + 4;
+            end 
+        endcase 
+    end 
+
+    always_comb begin 
+        rs1_v_wb = wb_rd_v;
+        rs2_v_wb = wb_rd_v;
+    end 
+
+    always_comb begin 
+        rs1_v = 'x;
+        rs2_v = 'x;
+        case (ex_rs1_forward_sel)  
+            rs1_s_ex_ex: rs1_v = rs1_v_ex;
+            rs1_s_mem_ex: rs1_v = rs1_v_mem;
+            rs1_s_wb_ex:  rs1_v = rs1_v_wb;
+        endcase 
+        case (ex_rs2_forward_sel)  
+            rs2_s_ex_ex: rs2_v = rs2_v_ex;
+            rs2_s_mem_ex: rs2_v = rs2_v_mem;
+            rs2_s_wb_ex:  rs2_v = rs2_v_wb;
+        endcase
+    end
 
     // alu_m1
     logic [31:0]    alu_m1_sel_grab;

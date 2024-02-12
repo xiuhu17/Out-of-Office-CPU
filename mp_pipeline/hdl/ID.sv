@@ -12,7 +12,14 @@ import rv32i_types::*;
     // Control signals, comes from the wb stage
     input   logic [4:0]     wb_rd_s,
     input   logic [31:0]    wb_rd_v,
-    input   logic           wb_regf_we
+    input   logic           wb_regf_we,
+
+    input   logic           stall,
+
+    output  logic [4:0]                 id_rs1_s,
+    output  logic [4:0]                 id_rs2_s,
+    input   id_rs1_forward_sel_t         id_rs1_forward_sel,
+    input   id_rs2_forward_sel_t         id_rs2_forward_sel
 );  
 
     logic   [31:0]      inst;
@@ -31,8 +38,6 @@ import rv32i_types::*;
     logic   [31:0]      j_imm;
     logic   [31:0]      rs1_v;
     logic   [31:0]      rs2_v;
-    logic   [4:0]       rs1_s;
-    logic   [4:0]       rs2_s;
     logic   [4:0]       rd_s;
     logic   [2:0]       funct3;
     logic   [6:0]       funct7;
@@ -52,8 +57,8 @@ import rv32i_types::*;
             b_imm = {{20{imem_rdata[31]}}, imem_rdata[7], imem_rdata[30:25], imem_rdata[11:8], 1'b0};
             u_imm = {imem_rdata[31:12], 12'h000};
             j_imm = {{12{imem_rdata[31]}}, imem_rdata[19:12], imem_rdata[20], imem_rdata[30:21], 1'b0};
-            rs1_s = imem_rdata[19:15];
-            rs2_s = imem_rdata[24:20];
+            id_rs1_s = imem_rdata[19:15];
+            id_rs2_s = imem_rdata[24:20];
             rd_s = imem_rdata[11:7];
         end else begin 
             inst = 'x;
@@ -68,8 +73,8 @@ import rv32i_types::*;
             b_imm = 'x;
             u_imm = 'x;
             j_imm = 'x;
-            rs1_s = 'x;
-            rs2_s = 'x;
+            id_rs1_s = 'x;
+            id_rs2_s = 'x;
             rd_s = 'x;
         end 
     end
@@ -80,10 +85,12 @@ import rv32i_types::*;
         .regf_we(wb_regf_we),
         .rd_s(wb_rd_s),
         .rd_v(wb_rd_v),
-        .rs1_s(rs1_s),
-        .rs2_s(rs2_s),
+        .rs1_s(id_rs1_s),
+        .rs2_s(id_rs2_s),
         .rs1_v(rs1_v),
-        .rs2_v(rs2_v)
+        .rs2_v(rs2_v),
+        .id_rs1_forward_sel(id_rs1_forward_sel),
+        .id_rs2_forward_sel(id_rs2_forward_sel)
     );
 
     always_comb begin 
@@ -228,9 +235,12 @@ import rv32i_types::*;
         id_ex_stage_reg.j_imm = j_imm;
         id_ex_stage_reg.rs1_v = rs1_v;
         id_ex_stage_reg.rs2_v = rs2_v;
-        id_ex_stage_reg.rs1_s = rs1_s;
-        id_ex_stage_reg.rs2_s = rs2_s;
+        id_ex_stage_reg.rs1_s = id_rs1_s;
+        id_ex_stage_reg.rs2_s = id_rs2_s;
         id_ex_stage_reg.rd_s = rd_s;
+        if (stall) begin 
+            id_ex_stage_reg = '0;
+        end 
     end
 
 endmodule

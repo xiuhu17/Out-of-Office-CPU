@@ -17,30 +17,47 @@ import rv32i_types::*;
     input   logic           dmem_resp
 );
 
+    if_id_stage_reg_t   curr_if_id_stage_reg, next_if_id_stage_reg;
+    id_ex_stage_reg_t   curr_id_ex_stage_reg, next_id_ex_stage_reg;
+    ex_mem_stage_reg_t  curr_ex_mem_stage_reg, next_ex_mem_stage_reg;
+    mem_wb_stage_reg_t  curr_mem_wb_stage_reg, next_mem_wb_stage_reg;
+    logic               stall;
+    logic [4:0]         wb_rd_s;
+    logic [31:0]        wb_rd_v;
+    logic               wb_regf_we;
+    id_rs1_forward_sel_t         id_rs1_forward_sel;
+    id_rs2_forward_sel_t         id_rs2_forward_sel;
+    ex_rs1_forward_sel_t         ex_rs1_forward_sel;
+    ex_rs2_forward_sel_t         ex_rs2_forward_sel;
+    logic  [4:0]    id_rs1_s;
+    logic  [4:0]    id_rs2_s;
 
-    if_id_stage_reg_t  curr_if_id_stage_reg, next_if_id_stage_reg;
-    id_ex_stage_reg_t  curr_id_ex_stage_reg, next_id_ex_stage_reg;
-    ex_mem_stage_reg_t curr_ex_mem_stage_reg, next_ex_mem_stage_reg;
-    mem_wb_stage_reg_t curr_mem_wb_stage_reg, next_mem_wb_stage_reg;
-    logic              not_stall;
-    assign             not_stall = 1'b1;
-    logic [4:0]     wb_rd_s;
-    logic [31:0]    wb_rd_v;
-    logic           wb_regf_we;
+    Forwarding forwarding(
+        .id_rs1_s(id_rs1_s),
+        .id_rs2_s(id_rs2_s),
+        .id_ex_stage_reg(curr_id_ex_stage_reg),
+        .ex_mem_stage_reg(curr_ex_mem_stage_reg),
+        .mem_wb_stage_reg(curr_mem_wb_stage_reg),
+        .stall(stall),
+        .id_rs1_forward_sel(id_rs1_forward_sel),
+        .id_rs2_forward_sel(id_rs2_forward_sel),
+        .ex_rs1_forward_sel(ex_rs1_forward_sel),
+        .ex_rs2_forward_sel(ex_rs2_forward_sel)
+    );
 
     IF_Stage if_stage(
         .clk(clk),
         .rst(rst),
         .imem_addr(imem_addr),
         .imem_rmask(imem_rmask),
-        .pc_en(not_stall),
+        .pc_en(~stall),
         .if_id_stage_reg(next_if_id_stage_reg)
     );
 
     always_ff @ (posedge clk ) begin 
         if (rst) begin 
             curr_if_id_stage_reg <= '0;
-        end else if (not_stall) begin 
+        end else if (~stall) begin 
             curr_if_id_stage_reg <= next_if_id_stage_reg;
         end 
     end 
@@ -50,11 +67,16 @@ import rv32i_types::*;
         .rst(rst),
         .if_id_stage_reg(curr_if_id_stage_reg),
         .id_ex_stage_reg(next_id_ex_stage_reg),
-        .imem_rdata(imem_rdata),
         .imem_resp(imem_resp),
+        .imem_rdata(imem_rdata),
         .wb_rd_s(wb_rd_s),
         .wb_rd_v(wb_rd_v),
-        .wb_regf_we(wb_regf_we)
+        .wb_regf_we(wb_regf_we),
+        .stall(stall),
+        .id_rs1_s(id_rs1_s),
+        .id_rs2_s(id_rs2_s),
+        .id_rs1_forward_sel(id_rs1_forward_sel),
+        .id_rs2_forward_sel(id_rs2_forward_sel)
     );
 
     always_ff @ (posedge clk ) begin 
@@ -67,7 +89,11 @@ import rv32i_types::*;
 
     EX_Stage ex_stage(
         .id_ex_stage_reg(curr_id_ex_stage_reg),
-        .ex_mem_stage_reg(next_ex_mem_stage_reg)
+        .ex_mem_stage_reg(next_ex_mem_stage_reg),
+        .ex_mem_stage_reg_curr(curr_ex_mem_stage_reg),
+        .wb_rd_v(wb_rd_v),
+        .ex_rs1_forward_sel(ex_rs1_forward_sel),
+        .ex_rs2_forward_sel(ex_rs2_forward_sel)
     );
 
     always_ff @ (posedge clk ) begin 
@@ -97,10 +123,8 @@ import rv32i_types::*;
 
     WB_Stage wb_stage(
         .mem_wb_stage_reg(curr_mem_wb_stage_reg),
-
         .dmem_resp(dmem_resp),
         .dmem_rdata(dmem_rdata),
-
         .wb_rd_s(wb_rd_s),
         .wb_rd_v(wb_rd_v),
         .wb_regf_we(wb_regf_we)

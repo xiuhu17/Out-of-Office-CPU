@@ -1,8 +1,6 @@
 module Forwarding
 import rv32i_types::*;    
 (
-    input logic                         clk,
-    input logic                         rst,
     input logic [4:0]                   id_rs1_s,
     input logic [4:0]                   id_rs2_s,
     input id_ex_stage_reg_t             id_ex_stage_reg,
