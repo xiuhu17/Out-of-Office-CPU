@@ -30,6 +30,53 @@ _start:
     sw  x5, 0(x2)
     lw  x6, 0(x2)
     addi x7, x6, 3
+    lw  x6, 0(x2)
+    addi x7, x6, 3
+    lw  x6, 0(x2)
+    addi x7, x6, 3
+    lw  x6, 0(x2)
+    addi x7, x6, 3
+    lw  x6, 0(x2)
+    addi x7, x6, 3
+    add x7, x7, 2
+    add x7, x6, 5
+    lw  x6, 0(x2)
+    addi x7, x6, 3
+
+    addi x7, x6, 3
+    add x6, x7, 2
+    add x6, x6, 5
+    lw  x6, 0(x2)
+    addi x7, x6, 3
+
+    addi x7, x6, 3
+    add x7, x6, 2
+    add x6, x6, 5
+    lw  x6, 0(x2)
+    addi x7, x6, 3
+
+    addi x7, x6, 3
+    add x0, x6, 2
+    add x6, x0, 5
+    lw  x0, 0(x2)
+    addi x7, x0, 3
+
+    slt x7, x6, x3
+    xori x7, x3, 1
+    addi x7, x7, 2
+    sub x7, x7, x7
+    add x7, x7, x7
+    add x7,  x1, 2
+    add  x7, x2, 1
+    addi x6, x7, 2
+    add x6, x6, x6
+    lw  x6, 0(x2)
+    addi x7, x6, 3
+
+
+    
+    
+    
     add x1, x1, 2
 
 
