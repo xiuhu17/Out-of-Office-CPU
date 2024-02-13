@@ -42,6 +42,8 @@ suppress_message PWR-428
 suppress_message PWR-806
 # Ungrouping hierarchy %s before Pass 1.
 suppress_message OPT-776
+# Changed wire name %s to %s in module %s.
+suppress_message VO-2
 # Verilog 'assign' or 'tran' statements are written out.
 suppress_message VO-4
 # Verilog writer has added %d nets to module %s using %s as prefix.

@@ -9,6 +9,9 @@ set_option enable_save_restore no
 current_goal Design_Read -top cpu
 
 current_goal lint/lint_turbo_rtl -top cpu
+
+set_parameter checkfullstruct true
+
 run_goal
 
 # help -rules STARC05-2.11.3.1
