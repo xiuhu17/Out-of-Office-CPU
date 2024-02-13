@@ -16,6 +16,8 @@ import rv32i_types::*;
 );      
 
     logic   [63:0]  order;
+    logic   [63:0]  order_next;
+
     logic   [31:0]  pc;
     logic   [31:0]  pc_next;
     logic   [31:0]  data;
@@ -27,7 +29,7 @@ import rv32i_types::*;
         end else begin 
             if (not_stall) begin 
                 pc <= pc_next;
-                order <= order + 'd1;
+                order <= order_next;
             end
         end 
     end
@@ -41,8 +43,10 @@ import rv32i_types::*;
     always_comb begin
         if (need_flush) begin 
             pc_next = (target_pc) & 32'hfffffffc;
+            order_next = order - 'd1;
         end else begin 
             pc_next = (pc + 'd4) & 32'hfffffffc;
+            order_next = order + 'd1;
         end 
     end 
 

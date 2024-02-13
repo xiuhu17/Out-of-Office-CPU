@@ -39,8 +39,14 @@ _start:
 
     jal x1, test 
     add x1, x1, 2
+    add x1, x1, x1
+
 test:
-    add x2, x2, x2
+
+    add x1, x1, 2
+    add x1, x1, x1
+
+
 
     slti x0, x0, -256 # this is the magic instruction to end the simulation
 

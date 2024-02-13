@@ -122,20 +122,26 @@ import rv32i_types::*;
         target_pc = '0;
         case (opcode)
             jal_opcode: begin 
-                need_flush = '1;
-                target_pc = pc + j_imm;
-                pc_next = target_pc;
+                if (pc_next != ((pc + j_imm) & 32'hfffffffc)) begin 
+                    need_flush = '1;
+                    target_pc = pc + j_imm;
+                    pc_next = pc + j_imm;
+                end 
             end 
             jalr_opcode: begin 
-                need_flush = '1;
-                target_pc = rs1_v + i_imm;
-                pc_next = target_pc;
+                if (pc_next != ((rs1_v + i_imm) & 32'hfffffffc)) begin 
+                    need_flush = '1;
+                    target_pc = rs1_v + i_imm;
+                    pc_next = rs1_v + i_imm;
+                end
             end 
             br_opcode: begin
                 if (br_en_grab) begin 
-                    need_flush = '1;
-                    target_pc = pc + b_imm;
-                    pc_next = target_pc;
+                    if (pc_next != ((pc + b_imm) & 32'hfffffffc)) begin 
+                        need_flush = '1;
+                        target_pc = pc + b_imm;
+                        pc_next = pc + b_imm;
+                    end
                 end
             end 
         endcase

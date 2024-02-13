@@ -60,6 +60,7 @@ import rv32i_types::*;
         end     
     end 
     always_comb begin
+        // for need_flush_need_flush == 1
         inst = 'x;
         pc = 'x;
         pc_next = 'x;
