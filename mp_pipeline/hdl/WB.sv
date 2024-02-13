@@ -55,6 +55,9 @@ import rv32i_types::*;
         if (mem_signal.MemWrite) begin 
             rd_s = '0;
         end 
+        if (inst[6:0] == br_opcode) begin
+            rd_s = '0;
+        end 
         rs1_v = mem_wb_stage_reg.rs1_v;
         rs2_v = mem_wb_stage_reg.rs2_v;
         rs1_s = mem_wb_stage_reg.rs1_s;
