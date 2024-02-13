@@ -139,7 +139,7 @@ package rv32i_types;
         b_imm_alu_ex   = 3'b010,
         s_imm_alu_ex   = 3'b011,
         j_imm_alu_ex   = 3'b100,
-        rs2_v_alu_ex = 3'b101
+        rs2_v_alu_ex    = 3'b101
     } alu_m2_sel_t;
     typedef enum bit {
         rs2_v_cmp_ex = 1'b0,
@@ -211,12 +211,14 @@ package rv32i_types;
 
     typedef struct packed {
         logic   [31:0]      pc;
+        logic   [31:0]      pc_next;
         logic   [63:0]      order;
         logic               valid;
     } if_id_stage_reg_t;
     typedef struct packed {
         logic   [31:0]      inst;
         logic   [31:0]      pc;
+        logic   [31:0]      pc_next;
         logic   [63:0]      order;
         logic               valid;
 
@@ -240,6 +242,7 @@ package rv32i_types;
     typedef struct packed {
         logic   [31:0]      inst;
         logic   [31:0]      pc;
+        logic   [31:0]      pc_next;
         logic   [63:0]      order;
         logic               valid;
 
@@ -264,6 +267,7 @@ package rv32i_types;
     typedef struct packed {
         logic   [31:0]      inst;
         logic   [31:0]      pc;
+        logic   [31:0]      pc_next;
         logic   [63:0]      order;
         logic               valid;
 

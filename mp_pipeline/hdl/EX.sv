@@ -8,11 +8,15 @@ import rv32i_types::*;
     input   logic[31:0]         wb_rd_v,
 
     input ex_rs1_forward_sel_t         ex_rs1_forward_sel,
-    input ex_rs2_forward_sel_t         ex_rs2_forward_sel
+    input ex_rs2_forward_sel_t         ex_rs2_forward_sel,
+
+    output   logic          need_flush,
+    output   logic [31:0]   target_pc
 );  
 
     logic   [31:0]      inst;
     logic   [31:0]      pc;
+    logic   [31:0]      pc_next;
     logic   [63:0]      order;
     logic               valid;
     // control signal
@@ -40,7 +44,8 @@ import rv32i_types::*;
     logic   [3:0]       mem_rmask;
     logic   [3:0]       mem_wmask;
     logic   [31:0]       mem_wdata;
-
+    logic   [6:0]       opcode;
+    assign opcode =  inst[6:0];
 
     // value
     logic   [31:0]      alu_out_grab;
@@ -109,6 +114,32 @@ import rv32i_types::*;
             rs2_s_wb_ex:  rs2_v = rs2_v_wb;
         endcase
     end
+
+    // branch
+    always_comb begin
+        pc_next = id_ex_stage_reg.pc_next;
+        need_flush = '0;
+        target_pc = '0;
+        case (opcode)
+            jal_opcode: begin 
+                need_flush = '1;
+                target_pc = pc + j_imm;
+                pc_next = target_pc;
+            end 
+            jalr_opcode: begin 
+                need_flush = '1;
+                target_pc = rs1_v + i_imm;
+                pc_next = target_pc;
+            end 
+            br_opcode: begin
+                if (br_en_grab) begin 
+                    need_flush = '1;
+                    target_pc = pc + b_imm;
+                    pc_next = target_pc;
+                end
+            end 
+        endcase
+    end 
 
     // alu_m1
     logic [31:0]    alu_m1_sel_grab;
@@ -207,6 +238,7 @@ import rv32i_types::*;
     always_comb begin
         ex_mem_stage_reg.inst = inst;
         ex_mem_stage_reg.pc = pc;
+        ex_mem_stage_reg.pc_next = pc_next;
         ex_mem_stage_reg.order = order;
         ex_mem_stage_reg.valid = valid; 
         ex_mem_stage_reg.mem_signal = mem_signal;

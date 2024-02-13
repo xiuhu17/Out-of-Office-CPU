@@ -15,6 +15,7 @@ import rv32i_types::*;
     input   logic           wb_regf_we,
 
     input   logic           stall,
+    input   logic           need_flush,
 
     output  logic [4:0]                 id_rs1_s,
     output  logic [4:0]                 id_rs2_s,
@@ -24,6 +25,7 @@ import rv32i_types::*;
 
     logic   [31:0]      inst;
     logic   [31:0]      pc;
+    logic   [31:0]      pc_next;
     logic   [63:0]      order;
     logic               valid;
     // control signal
@@ -43,23 +45,26 @@ import rv32i_types::*;
     logic   [6:0]       funct7;
     logic   [6:0]       opcode;
 
-    // TODO:
     logic [31:0] imem_rdata_stall;
     logic        stall_stall;
+    logic        need_flush_need_flush;
     always_ff @ ( posedge clk ) begin   
         if (rst) begin 
             imem_rdata_stall <= '0;
             stall_stall <= '0;
+            need_flush_need_flush <= '0;
         end else begin 
             imem_rdata_stall <= imem_rdata;
             stall_stall <= stall;
+            need_flush_need_flush <= need_flush;
         end     
     end 
     always_comb begin
         inst = 'x;
         pc = 'x;
+        pc_next = 'x;
         order = 'x;
-        valid = 'x;
+        valid = '0;
         funct3 = 'x;
         funct7 = 'x;
         opcode = 'x;
@@ -71,9 +76,10 @@ import rv32i_types::*;
         id_rs1_s = 'x;
         id_rs2_s = 'x;
         rd_s = 'x;
-        if (imem_resp && stall_stall == '0) begin 
+        if (imem_resp && stall_stall == '0 && need_flush_need_flush == '0) begin 
             inst = imem_rdata;
             pc = if_id_stage_reg.pc;
+            pc_next = if_id_stage_reg.pc_next;
             order = if_id_stage_reg.order;
             valid = if_id_stage_reg.valid;
             funct3 = imem_rdata[14:12];
@@ -90,6 +96,7 @@ import rv32i_types::*;
         end else if (stall_stall) begin
             inst = imem_rdata_stall;
             pc = if_id_stage_reg.pc;
+            pc_next = if_id_stage_reg.pc_next;
             order = if_id_stage_reg.order;
             valid = if_id_stage_reg.valid;
             funct3 = imem_rdata_stall[14:12];
@@ -103,7 +110,7 @@ import rv32i_types::*;
             id_rs1_s = imem_rdata_stall[19:15];
             id_rs2_s = imem_rdata_stall[24:20];
             rd_s = imem_rdata_stall[11:7];
-        end 
+        end
     end
 
     regfile regfile(
@@ -244,12 +251,25 @@ import rv32i_types::*;
                 mem_signal.MemWrite = '1;
                 mem_signal.store_ops = funct3;
             end 
+            jal_opcode: begin 
+                wb_signal.regf_m_sel = pc_plus4_wb;
+                wb_signal.regf_we = '1;
+            end 
+            jalr_opcode: begin 
+                wb_signal.regf_m_sel = pc_plus4_wb;
+                wb_signal.regf_we = '1;
+            end 
+            br_opcode: begin
+                ex_signal.cmp_m_sel = rs2_v_cmp_ex;
+                ex_signal.cmp_ops = funct3;
+            end 
         endcase
     end 
 
     always_comb begin 
         id_ex_stage_reg.inst = inst;
         id_ex_stage_reg.pc = pc;
+        id_ex_stage_reg.pc_next = pc_next;
         id_ex_stage_reg.order = order;
         id_ex_stage_reg.valid = valid;
         id_ex_stage_reg.ex_signal = ex_signal;
@@ -266,6 +286,9 @@ import rv32i_types::*;
         id_ex_stage_reg.rs2_s = id_rs2_s;
         id_ex_stage_reg.rd_s = rd_s;
         if (stall) begin 
+            id_ex_stage_reg = '0;
+        end 
+        if (need_flush) begin 
             id_ex_stage_reg = '0;
         end 
     end

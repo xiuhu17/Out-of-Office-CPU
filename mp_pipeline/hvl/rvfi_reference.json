@@ -9,7 +9,7 @@
     "rd_addr"   : "dut.wb_stage.rd_s",
     "rd_wdata"  : "dut.wb_stage.wb_rd_v_grab",
     "pc_rdata"  : "dut.wb_stage.pc",
-    "pc_wdata"  : "dut.wb_stage.next_pc",
+    "pc_wdata"  : "dut.wb_stage.pc_next",
     "mem_addr"  : "dut.wb_stage.mem_addr",
     "mem_rmask" : "dut.wb_stage.mem_rmask",
     "mem_wmask" : "dut.wb_stage.mem_wmask",

@@ -31,6 +31,8 @@ import rv32i_types::*;
     ex_rs2_forward_sel_t         ex_rs2_forward_sel;
     logic  [4:0]    id_rs1_s;
     logic  [4:0]    id_rs2_s;
+    logic  need_flush;
+    logic  [31:0]  target_pc;
 
     Forwarding forwarding(
         .id_rs1_s(id_rs1_s),
@@ -50,8 +52,10 @@ import rv32i_types::*;
         .rst(rst),
         .imem_addr(imem_addr),
         .imem_rmask(imem_rmask),
-        .pc_en(~stall),
-        .if_id_stage_reg(next_if_id_stage_reg)
+        .not_stall(~stall),
+        .if_id_stage_reg(next_if_id_stage_reg),
+        .need_flush(need_flush),
+        .target_pc(target_pc)
     );
 
     always_ff @ (posedge clk ) begin 
@@ -76,7 +80,8 @@ import rv32i_types::*;
         .id_rs1_s(id_rs1_s),
         .id_rs2_s(id_rs2_s),
         .id_rs1_forward_sel(id_rs1_forward_sel),
-        .id_rs2_forward_sel(id_rs2_forward_sel)
+        .id_rs2_forward_sel(id_rs2_forward_sel),
+        .need_flush(need_flush)
     );
 
     always_ff @ (posedge clk ) begin 
@@ -93,7 +98,9 @@ import rv32i_types::*;
         .ex_mem_stage_reg_curr(curr_ex_mem_stage_reg),
         .wb_rd_v(wb_rd_v),
         .ex_rs1_forward_sel(ex_rs1_forward_sel),
-        .ex_rs2_forward_sel(ex_rs2_forward_sel)
+        .ex_rs2_forward_sel(ex_rs2_forward_sel),
+        .need_flush(need_flush),
+        .target_pc(target_pc)
     );
 
     always_ff @ (posedge clk ) begin 

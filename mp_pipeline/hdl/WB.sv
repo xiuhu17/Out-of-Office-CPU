@@ -13,6 +13,7 @@ import rv32i_types::*;
 
     logic   [31:0]      inst;
     logic   [31:0]      pc;
+    logic   [31:0]      pc_next;
     logic   [63:0]      order;
     logic               valid;
     mem_signal_t        mem_signal;
@@ -38,12 +39,12 @@ import rv32i_types::*;
     logic   [31:0]       mem_wdata;
 
     logic   [31:0]      wb_rd_v_grab;
-    logic   [31:0]      next_pc;
 
 
     always_comb begin
         inst = mem_wb_stage_reg.inst;
         pc = mem_wb_stage_reg.pc;
+        pc_next = mem_wb_stage_reg.pc_next;
         order = mem_wb_stage_reg.order;
         mem_signal = mem_wb_stage_reg.mem_signal;
         wb_signal = mem_wb_stage_reg.wb_signal;
@@ -65,7 +66,6 @@ import rv32i_types::*;
         mem_rmask = mem_wb_stage_reg.mem_rmask;
         mem_wmask = mem_wb_stage_reg.mem_wmask;
         mem_wdata = mem_wb_stage_reg.mem_wdata;
-        next_pc = pc + 'd4;
     end 
 
     // dmem
