@@ -42,9 +42,37 @@ _start:
     add x1, x1, x1
 
 test:
-
+    jal x1, test2
+test2: 
+    jal x1, test3
+test3:
     add x1, x1, 2
+    jal x1, test4
     add x1, x1, x1
+    add x1, x1, x1
+
+test4: 
+    add x1, x1, x1
+    
+    add x1, x1, x1
+    jal test5
+    add x1, x1, x1
+
+    add x1, x1, x1
+    add x1, x1, x1
+
+    add x1, x1, x1
+    add x1, x1, x1
+    add x1, x1, x1
+    add x1, x1, x1
+    add x1, x1, x1
+    add x1, x1, x1
+    add x1, x1, x1
+    add x1, x1, x1
+test5:
+
+
+
 
 
 
