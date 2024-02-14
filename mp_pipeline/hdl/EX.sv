@@ -122,22 +122,22 @@ import rv32i_types::*;
         target_pc = '0;
         case (opcode)
             jal_opcode: begin 
-                if (pc_next != ((pc + j_imm) & 32'hfffffffc)) begin 
+                if (pc_next != ((pc + j_imm))) begin 
                     need_flush = '1;
                     target_pc = pc + j_imm;
                     pc_next = pc + j_imm;
                 end 
             end 
             jalr_opcode: begin 
-                if (pc_next != ((rs1_v + i_imm) & 32'hfffffffc)) begin 
+                if (pc_next != ((rs1_v + i_imm) & 32'hfffffffe)) begin 
                     need_flush = '1;
-                    target_pc = rs1_v + i_imm;
-                    pc_next = rs1_v + i_imm;
+                    target_pc = (rs1_v + i_imm) & 32'hfffffffe;
+                    pc_next = (rs1_v + i_imm) & 32'hfffffffe;
                 end
             end 
             br_opcode: begin
                 if (br_en_grab) begin 
-                    if (pc_next != ((pc + b_imm) & 32'hfffffffc)) begin 
+                    if (pc_next != ((pc + b_imm))) begin 
                         need_flush = '1;
                         target_pc = pc + b_imm;
                         pc_next = pc + b_imm;
@@ -200,8 +200,8 @@ import rv32i_types::*;
 
     // dmem
     always_comb begin
-        mem_addr = 'x;
-        mem_wdata = 'x;
+        mem_addr = '0;
+        mem_wdata = '0;
         mem_rmask = '0;
         mem_wmask = '0;
 
