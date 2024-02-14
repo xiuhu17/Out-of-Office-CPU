@@ -42,10 +42,10 @@ import rv32i_types::*;
 
     always_comb begin
         if (need_flush) begin 
-            pc_next = (target_pc) & 32'hfffffffc;
+            pc_next = (target_pc);
             order_next = order - 'd1;
         end else begin 
-            pc_next = (pc + 'd4) & 32'hfffffffc;
+            pc_next = (pc + 'd4);
             order_next = order + 'd1;
         end 
     end 
