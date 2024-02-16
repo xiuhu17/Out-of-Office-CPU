@@ -14,8 +14,9 @@ module top_tb;
 
     mem_itf mem_itf_i(.*);
     mem_itf mem_itf_d(.*);
-    magic_dual_port mem(.itf_i(mem_itf_i), .itf_d(mem_itf_d));
+    // magic_dual_port mem(.itf_i(mem_itf_i), .itf_d(mem_itf_d));
     // ordinary_dual_port mem(.itf_i(mem_itf_i), .itf_d(mem_itf_d));
+    random_tb random_tb(.itf_i(mem_itf_i), .itf_d(mem_itf_d));
 
     mon_itf mon_itf(.*);    
     monitor monitor(.itf(mon_itf));
