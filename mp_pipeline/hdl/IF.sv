@@ -7,8 +7,8 @@ import rv32i_types::*;
     output  logic   [31:0]  imem_addr,
     output  logic   [3:0]   imem_rmask,
 
-    // for stall purpose
-    input   logic             not_stall,
+    // for forwarding_stall purpose
+    input   logic             forwarding_stall,
     output  if_id_stage_reg_t if_id_stage_reg,
 
     input   logic             branch_flush,
@@ -27,7 +27,7 @@ import rv32i_types::*;
             pc <= 32'h60000000;
             order <= '0;
         end else begin 
-            if (not_stall) begin 
+            if (~forwarding_stall) begin 
                 pc <= pc_next;
                 order <= order_next;
             end

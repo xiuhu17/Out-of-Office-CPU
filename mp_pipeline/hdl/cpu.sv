@@ -21,7 +21,7 @@ import rv32i_types::*;
     id_ex_stage_reg_t   curr_id_ex_stage_reg, next_id_ex_stage_reg;
     ex_mem_stage_reg_t  curr_ex_mem_stage_reg, next_ex_mem_stage_reg;
     mem_wb_stage_reg_t  curr_mem_wb_stage_reg, next_mem_wb_stage_reg;
-    logic               stall;
+    logic               forwarding_stall;
     logic [4:0]         wb_rd_s;
     logic [31:0]        wb_rd_v;
     logic               wb_regf_we;
@@ -40,7 +40,7 @@ import rv32i_types::*;
         .id_ex_stage_reg(curr_id_ex_stage_reg),
         .ex_mem_stage_reg(curr_ex_mem_stage_reg),
         .mem_wb_stage_reg(curr_mem_wb_stage_reg),
-        .stall(stall),
+        .forwarding_stall(forwarding_stall),
         .id_rs1_forward_sel(id_rs1_forward_sel),
         .id_rs2_forward_sel(id_rs2_forward_sel),
         .ex_rs1_forward_sel(ex_rs1_forward_sel),
@@ -52,7 +52,7 @@ import rv32i_types::*;
         .rst(rst),
         .imem_addr(imem_addr),
         .imem_rmask(imem_rmask),
-        .not_stall(~stall),
+        .forwarding_stall(forwarding_stall),
         .if_id_stage_reg(next_if_id_stage_reg),
         .branch_flush(branch_flush),
         .target_pc(target_pc)
@@ -61,7 +61,7 @@ import rv32i_types::*;
     always_ff @ (posedge clk ) begin 
         if (rst) begin 
             curr_if_id_stage_reg <= '0;
-        end else if (~stall) begin 
+        end else if (~forwarding_stall) begin 
             curr_if_id_stage_reg <= next_if_id_stage_reg;
         end 
     end 
@@ -76,7 +76,7 @@ import rv32i_types::*;
         .wb_rd_s(wb_rd_s),
         .wb_rd_v(wb_rd_v),
         .wb_regf_we(wb_regf_we),
-        .stall(stall),
+        .forwarding_stall(forwarding_stall),
         .id_rs1_s(id_rs1_s),
         .id_rs2_s(id_rs2_s),
         .id_rs1_forward_sel(id_rs1_forward_sel),

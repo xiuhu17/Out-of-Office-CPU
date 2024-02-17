@@ -7,7 +7,7 @@ import rv32i_types::*;
     input ex_mem_stage_reg_t            ex_mem_stage_reg,
     input mem_wb_stage_reg_t            mem_wb_stage_reg,
 
-    output logic                        stall,
+    output logic                        forwarding_stall,
     output id_rs1_forward_sel_t         id_rs1_forward_sel,
     output id_rs2_forward_sel_t         id_rs2_forward_sel,
     output ex_rs1_forward_sel_t         ex_rs1_forward_sel,
@@ -15,7 +15,7 @@ import rv32i_types::*;
 );
 
     always_comb begin
-        stall = '0;
+        forwarding_stall = '0;
         id_rs1_forward_sel = rs1_s_id_id;
         id_rs2_forward_sel = rs2_s_id_id;
         ex_rs1_forward_sel = rs1_s_ex_ex;
@@ -29,10 +29,10 @@ import rv32i_types::*;
             id_rs2_forward_sel = rs2_s_wb_id;
         end 
 
-        // stall
+        // forwarding_stall
         if (id_ex_stage_reg.rd_s != '0 && id_ex_stage_reg.wb_signal.regf_we && id_ex_stage_reg.mem_signal.MemRead && 
             (id_ex_stage_reg.rd_s == id_rs1_s || id_ex_stage_reg.rd_s == id_rs2_s)) begin 
-            stall = '1;
+            forwarding_stall = '1;
         end 
 
         // normal 
