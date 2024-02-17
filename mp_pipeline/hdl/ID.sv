@@ -15,7 +15,7 @@ import rv32i_types::*;
     input   logic           wb_regf_we,
 
     input   logic           stall,
-    input   logic           need_flush,
+    input   logic           branch_flush,
 
     output  logic [4:0]                 id_rs1_s,
     output  logic [4:0]                 id_rs2_s,
@@ -47,20 +47,20 @@ import rv32i_types::*;
 
     logic [31:0] imem_rdata_stall;
     logic        stall_stall;
-    logic        need_flush_need_flush;
+    logic        branch_flush_delay;
     always_ff @ ( posedge clk ) begin   
         if (rst) begin 
             imem_rdata_stall <= '0;
             stall_stall <= '0;
-            need_flush_need_flush <= '0;
+            branch_flush_delay <= '0;
         end else begin 
             imem_rdata_stall <= imem_rdata;
             stall_stall <= stall;
-            need_flush_need_flush <= need_flush;
+            branch_flush_delay <= branch_flush;
         end     
     end 
     always_comb begin
-        // for need_flush_need_flush == 1
+        // for branch_flush_delay == 1
         inst = 'x;
         pc = 'x;
         pc_next = 'x;
@@ -77,7 +77,7 @@ import rv32i_types::*;
         id_rs1_s = 'x;
         id_rs2_s = 'x;
         rd_s = 'x;
-        if (imem_resp && stall_stall == '0 && need_flush_need_flush == '0) begin 
+        if (imem_resp && stall_stall == '0 && branch_flush_delay == '0) begin 
             inst = imem_rdata;
             pc = if_id_stage_reg.pc;
             pc_next = if_id_stage_reg.pc_next;
@@ -289,7 +289,7 @@ import rv32i_types::*;
         if (stall) begin 
             id_ex_stage_reg = '0;
         end 
-        if (need_flush) begin 
+        if (branch_flush) begin 
             id_ex_stage_reg = '0;
         end 
     end

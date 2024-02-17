@@ -11,7 +11,7 @@ import rv32i_types::*;
     input   logic             not_stall,
     output  if_id_stage_reg_t if_id_stage_reg,
 
-    input   logic             need_flush,
+    input   logic             branch_flush,
     input   logic [31:0]      target_pc
 );      
 
@@ -41,7 +41,7 @@ import rv32i_types::*;
     end
 
     always_comb begin
-        if (need_flush) begin 
+        if (branch_flush) begin 
             pc_next = (target_pc);
             order_next = order - 'd1;
         end else begin 
@@ -55,7 +55,7 @@ import rv32i_types::*;
         if_id_stage_reg.pc_next = pc_next;
         if_id_stage_reg.order = order;
         if_id_stage_reg.valid = 1'b1;
-        if (need_flush) begin 
+        if (branch_flush) begin 
             if_id_stage_reg = '0;
         end
     end 

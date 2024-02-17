@@ -10,7 +10,7 @@ import rv32i_types::*;
     input ex_rs1_forward_sel_t         ex_rs1_forward_sel,
     input ex_rs2_forward_sel_t         ex_rs2_forward_sel,
 
-    output   logic          need_flush,
+    output   logic          branch_flush,
     output   logic [31:0]   target_pc
 );  
 
@@ -118,19 +118,19 @@ import rv32i_types::*;
     // branch
     always_comb begin
         pc_next = id_ex_stage_reg.pc_next;
-        need_flush = '0;
+        branch_flush = '0;
         target_pc = '0;
         case (opcode)
             jal_opcode: begin 
                 if (pc_next != ((pc + j_imm))) begin 
-                    need_flush = '1;
+                    branch_flush = '1;
                     target_pc = pc + j_imm;
                     pc_next = pc + j_imm;
                 end 
             end 
             jalr_opcode: begin 
                 if (pc_next != ((rs1_v + i_imm) & 32'hfffffffe)) begin 
-                    need_flush = '1;
+                    branch_flush = '1;
                     target_pc = (rs1_v + i_imm) & 32'hfffffffe;
                     pc_next = (rs1_v + i_imm) & 32'hfffffffe;
                 end
@@ -138,7 +138,7 @@ import rv32i_types::*;
             br_opcode: begin
                 if (br_en_grab) begin 
                     if (pc_next != ((pc + b_imm))) begin 
-                        need_flush = '1;
+                        branch_flush = '1;
                         target_pc = pc + b_imm;
                         pc_next = pc + b_imm;
                     end

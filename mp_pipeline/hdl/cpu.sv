@@ -31,7 +31,7 @@ import rv32i_types::*;
     ex_rs2_forward_sel_t         ex_rs2_forward_sel;
     logic  [4:0]    id_rs1_s;
     logic  [4:0]    id_rs2_s;
-    logic  need_flush;
+    logic  branch_flush;
     logic  [31:0]  target_pc;
 
     Forwarding forwarding(
@@ -54,7 +54,7 @@ import rv32i_types::*;
         .imem_rmask(imem_rmask),
         .not_stall(~stall),
         .if_id_stage_reg(next_if_id_stage_reg),
-        .need_flush(need_flush),
+        .branch_flush(branch_flush),
         .target_pc(target_pc)
     );
 
@@ -81,7 +81,7 @@ import rv32i_types::*;
         .id_rs2_s(id_rs2_s),
         .id_rs1_forward_sel(id_rs1_forward_sel),
         .id_rs2_forward_sel(id_rs2_forward_sel),
-        .need_flush(need_flush)
+        .branch_flush(branch_flush)
     );
 
     always_ff @ (posedge clk ) begin 
@@ -99,7 +99,7 @@ import rv32i_types::*;
         .wb_rd_v(wb_rd_v),
         .ex_rs1_forward_sel(ex_rs1_forward_sel),
         .ex_rs2_forward_sel(ex_rs2_forward_sel),
-        .need_flush(need_flush),
+        .branch_flush(branch_flush),
         .target_pc(target_pc)
     );
 
