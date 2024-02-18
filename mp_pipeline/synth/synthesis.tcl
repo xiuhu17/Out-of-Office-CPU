@@ -6,6 +6,8 @@ set_host_options -max_cores 4
 set_app_var report_default_significant_digits 6
 set design_toplevel cpu
 
+# You requested %d cores. However, load on host %s is %0.2y
+suppress_message UIO-231
 # output port '%s' is connected directly to output port '%s'
 suppress_message LINT-31
 # In design '%s', output port '%s' is connected directly to '%s'.

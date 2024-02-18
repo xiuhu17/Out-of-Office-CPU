@@ -148,6 +148,18 @@ module ordinary_dual_port #(
             end
         end else if (|d_cached_wmask) begin
             begin
+                if (tag_d[d_cached_addr[4:2]] != d_cached_addr) begin
+                    itf_d.resp <= 1'b0;
+                    std::randomize(d_delay) with {
+                        d_delay dist {
+                            [5:7] := 80,
+                            [8:15] := 20
+                        };
+                    };
+                    repeat (d_delay) @(posedge itf_d.clk);
+                    tag_d[d_cached_addr[4:2]] = d_cached_addr;
+                end
+
                 for (int i = 0; i < 4; i++) begin
                     if (d_cached_wmask[i]) begin
                         internal_memory_array[d_cached_addr[31:2]][i*8+:8] = d_cached_wdata[i*8+:8];
