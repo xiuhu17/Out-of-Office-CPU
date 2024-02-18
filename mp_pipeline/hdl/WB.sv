@@ -93,7 +93,30 @@ import rv32i_types::*;
         lhu = 'x;
         lw = 'x;
 
-        if (mem_signal.MemRead & move_pipeline) begin
+        if (mem_signal.MemRead == '1 && move_pipeline == '1 && dmem_resp == '1) begin
+            case (mem_signal.load_ops)
+                lb_mem: begin 
+                    lb = {{24{dmem_rdata[7 +8 * mem_addr[1:0]]}}, dmem_rdata[8 * mem_addr[1:0] +: 8 ]};
+                    mem_rdata = dmem_rdata;
+                end
+                lbu_mem: begin 
+                    lbu = {{24{1'b0}}                          , dmem_rdata[8 * mem_addr[1:0] +: 8 ]};
+                    mem_rdata = dmem_rdata;
+                end
+                lh_mem: begin 
+                    lh = {{16{dmem_rdata[15+16*mem_addr[1]  ]}}, dmem_rdata[16 * mem_addr[1]   +: 16]};
+                    mem_rdata = dmem_rdata;
+                end 
+                lhu_mem: begin 
+                    lhu = {{16{1'b0}}                          , dmem_rdata[16*mem_addr[1]   +: 16]};
+                    mem_rdata = dmem_rdata;
+                end
+                lw_mem: begin 
+                    lw = dmem_rdata;
+                    mem_rdata = dmem_rdata;
+                end
+            endcase
+        end else if (mem_signal.MemRead == '1 && move_pipeline == '1) begin 
             case (mem_signal.load_ops)
                 lb_mem: begin 
                     lb = {{24{dmem_rdata_store[7 +8 * mem_addr[1:0]]}}, dmem_rdata_store[8 * mem_addr[1:0] +: 8 ]};
@@ -116,7 +139,7 @@ import rv32i_types::*;
                     mem_rdata = dmem_rdata_store;
                 end
             endcase
-        end
+        end 
     end
 
     // write back

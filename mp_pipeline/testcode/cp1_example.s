@@ -262,4 +262,12 @@ ori        x2, x2, 0x10
 ori        x2, x2, 0x10    
 ori        x2, x2, 0x10  
 
+addi x20, x20, 2
+addi x20, x20, 2 
+lh  x3, 2(x20)
+add x2, x3, x3
+add x4, x3, x2
+add x4, x3, x4
+add x4, x3, x4
+
 slti       x0, x0, -256               # this is the magic instruction to end the simulation 

@@ -33,21 +33,47 @@ import rv32i_types::*;
                     next_state = IMEM_STALL;
                 end else if (dmem_rqst == '1) begin 
                     next_state = DMEM_STALL;
+                end else begin 
+                    next_state = Start;
                 end
             end 
             IMEM_STALL: begin 
                 if (imem_resp == '1) begin 
-                    next_state = Start;
+                    if (imem_rqst == '1 && dmem_rqst == '1) begin 
+                        next_state = IMEM_DMEM_STALL;
+                    end else if (imem_rqst == '1) begin 
+                        next_state = IMEM_STALL;
+                    end else if (dmem_rqst == '1) begin 
+                        next_state = DMEM_STALL;
+                    end else begin 
+                        next_state = Start;
+                    end 
                 end
             end 
             DMEM_STALL: begin 
                 if (dmem_resp == '1) begin 
-                    next_state = Start;
+                    if (imem_rqst == '1 && dmem_rqst == '1) begin 
+                        next_state = IMEM_DMEM_STALL;
+                    end else if (imem_rqst == '1) begin 
+                        next_state = IMEM_STALL;
+                    end else if (dmem_rqst == '1) begin 
+                        next_state = DMEM_STALL;
+                    end else begin 
+                        next_state = Start;
+                    end
                 end
             end 
             IMEM_DMEM_STALL: begin 
                 if (imem_resp == '1 && dmem_resp == '1) begin 
-                    next_state = Start;
+                    if (imem_rqst == '1 && dmem_rqst == '1) begin 
+                        next_state = IMEM_DMEM_STALL;
+                    end else if (imem_rqst == '1) begin 
+                        next_state = IMEM_STALL;
+                    end else if (dmem_rqst == '1) begin 
+                        next_state = DMEM_STALL;
+                    end else begin 
+                        next_state = Start;
+                    end
                 end else if (imem_resp == '1) begin 
                     next_state = DMEM_STALL;
                 end else if (dmem_resp == '1) begin 
@@ -62,13 +88,19 @@ import rv32i_types::*;
                 move_pipeline = '1;
             end 
             IMEM_STALL: begin 
-                move_pipeline = '0;
+                if (imem_resp == '1) begin 
+                    move_pipeline = '1;
+                end
             end
             DMEM_STALL: begin 
-                move_pipeline = '0;
+                if (dmem_resp == '1) begin 
+                    move_pipeline = '1;
+                end
             end
             IMEM_DMEM_STALL: begin 
-                move_pipeline = '0;
+                if (imem_resp == '1 && dmem_resp == '1) begin 
+                    move_pipeline = '1;
+                end 
             end
         endcase
     end 

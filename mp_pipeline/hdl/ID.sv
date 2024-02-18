@@ -76,7 +76,24 @@ import rv32i_types::*;
         id_rs1_s = 'x;
         id_rs2_s = 'x;
         rd_s = 'x;
-        if (move_pipeline == '1 && branch_flush_delay == '0) begin 
+        if (move_pipeline == '1 && branch_flush_delay == '0 && imem_resp == '1) begin
+            inst = imem_rdata;
+            pc = if_id_stage_reg.pc;
+            pc_next = if_id_stage_reg.pc_next;
+            order = if_id_stage_reg.order;
+            valid = if_id_stage_reg.valid;
+            funct3 = imem_rdata[14:12];
+            funct7 = imem_rdata[31:25];
+            opcode = imem_rdata[6:0];
+            i_imm = {{21{imem_rdata[31]}}, imem_rdata[30:20]};
+            s_imm = {{21{imem_rdata[31]}}, imem_rdata[30:25], imem_rdata[11:7]};
+            b_imm = {{20{imem_rdata[31]}}, imem_rdata[7], imem_rdata[30:25], imem_rdata[11:8], 1'b0};
+            u_imm = {imem_rdata[31:12], 12'h000};
+            j_imm = {{12{imem_rdata[31]}}, imem_rdata[19:12], imem_rdata[20], imem_rdata[30:21], 1'b0};
+            id_rs1_s = imem_rdata[19:15];
+            id_rs2_s = imem_rdata[24:20];
+            rd_s = imem_rdata[11:7]; 
+        end else if (move_pipeline == '1 && branch_flush_delay == '0) begin 
             inst = imem_rdata_store;
             pc = if_id_stage_reg.pc;
             pc_next = if_id_stage_reg.pc_next;
@@ -93,7 +110,7 @@ import rv32i_types::*;
             id_rs1_s = imem_rdata_store[19:15];
             id_rs2_s = imem_rdata_store[24:20];
             rd_s = imem_rdata_store[11:7];
-        end
+        end 
     end
 
     regfile regfile(
