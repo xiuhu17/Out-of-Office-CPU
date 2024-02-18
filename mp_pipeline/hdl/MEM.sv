@@ -8,7 +8,10 @@ import rv32i_types::*;
     output  logic   [31:0]  dmem_wdata,
  
     input   ex_mem_stage_reg_t ex_mem_stage_reg,
-    output  mem_wb_stage_reg_t mem_wb_stage_reg
+    output  mem_wb_stage_reg_t mem_wb_stage_reg,
+
+    input  logic move_pipeline,
+    output logic dmem_rqst  
 );
 
     logic   [31:0]      inst;
@@ -33,7 +36,9 @@ import rv32i_types::*;
     logic   [31:0]      lbu;
     logic   [31:0]      lh;
     logic   [31:0]      lhu;
-
+    
+    logic   [6:0]       opcode;
+    assign opcode =  inst[6:0];
     
     always_comb begin 
         inst = ex_mem_stage_reg.inst;
@@ -51,10 +56,18 @@ import rv32i_types::*;
         rs1_s = ex_mem_stage_reg.rs1_s;
         rs2_s = ex_mem_stage_reg.rs2_s;
         rd_s = ex_mem_stage_reg.rd_s;
-        dmem_addr = ex_mem_stage_reg.mem_addr & 32'hfffffffc;
-        dmem_rmask = ex_mem_stage_reg.mem_rmask;
-        dmem_wmask = ex_mem_stage_reg.mem_wmask;
-        dmem_wdata =  ex_mem_stage_reg.mem_wdata;
+        dmem_addr = '0;
+        dmem_rmask = '0;
+        dmem_wmask = '0;
+        dmem_wdata =  '0;
+        dmem_rqst = '0;
+        if (move_pipeline == '1 && (opcode == load_opcode || opcode == store_opcode)) begin 
+            dmem_addr = ex_mem_stage_reg.mem_addr & 32'hfffffffc;
+            dmem_rmask = ex_mem_stage_reg.mem_rmask;
+            dmem_wmask = ex_mem_stage_reg.mem_wmask;
+            dmem_wdata =  ex_mem_stage_reg.mem_wdata;
+            dmem_rqst = '1;
+        end 
     end 
 
     always_comb begin 

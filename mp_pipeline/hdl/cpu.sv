@@ -34,6 +34,29 @@ import rv32i_types::*;
     logic  branch_flush;
     logic  [31:0]  target_pc;
 
+    logic branch_flush_delay;
+    logic imem_rqst;
+    logic dmem_rqst;
+    logic move_pipeline;
+
+    STALLFSM stallfsm(
+        .clk(clk),
+        .rst(rst),
+        .imem_rqst(imem_rqst),
+        .dmem_rqst(dmem_rqst),
+        .imem_resp(imem_resp),
+        .dmem_resp(dmem_resp),
+        .move_pipeline(move_pipeline)
+    ); 
+
+    FLUSHFSM flushfsm(
+        .clk(clk),
+        .rst(rst),
+        .branch_flush(branch_flush),
+        .branch_flush_delay(branch_flush_delay),
+        .move_pipeline(move_pipeline)
+    );
+
     Forwarding forwarding(
         .id_rs1_s(id_rs1_s),
         .id_rs2_s(id_rs2_s),
@@ -55,14 +78,18 @@ import rv32i_types::*;
         .forwarding_stall(forwarding_stall),
         .if_id_stage_reg(next_if_id_stage_reg),
         .branch_flush(branch_flush),
-        .target_pc(target_pc)
+        .target_pc(target_pc),
+        .move_pipeline(move_pipeline),
+        .imem_rqst(imem_rqst)
     );
 
     always_ff @ (posedge clk ) begin 
         if (rst) begin 
             curr_if_id_stage_reg <= '0;
         end else if (~forwarding_stall) begin 
-            curr_if_id_stage_reg <= next_if_id_stage_reg;
+            if (move_pipeline) begin 
+                curr_if_id_stage_reg <= next_if_id_stage_reg;
+            end 
         end 
     end 
 
@@ -81,13 +108,15 @@ import rv32i_types::*;
         .id_rs2_s(id_rs2_s),
         .id_rs1_forward_sel(id_rs1_forward_sel),
         .id_rs2_forward_sel(id_rs2_forward_sel),
-        .branch_flush(branch_flush)
+        .branch_flush(branch_flush),
+        .move_pipeline(move_pipeline),
+        .branch_flush_delay(branch_flush_delay)
     );
 
     always_ff @ (posedge clk ) begin 
         if (rst) begin 
             curr_id_ex_stage_reg <= '0;
-        end else begin 
+        end else if (move_pipeline) begin 
             curr_id_ex_stage_reg <= next_id_ex_stage_reg;
         end 
     end
@@ -106,7 +135,7 @@ import rv32i_types::*;
     always_ff @ (posedge clk ) begin 
         if (rst) begin 
             curr_ex_mem_stage_reg <= '0;
-        end else begin 
+        end else if (move_pipeline) begin 
             curr_ex_mem_stage_reg <= next_ex_mem_stage_reg;
         end 
     end
@@ -117,24 +146,29 @@ import rv32i_types::*;
         .dmem_wmask(dmem_wmask),
         .dmem_wdata(dmem_wdata),
         .ex_mem_stage_reg(curr_ex_mem_stage_reg),
-        .mem_wb_stage_reg(next_mem_wb_stage_reg)
+        .mem_wb_stage_reg(next_mem_wb_stage_reg),
+        .dmem_rqst(dmem_rqst),
+        .move_pipeline(move_pipeline)
     );
 
     always_ff @ (posedge clk ) begin 
         if (rst) begin 
             curr_mem_wb_stage_reg <= '0;
-        end else begin 
+        end else if (move_pipeline) begin 
             curr_mem_wb_stage_reg <= next_mem_wb_stage_reg;
         end 
     end
 
     WB_Stage wb_stage(
+        .clk(clk),
+        .rst(rst),
         .mem_wb_stage_reg(curr_mem_wb_stage_reg),
         .dmem_resp(dmem_resp),
         .dmem_rdata(dmem_rdata),
         .wb_rd_s(wb_rd_s),
         .wb_rd_v(wb_rd_v),
-        .wb_regf_we(wb_regf_we)
+        .wb_regf_we(wb_regf_we),
+        .move_pipeline(move_pipeline)
     );
 
 

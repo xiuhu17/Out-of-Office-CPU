@@ -12,7 +12,10 @@ import rv32i_types::*;
     output  if_id_stage_reg_t if_id_stage_reg,
 
     input   logic             branch_flush,
-    input   logic [31:0]      target_pc
+    input   logic [31:0]      target_pc,
+
+    input  logic move_pipeline,
+    output logic imem_rqst
 );      
 
     logic   [63:0]  order;
@@ -28,16 +31,26 @@ import rv32i_types::*;
             order <= '0;
         end else begin 
             if (~forwarding_stall) begin 
-                pc <= pc_next;
-                order <= order_next;
+                if (move_pipeline) begin 
+                    pc <= pc_next;
+                    order <= order_next;
+                end
             end
         end 
     end
 
     // next_state update
     always_comb begin
-        imem_addr = pc;
-        imem_rmask = 4'b1111;
+        imem_addr = '0;
+        imem_rmask = '0;
+        imem_rqst = '0;
+        if (~forwarding_stall) begin
+            if (move_pipeline) begin 
+                imem_addr = pc;
+                imem_rmask = 4'b1111;
+                imem_rqst = '1;
+            end 
+        end 
     end
 
     always_comb begin

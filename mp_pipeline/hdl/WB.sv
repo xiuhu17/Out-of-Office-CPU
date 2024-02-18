@@ -1,6 +1,9 @@
 module WB_Stage
 import rv32i_types::*;
-(
+(   
+    input logic clk,
+    input logic rst,
+
     input       mem_wb_stage_reg_t mem_wb_stage_reg,
 
     input   logic           dmem_resp,
@@ -8,7 +11,9 @@ import rv32i_types::*;
 
     output      logic [4:0]     wb_rd_s,
     output      logic [31:0]    wb_rd_v,
-    output      logic           wb_regf_we
+    output      logic           wb_regf_we,
+
+    input logic move_pipeline
 );
 
     logic   [31:0]      inst;
@@ -39,7 +44,15 @@ import rv32i_types::*;
     logic   [31:0]       mem_wdata;
 
     logic   [31:0]      wb_rd_v_grab;
+    logic   [31:0]     dmem_rdata_store;
 
+    always_ff @ (posedge clk) begin 
+        if (rst) begin 
+            dmem_rdata_store <= '0;
+        end else if (dmem_resp) begin 
+            dmem_rdata_store <= dmem_rdata;
+        end 
+    end 
 
     always_comb begin
         inst = mem_wb_stage_reg.inst;
@@ -80,27 +93,27 @@ import rv32i_types::*;
         lhu = 'x;
         lw = 'x;
 
-        if (mem_signal.MemRead & dmem_resp) begin
+        if (mem_signal.MemRead & move_pipeline) begin
             case (mem_signal.load_ops)
                 lb_mem: begin 
-                    lb = {{24{dmem_rdata[7 +8 * mem_addr[1:0]]}}, dmem_rdata[8 * mem_addr[1:0] +: 8 ]};
-                    mem_rdata = dmem_rdata;
+                    lb = {{24{dmem_rdata_store[7 +8 * mem_addr[1:0]]}}, dmem_rdata_store[8 * mem_addr[1:0] +: 8 ]};
+                    mem_rdata = dmem_rdata_store;
                 end
                 lbu_mem: begin 
-                    lbu = {{24{1'b0}}                          , dmem_rdata[8 * mem_addr[1:0] +: 8 ]};
-                    mem_rdata = dmem_rdata;
+                    lbu = {{24{1'b0}}                          , dmem_rdata_store[8 * mem_addr[1:0] +: 8 ]};
+                    mem_rdata = dmem_rdata_store;
                 end
                 lh_mem: begin 
-                    lh = {{16{dmem_rdata[15+16*mem_addr[1]  ]}}, dmem_rdata[16 * mem_addr[1]   +: 16]};
-                    mem_rdata = dmem_rdata;
+                    lh = {{16{dmem_rdata_store[15+16*mem_addr[1]  ]}}, dmem_rdata_store[16 * mem_addr[1]   +: 16]};
+                    mem_rdata = dmem_rdata_store;
                 end 
                 lhu_mem: begin 
-                    lhu = {{16{1'b0}}                          , dmem_rdata[16*mem_addr[1]   +: 16]};
-                    mem_rdata = dmem_rdata;
+                    lhu = {{16{1'b0}}                          , dmem_rdata_store[16*mem_addr[1]   +: 16]};
+                    mem_rdata = dmem_rdata_store;
                 end
                 lw_mem: begin 
-                    lw = dmem_rdata;
-                    mem_rdata = dmem_rdata;
+                    lw = dmem_rdata_store;
+                    mem_rdata = dmem_rdata_store;
                 end
             endcase
         end
@@ -145,7 +158,7 @@ import rv32i_types::*;
         wb_rd_v = wb_rd_v_grab;
         wb_regf_we = wb_signal.regf_we;
         valid = '0;
-        if (mem_wb_stage_reg.valid) begin
+        if (mem_wb_stage_reg.valid && move_pipeline) begin
             valid = '1;
         end
     end 
