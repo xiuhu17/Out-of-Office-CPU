@@ -145,7 +145,7 @@ import rv32i_types::*;
     // write back
     always_comb begin 
         wb_rd_v_grab = '0;
-        if (mem_wb_stage_reg.pc != '0) begin
+        if (mem_wb_stage_reg.valid) begin
             case (wb_signal.regf_m_sel)
                 alu_out_wb: begin
                     wb_rd_v_grab = alu_out;

@@ -20,7 +20,7 @@ sim/top_tb: $(SRCS) $(HDRS)
 run_top_tb: sim/top_tb $(PROG)
 	../bin/generate_memory_file.sh $(PROG)
 	rm -f sim/dump.fsdb
-	cd sim && ./top_tb -l top_tb_sim.log
+	cd sim && ./top_tb -l top_tb_sim.log +ntb_random_seed=193843
 	bash check_sim_error.sh
 
 .PHONY: covrep

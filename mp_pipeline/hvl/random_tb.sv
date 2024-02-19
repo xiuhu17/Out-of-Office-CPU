@@ -40,7 +40,7 @@ import rv32i_types::*;
   // Note that this memory model is not consistent! It ignores
   // writes and always reads out a random, valid instruction.
   task run_random_instrs();
-    repeat (1000000) begin
+    repeat (5000000) begin
       //@(posedge itf_i.clk iff (itf_i.rmask != '0 | itf_d.wmask != '0 | itf_d.rmask !='0));
 
       // Always read out a valid instruction.

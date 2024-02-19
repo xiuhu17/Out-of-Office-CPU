@@ -135,12 +135,16 @@ class RandInst;
       instr_type[2] -> {
         instr.s_type.opcode == store_opcode;
         instr.s_type.funct3 inside {sw_funct3, sb_funct3, sh_funct3};
+        instr.s_type.rs1 == 5'b00000;
+      instr.s_type.imm_s_bot[1:0] == 2'b00;
       }
 
       // // Load instructions
       instr_type[3] -> {
         instr.i_type.opcode == load_opcode;
         instr.i_type.funct3 inside {lb_funct3, lh_funct3, lw_funct3, lbu_funct3, lhu_funct3};
+        instr.i_type.rs1 == 5'b00000;
+      instr.i_type.i_imm[1:0] == 2'b00;
       }
 
       // TODO: Do all 9 types!
@@ -148,6 +152,7 @@ class RandInst;
       instr_type[4] -> {
         instr.b_type.opcode == br_opcode;
         instr.b_type.funct3 inside {beq_funct3, bne_funct3, blt_funct3, bge_funct3, bltu_funct3, bgeu_funct3}; 
+      
       }
 
       // Jump and Link Register instruction
