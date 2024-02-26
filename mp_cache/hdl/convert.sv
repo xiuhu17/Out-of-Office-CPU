@@ -1,4 +1,4 @@
-module convert(
+module CONVERT(
     input logic [255:0] din,
     input logic [4:0] low_bit,
     input logic [3:0] mask,
