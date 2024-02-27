@@ -1,4 +1,6 @@
-module CACHEFSM(
+module CACHEFSM
+import cache_types::*; 
+(
     input logic clk,
     input logic rst,
     input logic CPU_Read,
@@ -10,7 +12,7 @@ module CACHEFSM(
     
     // signal
     output Sram_op_t Sram_op,
-    output logic Sram_resp,
+    output logic ufp_resp,
     output logic dfp_read,
     output logic dfp_write
 );
@@ -29,7 +31,7 @@ end
 always_comb begin 
     next_state = curr_state;
     Sram_op = 'x;
-    Sram_resp = '0;
+    ufp_resp = '0;
     dfp_read = '0;
     dfp_write = '0;
 
@@ -65,7 +67,7 @@ always_comb begin
     case (curr_state) 
         Compare_Tag: begin 
             if (Hit) begin 
-                Sram_resp = '1;
+                ufp_resp = '1;
                 if (CPU_Read) begin 
                     Sram_op = hit_read_clean;
                 end else if (CPU_Write) begin 
