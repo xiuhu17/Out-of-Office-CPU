@@ -19,6 +19,27 @@ module cache (
     input   logic           dfp_resp
 );
 
+    logic [2:0] Plru_Arr[16];
+    logic [3:0] curr_set;
+
+    always_comb begin 
+        curr_set = ufp_addr[8:5];
+    end 
+
+    always_ff @ (posedge clk) begin
+        if (rst) begin
+            for (int i = 0; i < 16; i++) begin
+                Plru_Arr[i] <= 3'b0;
+            end
+        end else if (ufp_resp) begin
+           
+        end
+    end
+    
+    PLRU PLRU(
+
+    );
+
     generate for (genvar i = 0; i < 4; i++) begin : arrays
         mp_cache_data_array data_array (
             .clk0       (),
@@ -46,6 +67,9 @@ module cache (
             .din0       (),
             .dout0      ()
         );
+
     end endgenerate
+
+
 
 endmodule
