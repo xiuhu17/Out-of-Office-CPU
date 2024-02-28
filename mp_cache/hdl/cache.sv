@@ -20,23 +20,16 @@ module cache (
 );
 
     logic [3:0] curr_set;
-    logic [1:0] curr_way_replace;
-
     always_comb begin 
         curr_set = ufp_addr[8:5];
     end 
 
-    PLRU PLRU(
-        .clk(clk),
-        .rst(rst),
-        .ufp_resp(ufp_resp),
-        .curr_set(curr_set),
-        .curr_way_replace(curr_way_replace)
-    );
+    logic [255:0] internal_data_array[4];
+    logic [23:0] internal_tag_array[4];
 
     generate for (genvar i = 0; i < 4; i++) begin : arrays
         mp_cache_data_array data_array (
-            .clk0       (),
+            .clk0       (clk),
             .csb0       (),
             .web0       (),
             .wmask0     (),
@@ -45,7 +38,7 @@ module cache (
             .dout0      ()
         );
         mp_cache_tag_array tag_array (
-            .clk0       (),
+            .clk0       (clk),
             .csb0       (),
             .web0       (),
             .addr0      (),
@@ -53,7 +46,7 @@ module cache (
             .dout0      ()
         );
         ff_array #(.WIDTH(1)) valid_array (
-            .clk0       (),
+            .clk0       (clk),
             .rst0       (),
             .csb0       (),
             .web0       (),
@@ -63,7 +56,5 @@ module cache (
         );
 
     end endgenerate
-
-
 
 endmodule
