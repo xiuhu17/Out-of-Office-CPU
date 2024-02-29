@@ -5,11 +5,11 @@ import cache_types::*;
     input logic rst,
     input logic ufp_Read,
     input logic ufp_Write,
-    input Hit_Miss_t Hit_Miss, 
+    input logic [1:0] Hit_Miss, 
     input logic dfp_Resp,
     
     // signal
-    output Sram_op_t Sram_op,
+    output logic [1:0] Sram_op,
     output logic ufp_Resp,
     output logic dfp_Read,
     output logic dfp_Write

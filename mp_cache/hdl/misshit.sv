@@ -43,7 +43,7 @@ module HITMISS(
             endcase
         end else begin 
             case (PLRU_Way_Replace) 
-                Way_A: begin // valid and dirty 
+                Way_A: begin 
                     if (valid_A && dirty_tag_A[23]) begin 
                         Hit_Miss = Dirty_Miss;
                     end else begin

@@ -40,6 +40,7 @@ module PLRU(
     end 
 
     always_comb begin 
+        PLRU_Way_Replace = 'x;
         if (PLRU_Arr[curr_set][0]) begin 
             if (PLRU_Arr[curr_set][1]) begin 
                 PLRU_Way_Replace = Way_A;
