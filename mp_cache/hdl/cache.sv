@@ -100,7 +100,17 @@ module cache (
     end 
 
     // dfp:
-    
+    always_comb begin 
+        dfp_addr = '0;
+        dfp_wdata = '0;
+        if (dfp_write) begin 
+            dfp_addr = {internal_valid_array_read[PLRU_Way_Replace][22:0] , curr_set, 5'b0};
+            dfp_wdata = internal_data_array_read[PLRU_Way_Replace];
+        end else if (dfp_read) begin
+            dfp_addr = {curr_tag, curr_set, 5'b0};
+        end 
+    end 
+
     always_comb begin 
         curr_set = ufp_addr[8:5];
         curr_tag = ufp_addr[31:9];
