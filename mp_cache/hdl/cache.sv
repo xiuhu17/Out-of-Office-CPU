@@ -25,9 +25,9 @@ module cache (
     logic [23:0] internal_tag_array_write[4];
     logic internal_valid_array_read[4];
     logic internal_valid_array_write[4];
-    logic [3:0] data_array_web0;
-    logic [3:0] tag_array_web0;
-    logic [3:0] valid_array_web0;
+    logic data_array_web0[4];
+    logic tag_array_web0[4];
+    logic valid_array_web0[4];
 
     logic [3:0] curr_set;
     logic [22:0] curr_tag;
@@ -38,18 +38,62 @@ module cache (
     logic [1:0] PLRU_Way_Replace;
     logic [1:0] PLRU_Way_Visit;
 
-
-    // TODO:
-    always_comb begin 
-        data_web0_array = '1;
-        tag_web0_array = '1;
-        if (Sram_op == Miss_Replace) begin 
-            data_web0_array[PLRU_Way_Replace] = 1'b0;
-            
-        end else if (Sram_op == Hit_Write_Dirty) begin 
-            data_web0_array[PLRU_Way_Visit] = 1'b0;
+    // hit read
+    always_comb begin
+        ufp_rdata = '0;
+        if (Sram_op == Hit_Read_Clean) begin
+            case (PLRU_Way_Visit)
+                Way_A: begin 
+                    ufp_rdata = internal_data_array_read[Way_A];
+                end 
+                Way_B: begin 
+                    ufp_rdata = internal_data_array_read[Way_B];
+                end 
+                Way_C: begin 
+                    ufp_rdata = internal_data_array_read[Way_C];
+                end
+                Way_D: begin 
+                    ufp_rdata = internal_data_array_read[Way_D];
+                end
+            endcase
         end 
     end 
+
+    // web0: hit dirty write or miss replace write
+    always_comb begin 
+        for (int i = 0; i < 4; i ++) begin 
+            data_array_web0[i] = '1;
+            tag_array_web0[i] = '1;
+            valid_array_web0[i] = '1;
+        end 
+        if (Sram_op == Hit_Write_Dirty) begin 
+            data_array_web0[PLRU_Way_Visit] = 1'b0;
+            tag_array_web0[PLRU_Way_Visit] = 1'b0;
+            valid_array_web0[PLRU_Way_Visit] = 1'b0;
+        end else if (Sram_op == Miss_Replace) begin 
+            data_array_web0[PLRU_Way_Replace] = 1'b0;
+            tag_array_web0[PLRU_Way_Replace] = 1'b0;
+            valid_array_web0[PLRU_Way_Replace] = 1'b0;
+        end 
+    end 
+
+    // data write: hit dirty write or miss replace write
+    always_comb begin 
+        for (int i = 0; i < 4; i ++) begin 
+            internal_data_array_write[i] = '0;
+            internal_tag_array_write[i] = '0;
+            internal_valid_array_write[i] = '0;
+        end
+        if (Sram_op == Hit_Write_Dirty) begin 
+            internal_data_array_write[PLRU_Way_Visit] = 
+            internal_tag_array_write[PLRU_Way_Visit] = 
+            internal_valid_array_write[PLRU_Way_Visit] = 
+        end else if (Sram_op == Miss_Replace) begin 
+
+        end 
+    end 
+
+    // dfp:
     
     always_comb begin 
         curr_set = ufp_addr[8:5];
