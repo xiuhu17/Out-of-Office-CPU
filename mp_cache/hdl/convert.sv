@@ -1,17 +1,3 @@
-module CONVERT_READ(
-    input logic [31:0] ufp_addr,
-    input logic [255:0] din_256,
-    input logic [3:0] rmask_4,
-    output logic [31:0] dout_32
-);
-
-    logic [31:0] four_byte_group;
-    always_comb begin
-        four_byte_group = din_256[32 * ufp_addr[4:2] +: 32];
-        dout_32 = {8{rmask_4[3]}, 8{rmask_4[2]}, 8{rmask_4[1]}, 8{rmask_4[0]}} & four_byte_group;
-    end
-endmodule
-
 module CONVERT_WRITE(
     input logic [31:0] ufp_addr,
     input logic [31:0] din_32,

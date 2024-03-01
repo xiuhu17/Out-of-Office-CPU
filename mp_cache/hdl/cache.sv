@@ -28,6 +28,7 @@ module cache (
     logic data_array_web0[4];
     logic tag_array_web0[4];
     logic valid_array_web0[4];
+    logic [31:0] internal_data_array_mask[4];
 
     logic [3:0] curr_set;
     logic [22:0] curr_tag;
@@ -44,16 +45,16 @@ module cache (
         if (Sram_op == Hit_Read_Clean) begin
             case (PLRU_Way_Visit)
                 Way_A: begin 
-                    ufp_rdata = internal_data_array_read[Way_A];
+                    ufp_rdata = internal_data_array_read[Way_A][32 * ufp_addr[4:2] +: 32];
                 end 
                 Way_B: begin 
-                    ufp_rdata = internal_data_array_read[Way_B];
+                    ufp_rdata = internal_data_array_read[Way_B][32 * ufp_addr[4:2] +: 32];
                 end 
                 Way_C: begin 
-                    ufp_rdata = internal_data_array_read[Way_C];
+                    ufp_rdata = internal_data_array_read[Way_C][32 * ufp_addr[4:2] +: 32];
                 end
                 Way_D: begin 
-                    ufp_rdata = internal_data_array_read[Way_D];
+                    ufp_rdata = internal_data_array_read[Way_D][32 * ufp_addr[4:2] +: 32];
                 end
             endcase
         end 
@@ -83,13 +84,16 @@ module cache (
             internal_data_array_write[i] = '0;
             internal_tag_array_write[i] = '0;
             internal_valid_array_write[i] = '0;
+            internal_data_array_mask[i] = '0;
         end
         if (Sram_op == Hit_Write_Dirty) begin 
             internal_data_array_write[PLRU_Way_Visit] = 
-            internal_tag_array_write[PLRU_Way_Visit] = 
+            internal_tag_array_write[PLRU_Way_Visit] = {1'b1, curr_tag};
             internal_valid_array_write[PLRU_Way_Visit] = 
         end else if (Sram_op == Miss_Replace) begin 
-
+            internal_data_array_write[PLRU_Way_Replace] = 
+            internal_tag_array_write[PLRU_Way_Replace] = 
+            internal_valid_array_write[PLRU_Way_Replace] = 
         end 
     end 
 
