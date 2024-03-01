@@ -39,6 +39,20 @@ module cache (
     logic [1:0] PLRU_Way_Replace;
     logic [1:0] PLRU_Way_Visit;
 
+    
+    always_comb begin 
+        curr_set = ufp_addr[8:5];
+        curr_tag = ufp_addr[31:9];
+        ufp_Read = '0;
+        ufp_Write = '0;
+        if (ufp_rmask) begin 
+            ufp_Read = '1;
+        end 
+        if (ufp_wmask) begin
+            ufp_Write = '1;
+        end 
+    end 
+
     // hit read
     always_comb begin
         ufp_rdata = '0;
@@ -104,23 +118,10 @@ module cache (
         dfp_addr = '0;
         dfp_wdata = '0;
         if (dfp_write) begin 
-            dfp_addr = {internal_valid_array_read[PLRU_Way_Replace][22:0] , curr_set, 5'b0};
+            dfp_addr = {internal_tag_array_read[PLRU_Way_Replace][22:0] , curr_set, 5'b0};
             dfp_wdata = internal_data_array_read[PLRU_Way_Replace];
         end else if (dfp_read) begin
             dfp_addr = {curr_tag, curr_set, 5'b0};
-        end 
-    end 
-
-    always_comb begin 
-        curr_set = ufp_addr[8:5];
-        curr_tag = ufp_addr[31:9];
-        ufp_Read = '0;
-        ufp_Write = '0;
-        if (ufp_rmask) begin 
-            ufp_Read = '1;
-        end 
-        if (ufp_wmask) begin
-            ufp_Write = '1;
         end 
     end 
 
@@ -165,28 +166,28 @@ module cache (
         mp_cache_data_array data_array (
             .clk0       (clk),
             .csb0       (1'b0),
-            .web0       (),
-            .wmask0     (),
+            .web0       (data_array_web0[i]),
+            .wmask0     (internal_data_array_mask[i]),
             .addr0      (curr_set),
-            .din0       (),
-            .dout0      ()
+            .din0       (internal_data_array_write[i]),
+            .dout0      (internal_data_array_read[i])
         );
         mp_cache_tag_array tag_array (
             .clk0       (clk),
             .csb0       (1'b0),
-            .web0       (),
+            .web0       (tag_array_web0[i]),
             .addr0      (curr_set),
-            .din0       (),
-            .dout0      ()
+            .din0       (internal_tag_array_write[i]),
+            .dout0      (internal_tag_array_read[i])
         );
         ff_array #(.WIDTH(1)) valid_array (
             .clk0       (clk),
             .rst0       (rst),
             .csb0       (1'b0),
-            .web0       (),
+            .web0       (valid_array_web0[i]),
             .addr0      (curr_set),
-            .din0       (),
-            .dout0      ()
+            .din0       (internal_valid_array_write[i]),
+            .dout0      (internal_valid_array_read[i])
         );
 
     end endgenerate
