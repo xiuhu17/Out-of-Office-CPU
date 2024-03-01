@@ -19,35 +19,50 @@ module cache (
     input   logic           dfp_resp
 );
 
-    logic [255:0] internal_data_array[4];
-    logic [23:0] internal_tag_array[4];
-    logic internal_valid_array[4];
+    logic [255:0] internal_data_array_read[4];
+    logic [255:0] internal_data_array_write[4];
+    logic [23:0] internal_tag_array_read[4];
+    logic [23:0] internal_tag_array_write[4];
+    logic internal_valid_array_read[4];
+    logic internal_valid_array_write[4];
+    logic [3:0] data_array_web0;
+    logic [3:0] tag_array_web0;
+    logic [3:0] valid_array_web0;
+
     logic [3:0] curr_set;
     logic [22:0] curr_tag;
-    logic [31:0] dfp_rdata_convert_32;
-    logic [255:0] ufp_wdata_convert_256;
-    logic [31:0] ufp_wmask_convert_32;
     logic ufp_Read;
     logic ufp_Write;
     logic [1:0] Hit_Miss;
     logic [1:0] Sram_op;
-    logic [1:0] PLRU_Way_Replace,
-    logic [1:0] PLRU_Way_Visit
+    logic [1:0] PLRU_Way_Replace;
+    logic [1:0] PLRU_Way_Visit;
 
-    CONVERT_READ convert_read(
-        .ufp_addr(ufp_addr),
-        .din_256(dfp_rdata),
-        .rmask_4(ufp_rmask),
-        .dout_32(internal_dfp_rdata_32)
-    );
 
-    CONVERT_WRITE convert_write(
-        .ufp_addr(ufp_addr),
-        .din_32(ufp_wdata),
-        .wmask_4(ufp_wmask),
-        .dout_256(ufp_wdata_convert_256),
-        .wmask_32(ufp_wmask_convert_32)
-    );
+    // TODO:
+    always_comb begin 
+        data_web0_array = '1;
+        tag_web0_array = '1;
+        if (Sram_op == Miss_Replace) begin 
+            data_web0_array[PLRU_Way_Replace] = 1'b0;
+            
+        end else if (Sram_op == Hit_Write_Dirty) begin 
+            data_web0_array[PLRU_Way_Visit] = 1'b0;
+        end 
+    end 
+    
+    always_comb begin 
+        curr_set = ufp_addr[8:5];
+        curr_tag = ufp_addr[31:9];
+        ufp_Read = '0;
+        ufp_Write = '0;
+        if (ufp_rmask) begin 
+            ufp_Read = '1;
+        end 
+        if (ufp_wmask) begin
+            ufp_Write = '1;
+        end 
+    end 
 
     CACHEFSM cachefsm(
         .clk(clk),
@@ -63,17 +78,17 @@ module cache (
     );
 
     HITMISS misshit(
-        .dirty_tag_A(internal_tag_array[Way_A]),
-        .dirty_tag_B(internal_tag_array[Way_B]),
-        .dirty_tag_C(internal_tag_array[Way_C]),
-        .dirty_tag_D(internal_tag_array[Way_D]),
-        .valid_A(internal_valid_array[Way_A]),
-        .valid_B(internal_valid_array[Way_B]),
-        .valid_C(internal_valid_array[Way_C]),
-        .valid_D(internal_valid_array[Way_D]),
+        .dirty_tag_A(internal_tag_array_read[Way_A]),
+        .dirty_tag_B(internal_tag_array_read[Way_B]),
+        .dirty_tag_C(internal_tag_array_read[Way_C]),
+        .dirty_tag_D(internal_tag_array_read[Way_D]),
+        .valid_A(internal_valid_array_read[Way_A]),
+        .valid_B(internal_valid_array_read[Way_B]),
+        .valid_C(internal_valid_array_read[Way_C]),
+        .valid_D(internal_valid_array_read[Way_D]),
         .curr_tag(curr_tag),
-        .PLRU_Way_Replace(PLRU_Way_Replace),
         .Hit_Miss(Hit_Miss),
+        .PLRU_Way_Replace(PLRU_Way_Replace),
         .PLRU_Way_Visit(PLRU_Way_Visit)
     );
 
@@ -85,19 +100,6 @@ module cache (
         .PLRU_Way_Visit(PLRU_Way_Visit), 
         .PLRU_Way_Replace(PLRU_Way_Replace)
     );
-    
-    always_comb begin 
-        curr_set = ufp_addr[8:5];
-        curr_tag = ufp_addr[31:9];
-        ufp_Read = '0;
-        ufp_Write = '0;
-        if (ufp_rmask) begin 
-            ufp_Read = '1;
-        end 
-        if (ufp_wmask) begin
-            ufp_Write = '1;
-        end 
-    end 
 
     generate for (genvar i = 0; i < 4; i++) begin : arrays
         mp_cache_data_array data_array (

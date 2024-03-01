@@ -15,7 +15,6 @@ import cache_types::*;
     output logic dfp_Write
 );
 
-
 enum logic[1:0] {Idle, Compare_Tag, Write_Back, Allocate} curr_state, next_state;
 
 always_ff @ (posedge clk) begin 
