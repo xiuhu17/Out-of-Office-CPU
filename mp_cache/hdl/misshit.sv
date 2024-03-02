@@ -1,6 +1,6 @@
-// [way A][way B][way C][way D]
-// [3]    [2]    [1]    [0] 
-module HITMISS(
+module HitMiss
+import cache_types::*;  
+(
     input logic [23:0] dirty_tag_A,
     input logic [23:0] dirty_tag_B,
     input logic [23:0] dirty_tag_C,
@@ -15,33 +15,33 @@ module HITMISS(
     output logic [1:0] PLRU_Way_Visit
 );
 
-    logic [3:0] PLRU_Way_4;
+    // logic [3:0] PLRU_Way_4;
     always_comb begin 
         Hit_Miss = 'x;
         PLRU_Way_Visit = 'x;
 
-        PLRU_Way_4[3] = (dirty_tag_A[22:0] == curr_tag) && valid_A;
-        PLRU_Way_4[2] = (dirty_tag_B[22:0] == curr_tag) && valid_B;
-        PLRU_Way_4[1] = (dirty_tag_C[22:0] == curr_tag) && valid_C;
-        PLRU_Way_4[0] = (dirty_tag_D[22:0] == curr_tag) && valid_D;
+        // PLRU_Way_4[3] = (dirty_tag_A[22:0] == curr_tag) & valid_A;
+        // PLRU_Way_4[2] = (dirty_tag_B[22:0] == curr_tag) & valid_B;
+        // PLRU_Way_4[1] = (dirty_tag_C[22:0] == curr_tag) & valid_C;
+        // PLRU_Way_4[0] = (dirty_tag_D[22:0] == curr_tag) & valid_D;
 
-        if (PLRU_Way_4) begin
-            Hit_Miss = Hit; 
-            case (PLRU_Way_4)
-                Way_A_4: begin 
-                    PLRU_Way_Visit = Way_A;
-                end 
-                Way_B_4: begin 
-                    PLRU_Way_Visit = Way_B;
-                end
-                Way_C_4: begin 
-                    PLRU_Way_Visit = Way_C;
-                end
-                Way_D_4: begin
-                    PLRU_Way_Visit = Way_D;
-                end
-            endcase
-        end else begin 
+        // if (PLRU_Way_4 != '0) begin
+        //     Hit_Miss = Hit; 
+        //     case (PLRU_Way_4)
+        //         Way_A_4: begin 
+        //             PLRU_Way_Visit = Way_A;
+        //         end 
+        //         Way_B_4: begin 
+        //             PLRU_Way_Visit = Way_B;
+        //         end
+        //         Way_C_4: begin 
+        //             PLRU_Way_Visit = Way_C;
+        //         end
+        //         Way_D_4: begin
+        //             PLRU_Way_Visit = Way_D;
+        //         end
+        //     endcase
+        // end else begin 
             case (PLRU_Way_Replace) 
                 Way_A: begin 
                     if (valid_A && dirty_tag_A[23]) begin 
@@ -73,6 +73,9 @@ module HITMISS(
                 end
             endcase 
         end 
-    end 
+    // end 
+
+    // [way A][way B][way C][way D]
+    // [3]    [2]    [1]    [0] 
 
 endmodule

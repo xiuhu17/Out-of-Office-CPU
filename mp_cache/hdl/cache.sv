@@ -1,4 +1,6 @@
-module cache (
+module cache 
+import cache_types::*; 
+(
     input   logic           clk,
     input   logic           rst,
 
@@ -48,13 +50,13 @@ module cache (
         ufp_Read = '0;
         ufp_Write = '0;
         csb0 = '1;
-        if (ufp_rmask) begin 
+        if (ufp_rmask != '0) begin 
             ufp_Read = '1;
         end 
-        if (ufp_wmask) begin
+        if (ufp_wmask != '0) begin
             ufp_Write = '1;
         end 
-        if (ufp_rmask | ufp_wmask) begin 
+        if ((ufp_rmask | ufp_wmask) != '0) begin 
             csb0 = '0;
         end 
     end 
@@ -144,7 +146,7 @@ module cache (
         .dfp_Write(dfp_write)
     );
 
-    HITMISS misshit(
+    HitMiss hitmiss(
         .dirty_tag_A(internal_tag_array_read[Way_A]),
         .dirty_tag_B(internal_tag_array_read[Way_B]),
         .dirty_tag_C(internal_tag_array_read[Way_C]),
@@ -154,8 +156,8 @@ module cache (
         .valid_C(internal_valid_array_read[Way_C]),
         .valid_D(internal_valid_array_read[Way_D]),
         .curr_tag(curr_tag),
-        .Hit_Miss(Hit_Miss),
         .PLRU_Way_Replace(PLRU_Way_Replace),
+        .Hit_Miss(Hit_Miss),
         .PLRU_Way_Visit(PLRU_Way_Visit)
     );
 

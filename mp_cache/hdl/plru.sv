@@ -1,4 +1,6 @@
-module PLRU(
+module PLRU
+import cache_types::*; 
+(
     input logic clk,
     input logic rst,
     input logic ufp_Resp,
