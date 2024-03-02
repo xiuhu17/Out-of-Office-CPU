@@ -39,17 +39,23 @@ module cache (
     logic [1:0] PLRU_Way_Replace;
     logic [1:0] PLRU_Way_Visit;
 
+    logic csb0;
+
     
     always_comb begin 
         curr_set = ufp_addr[8:5];
         curr_tag = ufp_addr[31:9];
         ufp_Read = '0;
         ufp_Write = '0;
+        csb0 = '1;
         if (ufp_rmask) begin 
             ufp_Read = '1;
         end 
         if (ufp_wmask) begin
             ufp_Write = '1;
+        end 
+        if (ufp_rmask | ufp_wmask) begin 
+            csb0 = '0;
         end 
     end 
 
@@ -165,7 +171,7 @@ module cache (
     generate for (genvar i = 0; i < 4; i++) begin : arrays
         mp_cache_data_array data_array (
             .clk0       (clk),
-            .csb0       (1'b0),
+            .csb0       (csb0),
             .web0       (data_array_web0[i]),
             .wmask0     (internal_data_array_mask[i]),
             .addr0      (curr_set),
@@ -174,7 +180,7 @@ module cache (
         );
         mp_cache_tag_array tag_array (
             .clk0       (clk),
-            .csb0       (1'b0),
+            .csb0       (csb0),
             .web0       (tag_array_web0[i]),
             .addr0      (curr_set),
             .din0       (internal_tag_array_write[i]),
@@ -183,7 +189,7 @@ module cache (
         ff_array #(.WIDTH(1)) valid_array (
             .clk0       (clk),
             .rst0       (rst),
-            .csb0       (1'b0),
+            .csb0       (csb0),
             .web0       (valid_array_web0[i]),
             .addr0      (curr_set),
             .din0       (internal_valid_array_write[i]),
