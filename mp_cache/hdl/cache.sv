@@ -146,26 +146,76 @@ import cache_types::*;
         .dfp_Write(dfp_write)
     );
 
-    HitMiss hitmiss(
-        .dirty_tag_A(internal_tag_array_read[Way_A]),
-        .dirty_tag_B(internal_tag_array_read[Way_B]),
-        .dirty_tag_C(internal_tag_array_read[Way_C]),
-        .dirty_tag_D(internal_tag_array_read[Way_D]),
-        .valid_A(internal_valid_array_read[Way_A]),
-        .valid_B(internal_valid_array_read[Way_B]),
-        .valid_C(internal_valid_array_read[Way_C]),
-        .valid_D(internal_valid_array_read[Way_D]),
-        .curr_tag(curr_tag),
-        .PLRU_Way_Replace(PLRU_Way_Replace),
-        .Hit_Miss(Hit_Miss),
-        .PLRU_Way_Visit(PLRU_Way_Visit)
-    );
+    logic [3:0] PLRU_Way_4;
+    always_comb begin 
+        Hit_Miss = 'x;
+        PLRU_Way_Visit = 'x;
+
+        PLRU_Way_4[3] = (internal_tag_array_read[Way_A][22:0] == curr_tag) & internal_valid_array_read[Way_A];
+        PLRU_Way_4[2] = (internal_tag_array_read[Way_B][22:0] == curr_tag) & internal_valid_array_read[Way_B];
+        PLRU_Way_4[1] = (internal_tag_array_read[Way_C][22:0] == curr_tag) & internal_valid_array_read[Way_C];
+        PLRU_Way_4[0] = (internal_tag_array_read[Way_D][22:0] == curr_tag) & internal_valid_array_read[Way_D];
+
+        if (PLRU_Way_4 != '0) begin
+            Hit_Miss = Hit; 
+            case (PLRU_Way_4)
+                Way_A_4: begin 
+                    PLRU_Way_Visit = Way_A;
+                end 
+                Way_B_4: begin 
+                    PLRU_Way_Visit = Way_B;
+                end
+                Way_C_4: begin 
+                    PLRU_Way_Visit = Way_C;
+                end
+                Way_D_4: begin
+                    PLRU_Way_Visit = Way_D;
+                end
+            endcase
+        end else begin 
+            case (PLRU_Way_Replace) 
+                Way_A: begin 
+                    if (internal_valid_array_read[Way_A] && internal_tag_array_read[Way_A][23]) begin 
+                        Hit_Miss = Dirty_Miss;
+                    end else begin
+                        Hit_Miss = Clean_Miss;
+                    end 
+                end 
+                Way_B: begin
+                    if (internal_valid_array_read[Way_B] && internal_tag_array_read[Way_B][23]) begin
+                        Hit_Miss = Dirty_Miss;
+                    end else begin
+                        Hit_Miss = Clean_Miss;
+                    end 
+                end
+                Way_C: begin 
+                    if (internal_valid_array_read[Way_C] && internal_tag_array_read[Way_C][23]) begin
+                        Hit_Miss = Dirty_Miss;
+                    end else begin
+                        Hit_Miss = Clean_Miss;
+                    end 
+                end
+                Way_D: begin 
+                    if (internal_valid_array_read[Way_D] && internal_tag_array_read[Way_D][23]) begin
+                        Hit_Miss = Dirty_Miss;
+                    end else begin
+                        Hit_Miss = Clean_Miss;
+                    end
+                end
+            endcase 
+        end 
+    end  
+
 
     PLRU plru(
         .clk(clk),
         .rst(rst),
         .ufp_Resp(ufp_resp),
         .curr_set(curr_set),
+        .Way_A_Valid(internal_valid_array_read[Way_A]),
+        .Way_B_Valid(internal_valid_array_read[Way_B]),
+        .Way_C_Valid(internal_valid_array_read[Way_C]),
+        .Way_D_Valid(internal_valid_array_read[Way_D]),
         .PLRU_Way_Visit(PLRU_Way_Visit), 
         .PLRU_Way_Replace(PLRU_Way_Replace)
     );

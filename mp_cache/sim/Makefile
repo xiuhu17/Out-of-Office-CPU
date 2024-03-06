@@ -22,6 +22,10 @@ run_cache_dut_tb: sim/cache_dut_tb
 	cd sim && ./cache_dut_tb -l sim.log
 	bash check_sim_error.sh
 
+regenerate: $(PROG)
+	rm -f sim/memory.lst
+	../bin/generate_memory_file.sh $(PROG)
+
 .PHONY: covrep
 covrep: sim/cache_dut_tb.vdb
 	cd sim && urg -dir cache_dut_tb.vdb
