@@ -6,10 +6,10 @@ import cache_types::*;
     input logic ufp_Resp,
     input logic [3:0] curr_set,
     input logic [1:0] PLRU_Way_Visit, 
-    input logic Way_A_Valid,
-    input logic Way_B_Valid,
-    input logic Way_C_Valid,
-    input logic Way_D_Valid,
+    // input logic Way_A_Valid,
+    // input logic Way_B_Valid,
+    // input logic Way_C_Valid,
+    // input logic Way_D_Valid,
     output logic [1:0] PLRU_Way_Replace
 );
     logic [2:0] PLRU_Arr[16];
@@ -47,15 +47,15 @@ import cache_types::*;
 
     always_comb begin 
         PLRU_Way_Replace = 'x;
-        if (~Way_A_Valid) begin 
-            PLRU_Way_Replace = Way_A;
-        end else if (~Way_B_Valid) begin
-            PLRU_Way_Replace = Way_B;
-        end else if (~Way_C_Valid) begin 
-            PLRU_Way_Replace = Way_C;
-        end else if (~Way_D_Valid) begin 
-            PLRU_Way_Replace = Way_D;
-        end else begin 
+        // if (~Way_A_Valid) begin 
+        //     PLRU_Way_Replace = Way_A;
+        // end else if (~Way_B_Valid) begin
+        //     PLRU_Way_Replace = Way_B;
+        // end else if (~Way_C_Valid) begin 
+        //     PLRU_Way_Replace = Way_C;
+        // end else if (~Way_D_Valid) begin 
+        //     PLRU_Way_Replace = Way_D;
+        // end else begin 
             if (PLRU_Arr[curr_set][0]) begin 
                 if (PLRU_Arr[curr_set][1]) begin 
                     PLRU_Way_Replace = Way_A;
@@ -69,7 +69,7 @@ import cache_types::*;
                     PLRU_Way_Replace = Way_D;
                 end 
             end 
-        end
+        // end
     end 
 
 endmodule

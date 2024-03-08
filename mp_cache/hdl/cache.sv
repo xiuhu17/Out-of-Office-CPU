@@ -112,7 +112,7 @@ import cache_types::*;
             internal_data_array_write[PLRU_Way_Visit][32 * ufp_addr[4:2] +: 32] = ufp_wdata;
             internal_tag_array_write[PLRU_Way_Visit] = {1'b1, curr_tag};
             internal_valid_array_write[PLRU_Way_Visit] = 1'b1;
-            internal_data_array_mask[PLRU_Way_Visit] = ufp_wmask << {ufp_addr[4:2], 2'b0};
+            internal_data_array_mask[PLRU_Way_Visit] = ufp_wmask << ufp_addr[4:0];
         end else if (Sram_op == Miss_Replace) begin 
             internal_data_array_write[PLRU_Way_Replace] = dfp_rdata;
             internal_tag_array_write[PLRU_Way_Replace] = {1'b0, curr_tag};
@@ -212,10 +212,10 @@ import cache_types::*;
         .rst(rst),
         .ufp_Resp(ufp_resp),
         .curr_set(curr_set),
-        .Way_A_Valid(internal_valid_array_read[Way_A]),
-        .Way_B_Valid(internal_valid_array_read[Way_B]),
-        .Way_C_Valid(internal_valid_array_read[Way_C]),
-        .Way_D_Valid(internal_valid_array_read[Way_D]),
+        // .Way_A_Valid(internal_valid_array_read[Way_A]),
+        // .Way_B_Valid(internal_valid_array_read[Way_B]),
+        // .Way_C_Valid(internal_valid_array_read[Way_C]),
+        // .Way_D_Valid(internal_valid_array_read[Way_D]),
         .PLRU_Way_Visit(PLRU_Way_Visit), 
         .PLRU_Way_Replace(PLRU_Way_Replace)
     );
