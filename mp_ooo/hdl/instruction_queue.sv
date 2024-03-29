@@ -99,7 +99,7 @@ module instruction_queue #(
       end
       // pop instruction if it's valid
       for (int i = 0; i < SUPERSCALAR; i++) begin
-        if (valid_arr[tail][i] && instr_pop[i]) begin
+        if (instr_pop[i] && valid_arr[tail][i]) begin
           valid_arr[tail][i] <= 1'b0;
           // if last instruction in the line is popped, move to the next line
           if (i == SUPERSCALAR - 1) begin
