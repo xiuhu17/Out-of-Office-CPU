@@ -1,31 +1,32 @@
 module RegFile_Scoreboard
 #(
-    parameter SUPERSCALAR = 1,
     parameter ROB_DEPTH = 4
 ) (
     input   logic           clk,
     input   logic           rst,
 
-    // commit part
-    input   logic                       commit_regf_we[SUPERSCALAR], // each time we may not write SUPERSCALAR robs to regfile, e.g only one could commit, but superscalar = 2
-    input   logic   [4:0]               commit_rd_s[SUPERSCALAR],
-    input   logic   [31:0]              commit_rd_v[SUPERSCALAR],  
-    input   logic   [ROB_DEPTH - 1:0]   commit_rob[SUPERSCALAR],
+    // rob_to_regfile_t
+    input   logic                       commit_regf_we, // each time we may not write SUPERSCALAR robs to regfile, e.g only one could commit, but superscalar = 2
+    input   logic   [4:0]               commit_rd_s,
+    input   logic   [31:0]              commit_rd_v,  
+    input   logic   [ROB_DEPTH - 1:0]   commit_rob,
 
+    // iq_to_regfile_t
     // overwrite the scoreboard when instruction is issued  
-    input   logic                       instr_valid_out[SUPERSCALAR],
-    input   logic   [4:0]               instr_rd_s[SUPERSCALAR],
-    input   logic   [ROB_DEPTH - 1:0]   instr_rob[SUPERSCALAR],
+    input   logic                       issue_valid,
+    input   logic   [4:0]               issue_rd_s,
+    input   logic   [ROB_DEPTH - 1:0]   issue_rob,
 
     // read from registerfile when instruction is issued
-    input   logic   [4:0]               instr_rs_1[SUPERSCALAR],
-    input   logic   [4:0]               instr_rs_2[SUPERSCALAR],
-    output  logic   [31:0]              instr_rs1_v[SUPERSCALAR],
-    output  logic   [31:0]              instr_rs2_v[SUPERSCALAR],
-    output  logic                       instr_rs1_ready[SUPERSCALAR],
-    output  logic                       instr_rs2_ready[SUPERSCALAR],
-    output  logic   [ROB_DEPTH - 1:0]   instr_rs1_rob[SUPERSCALAR],
-    output  logic   [ROB_DEPTH - 1:0]   instr_rs2_rob[SUPERSCALAR]
+    // regfile_to_iq_t
+    input   logic   [4:0]               issue_rs_1,
+    input   logic   [4:0]               issue_rs_2,
+    output  logic   [31:0]              issue_rs1_regfile_v,
+    output  logic   [31:0]              issue_rs2_regfile_v,
+    output  logic                       issue_rs1_regfile_ready,
+    output  logic                       issue_rs2_regfile_ready,
+    output  logic   [ROB_DEPTH - 1:0]   issue_rs1_rob,
+    output  logic   [ROB_DEPTH - 1:0]   issue_rs2_rob
 );
 
     // 0 is oldest
@@ -42,40 +43,35 @@ module RegFile_Scoreboard
                 scoreboard_valid_arr[i] <= '0;
             end
         end else begin
-            for (int i = 0; i < SUPERSCALAR; i++) begin
-                if (commit_regf_we[i] && (commit_rd_s[i] != 5'd0)) begin
-                    // value update
-                    register_arr[commit_rd_s[i]] <= commit_rd_v[i];
+            if (commit_regf_we && (commit_rd_s != 5'd0)) begin
+                // value update
+                register_arr[commit_rd_s] <= commit_rd_v;
 
-                    // scoreboard update
-                    //  update only when scoreboard exists and the commit is the rob which matches the scoreboard; stop looking up the rob
-                    //  otherwise, scoreboard still exists
-                    if (scoreboard_valid_arr[commit_rd_s[i]] && (scoreboard_arr[commit_rd_s[i]] == commit_rob[i])) begin 
-                        scoreboard_valid_arr[commit_rd_s[i]] <= '0;
-                    end 
-                end
+                // scoreboard update
+                //  update only when scoreboard exists and the commit is the rob which matches the scoreboard; stop looking up the rob
+                //  otherwise, scoreboard still exists
+                if (scoreboard_valid_arr[commit_rd_s] && (scoreboard_arr[commit_rd_s] == commit_rob)) begin 
+                    scoreboard_valid_arr[commit_rd_s] <= '0;
+                end 
             end
 
             // after update the scoreboard, we need to update since the newly issued instruction
-            for (int i = 0; i < SUPERSCALAR; i++) begin
-                if (instr_valid_out[i] && (instr_rd_s[i] != 5'd0)) begin
-                    scoreboard_arr[instr_rd_s[i]] <= instr_rob[i];
-                    scoreboard_valid_arr[instr_rd_s[i]] <= '1;
-                end
+            if (issue_valid && (issue_rd_s != 5'd0)) begin
+                scoreboard_arr[issue_rd_s] <= issue_rob;
+                scoreboard_valid_arr[issue_rd_s] <= '1;
             end
         end
     end 
 
-    // read from register file
     always_comb begin 
-
-
-
+        issue_rs1_regfile_v = register_arr[issue_rs_1];
+        issue_rs2_regfile_v = register_arr[issue_rs_2];
+        issue_rs1_regfile_ready = ~scoreboard_valid_arr[issue_rs_1];
+        issue_rs2_regfile_ready = ~scoreboard_valid_arr[issue_rs_2];
+        issue_rs1_rob = scoreboard_arr[issue_rs_1];
+        issue_rs2_rob = scoreboard_arr[issue_rs_2];
     end 
 
 endmodule
 
-
-module ROB_DEPTH
-endmodule
 

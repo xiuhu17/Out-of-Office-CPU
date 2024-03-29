@@ -12,11 +12,7 @@ module alu_rs #(
     // also need to input the immediate value
     // input  logic  
     output logic [ALU_RS_DEPTH-1:0] free_slot_count,
-    input logic execute_finsihed,
-
-    // read from rob(contains trasnparent read from cdb in the same cycle) & regfile 
-
-    // read from cdb for waking up
+    input logic execute_finsihed
 );
 
   localparam ALU_RS_NUM_ELEMS = 2 ** ALU_RS_DEPTH;
