@@ -1,7 +1,9 @@
-module instruction_queue #(
+module instruction_queue 
+#
+(
     parameter INSTR_DEPTH = 4  // number of bits to use for depth
-
-) (
+) 
+(
     input logic clk,
     input logic rst,
 

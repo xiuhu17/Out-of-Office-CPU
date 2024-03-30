@@ -1,14 +1,18 @@
-module execution_status #(
-    parameter int ALU_SIZE = 2
-) (
-    input logic clk,
-    input logic rst,
+module ALU_STATUS 
+#
+(
+  parameter int ALU_SIZE = 2   
+) 
+(
+  input logic clk,
+  input logic rst,
 
-    input logic w_en [ALU_SIZE],
-    input logic start[ALU_SIZE],
-    input logic done [ALU_SIZE],
+  input logic                 w_en [ALU_SIZE],
+  input logic                 start[ALU_SIZE],
+  input logic                 done[ALU_SIZE],
 
-    output logic busy[ALU_SIZE]
+  // whether the executation unit is busy
+  output logic                busy[ALU_SIZE]
 );
 
   // two design choices:
@@ -41,3 +45,4 @@ module execution_status #(
   end
 
 endmodule
+

@@ -1,7 +1,9 @@
 module RegFile_Scoreboard
-#(
+#
+(
     parameter ROB_DEPTH = 4
-) (
+) 
+(
     input   logic           clk,
     input   logic           rst,
 
@@ -11,8 +13,8 @@ module RegFile_Scoreboard
     input   logic   [31:0]              commit_rd_v,  
     input   logic   [ROB_DEPTH - 1:0]   commit_rob,
 
-    // iq_to_regfile_t
     // overwrite the scoreboard when instruction is issued  
+    // iq_to_regfile_t
     input   logic                       issue_valid,
     input   logic   [4:0]               issue_rd_s,
     input   logic   [ROB_DEPTH - 1:0]   issue_rob,
