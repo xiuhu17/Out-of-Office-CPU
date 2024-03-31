@@ -256,20 +256,27 @@ module alu_rs
               exe_cmp_op = blt_cmp_op;
             end
             sltu_funct3: begin 
-               
+              exe_cmp_valid = '1;
+              exe_cmp_op = bltu_cmp_op;
             end 
             sr_funct3: begin 
-               
-                if (funct7_arr[alu_rs_pop_index][5]) begin 
-                    
-                end else begin 
-                    
-                end 
+              if (funct7_arr[alu_rs_pop_index][5]) begin 
+                exe_alu_valid = '1;
+                exe_alu_op = sra_alu_op;
+              end else begin 
+                exe_alu_valid = '1;
+                exe_alu_op = srl_alu_op;
+              end 
             end 
             default: begin 
-                
+              exe_alu_valid = '1;
+              exe_alu_op = funct3_arr[alu_rs_pop_index];
             end 
           endcase
+      end 
+      reg_opcode: begin 
+
+
       end 
     endcase
   end 
