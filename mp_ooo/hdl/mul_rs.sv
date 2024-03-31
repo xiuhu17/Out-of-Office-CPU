@@ -171,49 +171,7 @@ module mul_rs
   end
 
   always_comb begin
-    mul_a = '0;
-    mul_b = '0;
-    mul_start = '0;
-    mul_rs_valid = '0;
-    mul_rs_rob = '0;
-    mul_rs_pop = '0;
-    mul_rs_pop_index = '0;
-    // check if execution is done
-    if (mul_done) begin
-      mul_rs_valid = '1;
-      // output the result based on funct3
-      unique case (funct3)
-        mul: mul_rs_f = mul_p[31:0];
-        mulh, mulhsu, mulhu: mul_rs_f = mul_p[63:32];
-        default: mul_rs_f = 'x;
-      endcase
-      mul_rs_rob = target_rob_arr[counter];
-      // signal pop in the next cycle
-      mul_rs_pop = '1;
-      mul_rs_pop_index = counter;
-    end else begin
-      // execution logic (only execute when multiplier in IDLE state)
-      for (int i = counter; i < MUL_RS_NUM_ELEM; i++) begin
-        if (mul_rs_available[i] == '0) begin
-          if (rs1_ready_arr[i] && rs2_ready_arr[i]) begin
-            // decode funct3 to mul_type
-            unique case (funct3)
-              mul: mul_type = mul_unsigned_unsigned;
-              mulh: mul_type = mul_signed_signed;
-              mulhsu: mul_type = mul_signed_unsigned;
-              mulhu: mul_type = mul_unsigned_unsigned;
-              default: mul_type = 2'b00;
-            endcase
-            // start execution
-            mul_a = rs1_v_arr[i];
-            mul_b = rs2_v_arr[i];
-            mul_start = '1;
-            counter = i;  // use counter to keep track of which station is executing
-            break;
-          end
-        end
-      end
-    end
+    
   end
 
 

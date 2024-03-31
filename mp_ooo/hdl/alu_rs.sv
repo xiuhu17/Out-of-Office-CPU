@@ -19,7 +19,6 @@ module alu_rs
     input logic [31:0]      imm,
     input logic [31:0]      pc,
 
-
     // assigned rob
     input logic [ROB_DEPTH-1:0]   issue_target_rob,
 
@@ -195,7 +194,7 @@ module alu_rs
         alu_rs_available[alu_rs_pop_index] <= '1;
         rs1_ready_arr[alu_rs_pop_index] <= '0;
         rs2_ready_arr[alu_rs_pop_index] <= '0;
-        counter <= counter + 1'b1;
+        counter <= alu_rs_pop_index + 1'b1;
       end
     end
   end
