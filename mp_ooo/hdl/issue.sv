@@ -21,16 +21,18 @@ module issue
     alu_rs_issue = '0;
     if (!rob_full) begin
       if (instr_valid_out) begin
-        // check if issue to alu reservation station
-        if (!alu_rs_full && opcode == op_b_lui || opcode == op_b_auipc || opcode == op_b_imm || (opcode == op_b_reg && funct7 != multiply)) begin
-          alu_rs_issue = '1;
-          instr_pop = '1;
+        if (!alu_rs_full) begin 
+          if (opcode == lui_opcode || opcode == auipc_opcode || opcode == imm_opcode || (opcode == reg_opcode && funct7 != multiply_funct7)) begin
+            alu_rs_issue = '1;
+            instr_pop = '1;
+          end
         end
-        // check if issue to multiplication reservation station
-        if (!mul_rs_full && opcode == op_b_reg && funct7 == multiply) begin
-          mul_rs_issue = '1;
-          instr_pop = '1;
-        end
+        if (!mul_rs_full) begin 
+          if (opcode == reg_opcode && funct7 == multiply_funct7) begin 
+            mul_rs_issue = '1;
+            instr_pop = '1;
+          end 
+        end 
       end
     end
   end
