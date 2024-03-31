@@ -218,6 +218,7 @@ module alu_rs
     alu_rs_rob = '0;
     // execution logic
     for (int i = counter; i < ALU_RS_NUM_ELEM; i++) begin
+      // valied && ready, then execute and finish in the same cycle
       if (!alu_rs_available[i]) begin
         if (rs1_ready_arr[i] && rs2_ready_arr[i]) begin
           // signal pop in the next cycle

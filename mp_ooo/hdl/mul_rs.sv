@@ -67,12 +67,15 @@ module mul_rs
   logic [MUL_RS_DEPTH-1:0] mul_rs_pop_index;
 
   // multiplier operands
-  logic [1:0] exe_mul_type;
-  logic [31:0] exe_mul_a;
-  logic [31:0] exe_mul_b;
-  logic [63:0] exe_mul_p;  // result is 64 bits, we output 32 bits based on funct3
-  logic exe_mul_start;
-  logic exe_mul_done;
+  logic [1:0] mul_type;
+  logic [31:0] mul_a;
+  logic [31:0] mul_b;
+  logic [63:0] mul_p;  // result is 64 bits, we output 32 bits based on funct3
+  logic mul_start;
+  logic mul_done;
+  logic mul_executing;
+  logic mul_rs_idx_executing;
+  logic mul_rob_executing;
 
   always_ff @(posedge clk) begin
     if (rst) begin
@@ -154,7 +157,7 @@ module mul_rs
         mul_rs_available[mul_rs_pop_index] <= '1;
         rs1_ready_arr[mul_rs_pop_index] <= '0;
         rs2_ready_arr[mul_rs_pop_index] <= '0;
-        counter <= counter + 1'b1;
+        counter <= mul_rs_pop_index + 1'b1;
       end
     end
   end
@@ -170,8 +173,21 @@ module mul_rs
     end
   end
 
-  always_comb begin
-    
+  always_ff @(posedge clk) begin
+    for (int i = counter; i < MUL_RS_NUM_ELEM; i++) begin
+      // valied && ready, then execute and finish in the same cycle
+      if (!mul_rs_available[i]) begin
+        if (rs1_ready_arr[i] && rs2_ready_arr[i]) begin
+          if (!mul_executing) begin 
+            mul_executing <= '1;
+            mul_rs_idx_executing <= i;
+            mul_rob_executing <= target_rob_arr[i];
+            mul_start <= '1;
+          end 
+          break;
+        end
+      end
+    end
   end
 
 
