@@ -79,12 +79,14 @@ module alu_rs
   logic [ALU_RS_DEPTH-1:0] alu_rs_pop_index;
 
   // alu and cmp operands
-  logic alu_en;
-  logic cmp_en;
-  logic [2:0]   alu_op;
-  logic [2:0]   cmp_op;
-  logic [31:0]  a;
-  logic [31:0]  b;
+  logic exe_alu_valid;
+  logic exe_cmp_valid;
+  logic [2:0]   exe_alu_op;
+  logic [2:0]   exe_cmp_op;
+  logic [31:0]  exe_alu_f;
+  logic         exe_cmp_f;
+  logic [31:0]  exe_a;
+  logic [31:0]  exe_b;
 
   always_ff @(posedge clk) begin
     if (rst) begin
@@ -230,8 +232,49 @@ module alu_rs
     end
   end
 
-  // calculating
+  // for selecting 
+  always_comb begin 
+    exe_alu_valid = '0;
+    exe_cmp_valid = '0;
+    exe_alu_op = '0;
+    exe_cmp_op = '0;
+    exe_a = rs1_v_arr[alu_rs_pop_index];
+    exe_b = rs2_v_arr[alu_rs_pop_index];
+    case (opcode_arr[alu_rs_pop_index]) 
+      lui_opcode: begin
+        exe_alu_valid = '1;
+        exe_alu_op = add_alu_op;
+      end
+      auipc_opcode: begin
+        exe_alu_valid = '1;
+        exe_alu_op = add_alu_op;
+      end
+      imm_opcode: begin 
+        case (funct3_arr[alu_rs_pop_index])
+            slt_funct3: begin 
+              exe_cmp_valid = '1;
+              exe_cmp_op = blt_cmp_op;
+            end
+            sltu_funct3: begin 
+               
+            end 
+            sr_funct3: begin 
+               
+                if (funct7_arr[alu_rs_pop_index][5]) begin 
+                    
+                end else begin 
+                    
+                end 
+            end 
+            default: begin 
+                
+            end 
+          endcase
+      end 
+    endcase
+  end 
 
+  // calculating
   alu clu();
   cmp cmp();
 
