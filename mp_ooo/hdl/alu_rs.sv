@@ -78,10 +78,13 @@ module alu_rs
   logic alu_rs_pop;
   logic [ALU_RS_DEPTH-1:0] alu_rs_pop_index;
 
-  // ALU operands
-  logic [3:0] aluop;
-  logic [31:0] alu_a;
-  logic [31:0] alu_b;
+  // alu and cmp operands
+  logic alu_en;
+  logic cmp_en;
+  logic [2:0]   alu_op;
+  logic [2:0]   cmp_op;
+  logic [31:0]  a;
+  logic [31:0]  b;
 
   always_ff @(posedge clk) begin
     if (rst) begin
@@ -205,11 +208,10 @@ module alu_rs
     end
   end
 
+  // for selecting reservation waking up
   always_comb begin
     alu_rs_pop = '0;
     alu_rs_pop_index = '0;
-    alu_a = '0;
-    alu_b = '0;
     alu_rs_valid = '0;
     alu_rs_rob = '0;
     // execution logic
@@ -219,9 +221,7 @@ module alu_rs
           // signal pop in the next cycle
           alu_rs_pop = '1;
           alu_rs_pop_index = i;
-          // start execution
-          alu_a = rs1_v_arr[i];
-          alu_b = rs2_v_arr[i];
+          // signal for cdb
           alu_rs_valid = '1;
           alu_rs_rob = target_rob_arr[i];
           break;
@@ -230,13 +230,9 @@ module alu_rs
     end
   end
 
+  // calculating
 
-
-  // ALU ALU (
-  //   .aluop(aluop),
-  //   .a(alu_a),
-  //   .b(alu_b),
-  //   .f(alu_rs_f)
-  // );
+  alu clu();
+  cmp cmp();
 
 endmodule
