@@ -1,4 +1,6 @@
-module alu_rs #(
+module alu_rs
+  import rv32i_types::*;
+#(
     parameter ALU_RS_DEPTH = 3,
     parameter ROB_DEPTH = 3,
     parameter CDB_SIZE = 2
@@ -56,8 +58,6 @@ module alu_rs #(
   logic [31:0] rs2_v_arr[ALU_RS_NUM_ELEM];
   logic [ROB_DEPTH-1:0] rs1_rob_arr[ALU_RS_NUM_ELEM];
   logic [ROB_DEPTH-1:0] rs2_rob_arr[ALU_RS_NUM_ELEM];
-  // immediate values can be known from the instruction
-  logic [31:0] imm_arr[ALU_RS_NUM_ELEM];
   // target ROB for the result
   logic [ROB_DEPTH-1:0] target_rob_arr[ALU_RS_NUM_ELEM];
 
@@ -86,7 +86,6 @@ module alu_rs #(
         rs2_v_arr[i] <= '0;
         rs1_rob_arr[i] <= '0;
         rs2_rob_arr[i] <= '0;
-        imm_arr[i] <= '0;
         target_rob_arr[i] <= '0;
       end
       counter <= '0;
@@ -102,30 +101,28 @@ module alu_rs #(
             if (issue_rs1_regfile_ready) begin
               rs1_v_arr[i] <= issue_rs1_regfile_v;
               rs1_ready_arr[i] <= '1;
+            end else if (issue_rs1_rob_ready) begin
+              rs1_v_arr[i] <= issue_rs1_rob_v;
+              rs1_ready_arr[i] <= '1;
             end else begin
-              if (issue_rs1_rob_ready) begin
-                rs1_v_arr[i] <= issue_rs1_rob_v;
-                rs1_ready_arr[i] <= '1;
-              end else begin
-                rs1_rob_arr[i]   <= issue_rs1_regfile_rob;
-                rs1_ready_arr[i] <= '0;
-              end
+              rs1_rob_arr[i]   <= issue_rs1_regfile_rob;
+              rs1_ready_arr[i] <= '0;
             end
-            // rs2 value logic (check regfile, ROB, CDB in order)
-            if (issue_rs2_regfile_ready) begin
+            // rs2 value logic (immediate, check regfile, ROB, CDB in order)
+            if (opcode == op_b_imm) begin
+              rs2_v_arr[i] <= imm;
+              rs2_ready_arr[i] <= '1;
+            end else if (issue_rs2_regfile_ready) begin
               rs2_v_arr[i] <= issue_rs2_regfile_v;
               rs2_ready_arr[i] <= '1;
+            end else if (issue_rs2_rob_ready) begin
+              rs2_v_arr[i] <= issue_rs2_rob_v;
+              rs2_ready_arr[i] <= '1;
             end else begin
-              if (issue_rs2_rob_ready) begin
-                rs2_v_arr[i] <= issue_rs2_rob_v;
-                rs2_ready_arr[i] <= '1;
-              end else begin
-                rs2_rob_arr[i]   <= issue_rs2_regfile_rob;
-                rs2_ready_arr[i] <= '0;
-              end
+              rs2_rob_arr[i]   <= issue_rs2_regfile_rob;
+              rs2_ready_arr[i] <= '0;
             end
-            imm_arr[i] <= imm;
-            target_rob_arr[i] <= issue_target_rob;
+            target_rob_arr[i]   <= issue_target_rob;
             alu_rs_available[i] <= '0;
             break;
           end
@@ -191,7 +188,7 @@ module alu_rs #(
     end
   end
 
-  alu alu (
+  ALU ALU (
       .aluop(aluop),
       .a(alu_a),
       .b(alu_b),

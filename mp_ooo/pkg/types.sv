@@ -48,32 +48,32 @@ package rv32i_types;
     cdb = 2'b10
   } issue_read_t;
 
-  // for commit purpose
-  typedef struct packed {
-    logic                   commit_regf_we;
-    logic [4:0]             commit_rd_s;
-    logic [31:0]            commit_rd_v;
-    logic [ROB_DEPTH - 1:0] commit_rob;
-  } rob_to_regfile_t;
+  // // for commit purpose
+  // typedef struct packed {
+  //   logic                   commit_regf_we;
+  //   logic [4:0]             commit_rd_s;
+  //   logic [31:0]            commit_rd_v;
+  //   logic [ROB_DEPTH - 1:0] commit_rob;
+  // } rob_to_regfile_t;
 
-  typedef struct packed {
-    // write to scoreboard
-    logic                   issue_valid;
-    logic [4:0]             issue_rd_s;
-    logic [ROB_DEPTH - 1:0] issue_rob;
-    // read from regfile
-    logic [4:0]             issue_rs_1;
-    logic [4:0]             issue_rs_2;
-  } iq_to_regfile_t;
+  // typedef struct packed {
+  //   // write to scoreboard
+  //   logic                   issue_valid;
+  //   logic [4:0]             issue_rd_s;
+  //   logic [ROB_DEPTH - 1:0] issue_rob;
+  //   // read from regfile
+  //   logic [4:0]             issue_rs_1;
+  //   logic [4:0]             issue_rs_2;
+  // } iq_to_regfile_t;
 
-  typedef struct packed {
-    logic [31:0]            issue_rs1_regfile_v;
-    logic [31:0]            issue_rs2_regfile_v;
-    logic                   issue_rs1_regfile_ready;
-    logic                   issue_rs2_regfile_ready;
-    logic [ROB_DEPTH - 1:0] issue_rs1_rob;
-    logic [ROB_DEPTH - 1:0] issue_rs2_rob;
-  } regfile_to_iq_t;
+  // typedef struct packed {
+  //   logic [31:0]            issue_rs1_regfile_v;
+  //   logic [31:0]            issue_rs2_regfile_v;
+  //   logic                   issue_rs1_regfile_ready;
+  //   logic                   issue_rs2_regfile_ready;
+  //   logic [ROB_DEPTH - 1:0] issue_rs1_rob;
+  //   logic [ROB_DEPTH - 1:0] issue_rs2_rob;
+  // } regfile_to_iq_t;
 
 
   typedef struct packed {
@@ -97,11 +97,11 @@ package rv32i_types;
     logic [31:0] mem_rdata;
   } rvfi_t;
 
-  typedef struct packed {
-    logic                 cdb_valid;
-    logic [ROB_DEPTH-1:0] cdb_rob;
-    logic [31:0]          cdb_rd_v;
-  } cdb_t;
+  // typedef struct packed {
+  //   logic                 cdb_valid;
+  //   logic [ROB_DEPTH-1:0] cdb_rob;
+  //   logic [31:0]          cdb_rd_v;
+  // } cdb_t;
 
   typedef enum bit [3:0] {
     alu_add  = 4'b0000,

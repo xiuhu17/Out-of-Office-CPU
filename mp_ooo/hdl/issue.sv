@@ -8,7 +8,7 @@ module issue
     // reservation station variables
     input logic alu_rs_full,
     input logic mul_rs_full,
-    // rob is available 
+    // rob is available
     input logic rob_full,
     // output signals
     output logic instr_pop,

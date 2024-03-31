@@ -1,4 +1,4 @@
-module RegFile_Scoreboard #(
+module regfile_scoreboard #(
     parameter ROB_DEPTH = 4
 ) (
     input logic clk,

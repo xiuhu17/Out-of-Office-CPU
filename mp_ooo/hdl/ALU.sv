@@ -40,4 +40,4 @@ module ALU
 
   assign done = start;
 
-endmodule : alu
+endmodule : ALU

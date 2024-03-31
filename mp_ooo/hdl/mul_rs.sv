@@ -1,4 +1,6 @@
-module mul_rs #(
+module mul_rs
+  import rv32i_types::*;
+#(
     parameter MUL_RS_DEPTH = 3,
     parameter ROB_DEPTH = 3,
     parameter CDB_SIZE = 2
@@ -143,7 +145,7 @@ module mul_rs #(
       end
       // remove once the result is computed and put on the CDB
       if (mul_rs_pop) begin
-        mul_rs_available[alu_rs_pop_index] <= '1;
+        mul_rs_available[mul_rs_pop_index] <= '1;
         counter <= counter + 1'b1;
       end
     end

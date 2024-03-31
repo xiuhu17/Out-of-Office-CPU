@@ -58,9 +58,12 @@ module top_tb;
 
   );
 
-  localparam SUPERSCALAR = 1;
-  logic [31:0] instr_tail[SUPERSCALAR];
-  logic instr_valid_out[SUPERSCALAR];
+  // localparam SUPERSCALAR = 1;
+  // logic [31:0] instr_tail[SUPERSCALAR];
+  // logic instr_valid_out[SUPERSCALAR];
+
+  logic [31:0] instr_tail;
+  logic instr_valid_out;
 
   assign instr_tail = dut.instr;
   assign instr_valid_out = dut.instr_valid_out;
