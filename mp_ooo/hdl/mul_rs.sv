@@ -67,15 +67,16 @@ module mul_rs
   logic [MUL_RS_DEPTH-1:0] mul_rs_pop_index;
 
   // multiplier operands
-  logic [1:0] mul_type;
-  logic [31:0] mul_a;
-  logic [31:0] mul_b;
-  logic [63:0] mul_p;  // result is 64 bits, we output 32 bits based on funct3
-  logic mul_start;
-  logic mul_done;
+  logic [1:0] exe_mul_type;
+  logic [31:0] exe_mul_a;
+  logic [31:0] exe_mul_b;
+  logic [63:0] exe_mul_p;  // result is 64 bits, we output 32 bits based on funct3
+  logic exe_mul_start;
+  logic exe_mul_done;
 
   always_ff @(posedge clk) begin
     if (rst) begin
+      counter <= '0;
       for (int i = 0; i < MUL_RS_NUM_ELEM; i++) begin
         mul_rs_available[i] <= '1;
         opcode_arr[i] <= '0;
@@ -89,64 +90,82 @@ module mul_rs
         rs2_rob_arr[i] <= '0;
         target_rob_arr[i] <= '0;
       end
-      counter <= '0;
     end else begin
       // issue logic
       if (mul_rs_issue) begin
         for (int i = 0; i < MUL_RS_NUM_ELEM; i++) begin
           if (mul_rs_available[i]) begin
+            mul_rs_available[i] <= '0;
             opcode_arr[i] <= opcode;
             funct3_arr[i] <= funct3;
             funct7_arr[i] <= funct7;
+            rs1_ready_arr[i] <= '0;
+            rs2_ready_arr[i] <= '0;
+            rs1_v_arr[i] <= '0;
+            rs2_v_arr[i] <= '0;
+            rs1_rob_arr[i] <= issue_rs1_regfile_rob;
+            rs2_rob_arr[i] <= issue_rs2_regfile_rob;
+            target_rob_arr[i] <= issue_target_rob;
+            
             // rs1 value logic (check regfile, ROB, CDB in order)
             if (issue_rs1_regfile_ready) begin
-              rs1_v_arr[i] <= issue_rs1_regfile_v;
               rs1_ready_arr[i] <= '1;
+              rs1_v_arr[i] <= issue_rs1_regfile_v;
+            end else if (issue_rs1_rob_ready) begin
+              rs1_ready_arr[i] <= '1;
+              rs1_v_arr[i] <= issue_rs1_rob_v;
             end else begin
-              if (issue_rs1_rob_ready) begin
-                rs1_v_arr[i] <= issue_rs1_rob_v;
-                rs1_ready_arr[i] <= '1;
-              end else begin
-                rs1_rob_arr[i]   <= issue_rs1_regfile_rob;
-                rs1_ready_arr[i] <= '0;
-              end
+              rs1_ready_arr[i] <= '0;
             end
+
             // rs2 value logic (check regfile, ROB, CDB in order)
             if (issue_rs2_regfile_ready) begin
-              rs2_v_arr[i] <= issue_rs2_regfile_v;
               rs2_ready_arr[i] <= '1;
+              rs2_v_arr[i] <= issue_rs2_regfile_v;
+            end else if (issue_rs2_rob_ready) begin
+              rs2_ready_arr[i] <= '1;
+              rs2_v_arr[i] <= issue_rs2_rob_v;
             end else begin
-              if (issue_rs2_rob_ready) begin
-                rs2_v_arr[i] <= issue_rs2_rob_v;
-                rs2_ready_arr[i] <= '1;
-              end else begin
-                rs2_rob_arr[i]   <= issue_rs2_regfile_rob;
-                rs2_ready_arr[i] <= '0;
-              end
+              rs2_ready_arr[i] <= '0;
             end
-            target_rob_arr[i]   <= issue_target_rob;
-            mul_rs_available[i] <= '0;
             break;
           end
         end
       end
+
       // snoop CDB to update any rs1/rs2 values
       for (int i = 0; i < MUL_RS_NUM_ELEM; i++) begin
-        for (int j = 0; j < CDB_SIZE; j++) begin
-          if (cdb_valid[j] && rs1_ready_arr[i] == 0 && (cdb_rob[j] == rs1_rob_arr[i])) begin
-            rs1_v_arr[i] <= cdb_rd_v[j];
-            rs1_ready_arr[i] <= '1;
-          end
-          if (cdb_valid[j] && rs2_ready_arr[i] == 0 && (cdb_rob[j] == rs2_rob_arr[i])) begin
-            rs2_v_arr[i] <= cdb_rd_v[j];
-            rs2_ready_arr[i] <= '1;
+        if (!mul_rs_available[i]) begin
+          for (int j = 0; j < CDB_SIZE; j++) begin
+            if (cdb_valid[j] && rs1_ready_arr[i] == 0 && (cdb_rob[j] == rs1_rob_arr[i])) begin
+              rs1_v_arr[i] <= cdb_rd_v[j];
+              rs1_ready_arr[i] <= '1;
+            end
+            if (cdb_valid[j] && rs2_ready_arr[i] == 0 && (cdb_rob[j] == rs2_rob_arr[i])) begin
+              rs2_v_arr[i] <= cdb_rd_v[j];
+              rs2_ready_arr[i] <= '1;
+            end
           end
         end
       end
+
       // remove once the result is computed and put on the CDB
       if (mul_rs_pop) begin
         mul_rs_available[mul_rs_pop_index] <= '1;
+        rs1_ready_arr[mul_rs_pop_index] <= '0;
+        rs2_ready_arr[mul_rs_pop_index] <= '0;
         counter <= counter + 1'b1;
+      end
+    end
+  end
+
+  // output whether MUL_RS is full or not
+  always_comb begin
+    mul_rs_full = '1;
+    for (int i = 0; i < MUL_RS_NUM_ELEM; i++) begin
+      if (mul_rs_available[i] == 1) begin
+        mul_rs_full = '0;
+        break;
       end
     end
   end
@@ -197,25 +216,16 @@ module mul_rs
     end
   end
 
-  // output whether MUL_RS is full or not
-  always_comb begin
-    for (int i = 0; i < MUL_RS_NUM_ELEM; i++) begin
-      if (mul_rs_available[i] == 1) begin
-        mul_rs_full = '0;
-        break;
-      end
-    end
-  end
 
   shift_add_multiplier multiplier (
       .clk(clk),
       .rst(rst),
-      .start(mul_start),
-      .mul_type(mul_type),
-      .a(mul_a),
-      .b(mul_b),
-      .p(mul_p),
-      .done(mul_done)
+      .start(),
+      .mul_type(),
+      .a(),
+      .b(),
+      .p(),
+      .done()
   );
 
 endmodule
