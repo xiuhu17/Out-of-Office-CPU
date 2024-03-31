@@ -39,7 +39,7 @@ module mul_rs
 
     // output result to CDB
     output logic mul_rs_valid,
-    output logic [31:0] mul_rs_f,
+    output logic [31:0] mul_rs_p,
     output logic [ROB_DEPTH-1:0] mul_rs_rob
 );
 
@@ -62,20 +62,22 @@ module mul_rs
 
   // counter for traversing stations
   logic [MUL_RS_DEPTH-1:0] counter;
-  // pop logic
-  logic mul_rs_pop;
-  logic [MUL_RS_DEPTH-1:0] mul_rs_pop_index;
+
+  // pop signal
+  logic     mul_start;
+  logic     mul_done;
+  logic     mul_rs_pop;
+  logic     mul_executing;
+  logic [MUL_RS_DEPTH-1:0]  mul_rs_idx_executing;
+  logic [ROB_DEPTH-1:0]  mul_rob_executing;
 
   // multiplier operands
-  logic [1:0] mul_type;
-  logic [31:0] mul_a;
-  logic [31:0] mul_b;
-  logic [63:0] mul_p;  // result is 64 bits, we output 32 bits based on funct3
-  logic mul_start;
-  logic mul_done;
-  logic mul_executing;
-  logic mul_rs_idx_executing;
-  logic mul_rob_executing;
+  logic [1:0]  mul_type_executing;
+  logic [2:0]  mul_funct3_executing;
+  logic [31:0] mul_a_executing;
+  logic [31:0] mul_b_executing;
+  logic [63:0] mul_p_executing;  // result is 64 bits, we output 32 bits based on funct3
+
 
   always_ff @(posedge clk) begin
     if (rst) begin
@@ -154,10 +156,10 @@ module mul_rs
 
       // remove once the result is computed and put on the CDB
       if (mul_rs_pop) begin
-        mul_rs_available[mul_rs_pop_index] <= '1;
-        rs1_ready_arr[mul_rs_pop_index] <= '0;
-        rs2_ready_arr[mul_rs_pop_index] <= '0;
-        counter <= mul_rs_pop_index + 1'b1;
+        mul_rs_available[mul_rs_idx_executing] <= '1;
+        rs1_ready_arr[mul_rs_idx_executing] <= '0;
+        rs2_ready_arr[mul_rs_idx_executing] <= '0;
+        counter <= mul_rs_idx_executing + 1'b1;
       end
     end
   end
@@ -173,33 +175,74 @@ module mul_rs
     end
   end
 
+  // store the stage of the multiplier
   always_ff @(posedge clk) begin
-    for (int i = counter; i < MUL_RS_NUM_ELEM; i++) begin
-      // valied && ready, then execute and finish in the same cycle
-      if (!mul_rs_available[i]) begin
-        if (rs1_ready_arr[i] && rs2_ready_arr[i]) begin
-          if (!mul_executing) begin 
-            mul_executing <= '1;
-            mul_rs_idx_executing <= i;
-            mul_rob_executing <= target_rob_arr[i];
-            mul_start <= '1;
-          end 
-          break;
+    if (rst) begin 
+      mul_executing <= '0;
+      mul_start <= '0;
+      mul_rs_idx_executing <= '0;
+      mul_rob_executing <= '0;
+      mul_a_executing <= '0;
+      mul_b_executing <= '0;
+      mul_funct3_executing <= '0;
+      mul_type_executing <= '0;
+    end else begin
+      for (int i = counter; i < MUL_RS_NUM_ELEM; i++) begin
+        // valied && ready, then execute and finish in the same cycle
+        if (!mul_rs_available[i]) begin
+          if (rs1_ready_arr[i] && rs2_ready_arr[i]) begin
+            if (!mul_executing) begin 
+              mul_executing <= '1;
+              mul_start <= '1;
+              mul_rs_idx_executing <= i;
+              mul_rob_executing <= target_rob_arr[i];
+              mul_a_executing <= rs1_v_arr[i];
+              mul_b_executing <= rs2_v_arr[i];
+              mul_funct3_executing <= funct3_arr[i];
+              case (funct3_arr[i]) 
+                mul_funct3, mulh_funct3: mul_type_executing <= mul_signed_signed;
+                mulhsu_funct3: mul_type_executing <= mul_signed_unsigned;
+                mulhu_funct3: mul_type_executing <= mul_unsigned_unsigned;
+              endcase
+            end 
+            break;
+          end
         end
       end
+      if (mul_start) begin
+        mul_start <= '0;
+      end
+      if (mul_done) begin 
+        mul_executing <= '0;
+      end 
     end
   end
 
+  always_comb begin
+    mul_rs_valid = '0;
+    mul_rs_pop = '0;
+    mul_rs_rob = '0;
+    mul_rs_p = '0;
+    if (mul_done) begin
+      mul_rs_valid = '1;
+      mul_rs_pop = '1;
+      mul_rs_rob = mul_rob_executing;
+      case (mul_funct3_executing)
+        mul_funct3: mul_rs_p = mul_p_executing[31:0];
+        default: mul_rs_p = mul_p_executing[63:32];
+      endcase
+    end 
+  end 
 
   shift_add_multiplier multiplier (
       .clk(clk),
       .rst(rst),
-      .start(),
-      .mul_type(),
-      .a(),
-      .b(),
-      .p(),
-      .done()
+      .start(mul_start),
+      .mul_type(mul_type_executing),
+      .a(mul_a_executing),
+      .b(mul_b_executing),
+      .p(mul_p_executing),
+      .done(mul_done)
   );
 
 endmodule
