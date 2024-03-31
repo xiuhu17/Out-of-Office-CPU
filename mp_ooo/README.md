@@ -54,7 +54,7 @@ Your progress report should mention, at minimum, the following:
 - who worked on each part of the design
 - the functionalities you implemented
 - the testing strategy you used to verify these functionalities
-- the timing and energy analysis of your design: fmax & energy report from Design Compiler
+- the timing ~~and energy~~ analysis of your design: fmax ~~& energy~~ report from Design Compiler
 
 You should be both implementing and verifying the design as you progress through the assignment. It will also be useful for you to include an updated datapath with each progress report, as your design will inevitably change as you complete the assignment. Making sure your datapath is up-to-date will help both you and your mentor TA track changes in your design and identify possible issues. Additionally, a complete datapath will be required in your final report.
 
@@ -81,22 +81,39 @@ These are not intended to be very long. A single page (single-spaced) will be mo
 
 **Requirements:**
 - Integrate the provided multiplier into your processor as a functional unit [5]
+  - If a single multiply instruction from `ooo_test.s` commits correctly, you get full points.
 - Your design must support out-of-order execution of the arithmetic operations (you must implement ROB, RS, CDB, etc.) [5]
+  - Correctly runs `dependency_test.s`
+  - Instructions writeback to ROB out of order when running `ooo_test.s`.
+
 - Progress report + Roadmap [2.5]
 - Schedule a meeting with your mentor TA to demonstrate the above, you will need RVFI integrated to do so
     - RVFI is connected in the same way as mp_pipeline via `hvl/rvfi_reference.json`.
 
+**Multiplier Details:**
+
+- Three multiplication modes are supported and may be selected with the following values applied to the mul_type input
+    - `2’b00 = Unsigned * Unsigned `
+    - `2’b01 = Signed * Signed`
+    - `2’b10 = Signed * Unsigned`
+
+- After the done flag assertion (indicating the last multiplication has finished), the start flag must be reset before another multiplication can be issued i.e. the start flag cannot be held high to issue back to back multiplications
+- For signed * unsigned multiplication, the `a` port is for the signed number, and the `b` port is for the unsigned number
+
 ## Checkpoint 3 (15 points)
 
 **Requirements:**
+- [-5] if any warnings or doesn't pass synthesis.
 - Add support for control instructions [3]
   - At minimum: flush everything when a mispredicted branch commits
+  - Static-not-taken branch prediction
 - Add support for memory instructions [3]
   - At minimum: stall dispatch after a store is dispatched until it is committed
 - Integrate with your mp_cache with competition memory (Instruction and Data) [3]
 - Should be able to run Coremark [4]
+  - If it does not run, write your own testcode to demonstrate the control (taken/not-taken) and memory (load/store) instructions.
 - Progress report + Roadmap [2]
-- Schedule a meeting with your TA to demonstrate the above
+- Schedule a meeting with your TA to demonstrate the above. We will run an autograder on your main branch, running coremark.
 
 # Final Submission: Competition + Advanced Features (50)
 
@@ -120,6 +137,8 @@ The RPS your team receives is the maximum of the following metrics:
 - Linear based on leaderboard ranking
 
 **Note:** If you are unable to complete a test case without errors, you will receive 0 points on the performance metric for that test case. This makes correctness the most important metric to meet.
+
+**Note 2:** Your design must synthesize, otherwise you will recieve a 0 for the competition.
 
 ## Advanced Features (20)
 
@@ -166,3 +185,4 @@ This is the same magic memory model you are familiar with from mp_pipeline. It h
 Will be posted before CP2 deadline. You will use this in CP3 onward. It will be very similar to what you used in mp_cache.
 
 Good Luck! :)
+# sp24_ece411_mp_out_of_office
