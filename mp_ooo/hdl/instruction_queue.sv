@@ -71,29 +71,15 @@ module instruction_queue #(
     end
   end
 
-  ir ir_inst (
+  decode decode (
       .inst  (instr),
       .funct3(funct3),
       .funct7(funct7),
       .opcode(opcode),
-      .i_imm (i_imm),
-      .s_imm (s_imm),
-      .b_imm (b_imm),
-      .u_imm (u_imm),
-      .j_imm (j_imm),
+      .imm(imm)
       .rs1_s (rs1_s),
       .rs2_s (rs2_s),
       .rd_s  (rd_s)
-  );
-
-  imm_gen imm_gen_inst (
-      .opcode(opcode),
-      .i_imm(i_imm),
-      .s_imm(s_imm),
-      .b_imm(b_imm),
-      .u_imm(u_imm),
-      .j_imm(j_imm),
-      .imm(imm)
   );
 
 endmodule : instruction_queue
