@@ -1,27 +1,23 @@
-module CDB
-#
-(
-  parameter ALU_SIZE = 2,
-  parameter ROB_DEPTH = 4   
-)
-(
-    input logic clk,
-    input logic rst,
+module CDB #(
+    parameter CDB_SIZE  = 2,  // total number of reservation stations (one CDB slot for each)
+    parameter ROB_DEPTH = 4
+) (
+    input logic                 exe_valid[CDB_SIZE],  // valid bit for each reservation station
+    input logic [         31:0] exe_alu_f[CDB_SIZE],
+    input logic [ROB_DEPTH-1:0] exe_rob  [CDB_SIZE],
 
-    // alu control signal
-    input logic                 w_en[ALU_SIZE],
-    input logic                 start[ALU_SIZE],
-    input logic                 done[ALU_SIZE],
-
-    // read rob from reservation station; read calculated value from alu
-    input logic [31:0]                  exe_alu[ALU_SIZE],
-    input logic [ROB_DEPTH-1:0]         exe_rob[ALU_SIZE],
-
-    output logic                         cdb_valid[ALU_SIZE],
-    output logic [ROB_DEPTH-1:0]         cdb_rob[ALU_SIZE],
-    output logic [31:0]                  cdb_rd_v[ALU_SIZE]
+    output logic                 cdb_valid[CDB_SIZE],
+    output logic [         31:0] cdb_rd_v [CDB_SIZE],
+    output logic [ROB_DEPTH-1:0] cdb_rob  [CDB_SIZE]
 );
 
-    logic 
+  always_comb begin
+    for (int i = 0; i < CDB_SIZE; i++) begin
+      cdb_valid[i] = exe_valid[i];
+      cdb_rd_v[i]  = exe_alu_f[i];
+      cdb_rob[i]   = exe_rob[i];
+    end
+  end
 
 endmodule
+

@@ -1,8 +1,6 @@
 module cpu
   import rv32i_types::*;
-#(
-    parameter SUPERSCALAR = 1
-) (
+(
     // Explicit dual port connections when caches are not integrated into design yet (Before CP3)
     input logic clk,
     input logic rst,
@@ -42,27 +40,21 @@ module cpu
   logic take_branch;
 
   // instruction queue variables
-  logic instr_pop[SUPERSCALAR];
-  logic [SUPERSCALAR*32-1:0] instr_in;
+  logic instr_pop;
+  logic [31:0] instr_in;
   logic instr_full;
-  logic instr_valid_out[SUPERSCALAR];
-  logic [31:0] instr[SUPERSCALAR];
-  logic [2:0] funct3[SUPERSCALAR];
-  logic [6:0] funct7[SUPERSCALAR];
-  logic [6:0] opcode[SUPERSCALAR];
-  logic [31:0] i_imm[SUPERSCALAR];
-  logic [31:0] s_imm[SUPERSCALAR];
-  logic [31:0] b_imm[SUPERSCALAR];
-  logic [31:0] u_imm[SUPERSCALAR];
-  logic [31:0] j_imm[SUPERSCALAR];
-  logic [4:0] rs1_s[SUPERSCALAR];
-  logic [4:0] rs2_s[SUPERSCALAR];
-  logic [4:0] rd_s[SUPERSCALAR];
+  logic instr_valid_out;
+  logic [31:0] instr;
+  logic [2:0] funct3;
+  logic [6:0] funct7;
+  logic [6:0] opcode;
+  logic [31:0] imm;
+  logic [4:0] rs1_s;
+  logic [4:0] rs2_s;
+  logic [4:0] rd_s;
 
 
-  fetch #(
-      .SUPERSCALAR(SUPERSCALAR)
-  ) fetch (
+  fetch fetch (
       .clk(clk),
       .rst(rst),
       .fetch_stall(instr_full),  // TODO: use FSM to control stall
@@ -75,12 +67,11 @@ module cpu
 
   instruction_queue #(
       .DEPTH(4),
-      .SUPERSCALAR(SUPERSCALAR)
   ) instruction_queue (
       .clk(clk),
       .rst(rst),
       .instr_push(imem_resp),
-      .instr_pop({'0}),
+      .instr_pop({'1}),
       .instr_in(imem_rdata),
       .instr_full(instr_full),
       .instr_valid_out(instr_valid_out),
@@ -88,11 +79,7 @@ module cpu
       .funct3(funct3),
       .funct7(funct7),
       .opcode(opcode),
-      .i_imm(i_imm),
-      .s_imm(s_imm),
-      .b_imm(b_imm),
-      .u_imm(u_imm),
-      .j_imm(j_imm),
+      .imm(imm),
       .rs1_s(rs1_s),
       .rs2_s(rs2_s),
       .rd_s(rd_s)
