@@ -76,7 +76,7 @@ module instruction_queue #(
       .funct3(funct3),
       .funct7(funct7),
       .opcode(opcode),
-      .imm(imm)
+      .imm(imm),
       .rs1_s (rs1_s),
       .rs2_s (rs2_s),
       .rd_s  (rd_s)

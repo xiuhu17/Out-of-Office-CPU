@@ -83,10 +83,10 @@ module alu_rs
   logic exe_cmp_valid;
   logic [2:0]   exe_alu_op;
   logic [2:0]   exe_cmp_op;
-  logic [31:0]  exe_alu_f;
-  logic         exe_cmp_f;
   logic [31:0]  exe_a;
   logic [31:0]  exe_b;
+  logic [31:0]  exe_alu_f;
+  logic         exe_cmp_f;
 
   always_ff @(posedge clk) begin
     if (rst) begin
@@ -202,6 +202,7 @@ module alu_rs
 
   // output whether ALU_RS is full or not
   always_comb begin
+    alu_rs_full = '1;
     for (int i = 0; i < ALU_RS_NUM_ELEM; i++) begin
       if (alu_rs_available[i]) begin
         alu_rs_full = '0;
@@ -232,7 +233,7 @@ module alu_rs
     end
   end
 
-  // for selecting 
+  // for inputting operand and selection 
   always_comb begin 
     exe_alu_valid = '0;
     exe_cmp_valid = '0;
@@ -275,14 +276,65 @@ module alu_rs
           endcase
       end 
       reg_opcode: begin 
-
-
+        case (funct3_arr[alu_rs_pop_index])
+          slt_funct3: begin 
+            exe_cmp_valid = '1;
+            exe_cmp_op = blt_cmp_op;
+          end 
+          sltu_funct3: begin 
+            exe_cmp_valid = '1;
+            exe_cmp_op = bltu_cmp_op;
+          end 
+          sr_funct3: begin 
+            if (funct7_arr[alu_rs_pop_index][5]) begin 
+              exe_alu_valid = '1;   
+              exe_alu_op = sra_alu_op;
+            end else begin 
+              exe_alu_valid = '1;  
+              exe_alu_op = srl_alu_op;
+            end 
+          end 
+          add_funct3: begin 
+            if (funct7_arr[alu_rs_pop_index][5]) begin 
+              exe_alu_valid = '1;
+              exe_alu_op = sub_alu_op;
+            end else begin 
+              exe_alu_valid = '1;
+              exe_alu_op = add_alu_op;
+            end
+          end 
+          default: begin 
+            exe_alu_valid = '1;
+            exe_alu_op = funct3_arr[alu_rs_pop_index];
+          end 
+        endcase
       end 
     endcase
   end 
 
   // calculating
-  alu clu();
-  cmp cmp();
+  alu clu(
+    .aluop(exe_alu_op),
+    .a(exe_a),
+    .b(exe_b),
+    .f(exe_alu_f)
+  );
+
+  cmp cmp(
+    .cmpop(exe_cmp_op),
+    .a(exe_a),
+    .b(exe_b),
+    .br_en(exe_cmp_f)
+  );
+
+  // for outputting
+  always_comb begin 
+    alu_rs_f = '0;
+    if (exe_alu_valid) begin 
+      alu_rs_f = exe_alu_f;
+    end else if (exe_cmp_valid) begin
+      alu_rs_f = {31'b0, exe_cmp_f};
+    end 
+  end 
 
 endmodule

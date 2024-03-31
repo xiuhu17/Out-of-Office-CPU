@@ -73,7 +73,6 @@ package rv32i_types;
         bgeu_cmp_op = 3'b111
     } cmp_ops_t;
 
-
     typedef enum bit [2:0] {
       mul_funct3 = 3'b000,
       mulh_funct3 = 3'b001,
