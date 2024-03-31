@@ -168,7 +168,7 @@ module mul_rs
   always_comb begin
     mul_rs_full = '1;
     for (int i = 0; i < MUL_RS_NUM_ELEM; i++) begin
-      if (mul_rs_available[i] == 1) begin
+      if (mul_rs_available[i]) begin
         mul_rs_full = '0;
         break;
       end
@@ -188,7 +188,7 @@ module mul_rs
       mul_type_executing <= '0;
     end else begin
       for (int i = counter; i < MUL_RS_NUM_ELEM; i++) begin
-        // valied && ready, then execute and finish in the same cycle
+        // valid & ready & spare multiplier, then execute
         if (!mul_rs_available[i]) begin
           if (rs1_ready_arr[i] && rs2_ready_arr[i]) begin
             if (!mul_executing) begin 
