@@ -64,16 +64,16 @@ module mul_rs
   logic [MUL_RS_DEPTH-1:0] counter;
 
   // pop signal
-  logic     mul_start;
-  logic     mul_done;
-  logic     mul_rs_pop;
-  logic     mul_executing;
-  logic [MUL_RS_DEPTH-1:0]  mul_rs_idx_executing;
-  logic [ROB_DEPTH-1:0]  mul_rob_executing;
+  logic mul_start;
+  logic mul_done;
+  logic mul_rs_pop;
+  logic mul_executing;
+  logic [MUL_RS_DEPTH-1:0] mul_rs_idx_executing;
+  logic [ROB_DEPTH-1:0] mul_rob_executing;
 
   // multiplier operands
-  logic [1:0]  mul_type_executing;
-  logic [2:0]  mul_funct3_executing;
+  logic [1:0] mul_type_executing;
+  logic [2:0] mul_funct3_executing;
   logic [31:0] mul_a_executing;
   logic [31:0] mul_b_executing;
   logic [63:0] mul_p_executing;  // result is 64 bits, we output 32 bits based on funct3
@@ -111,7 +111,7 @@ module mul_rs
             rs1_rob_arr[i] <= issue_rs1_regfile_rob;
             rs2_rob_arr[i] <= issue_rs2_regfile_rob;
             target_rob_arr[i] <= issue_target_rob;
-            
+
             // rs1 value logic (check regfile, ROB, CDB in order)
             if (issue_rs1_regfile_ready) begin
               rs1_ready_arr[i] <= '1;
@@ -177,7 +177,7 @@ module mul_rs
 
   // store the stage of the multiplier
   always_ff @(posedge clk) begin
-    if (rst) begin 
+    if (rst) begin
       mul_executing <= '0;
       mul_start <= '0;
       mul_rs_idx_executing <= '0;
@@ -187,24 +187,24 @@ module mul_rs
       mul_funct3_executing <= '0;
       mul_type_executing <= '0;
     end else begin
-      for (int i = counter; i < MUL_RS_NUM_ELEM; i++) begin
+      for (int i = 0; i < MUL_RS_NUM_ELEM; i++) begin
         // valid & ready & spare multiplier, then execute
-        if (!mul_rs_available[i]) begin
-          if (rs1_ready_arr[i] && rs2_ready_arr[i]) begin
-            if (!mul_executing) begin 
+        if (!mul_rs_available[(i+counter)&3'b111]) begin
+          if (rs1_ready_arr[(i+counter)&3'b111] && rs2_ready_arr[(i+counter)&3'b111]) begin
+            if (!mul_executing) begin
               mul_executing <= '1;
               mul_start <= '1;
-              mul_rs_idx_executing <= i;
-              mul_rob_executing <= target_rob_arr[i];
-              mul_a_executing <= rs1_v_arr[i];
-              mul_b_executing <= rs2_v_arr[i];
-              mul_funct3_executing <= funct3_arr[i];
-              case (funct3_arr[i]) 
+              mul_rs_idx_executing <= i + counter;
+              mul_rob_executing <= target_rob_arr[(i+counter)&3'b111];
+              mul_a_executing <= rs1_v_arr[(i+counter)&3'b111];
+              mul_b_executing <= rs2_v_arr[(i+counter)&3'b111];
+              mul_funct3_executing <= funct3_arr[(i+counter)&3'b111];
+              case (funct3_arr[(i+counter)&3'b111])
                 mul_funct3, mulh_funct3: mul_type_executing <= mul_signed_signed;
                 mulhsu_funct3: mul_type_executing <= mul_signed_unsigned;
                 mulhu_funct3: mul_type_executing <= mul_unsigned_unsigned;
               endcase
-            end 
+            end
             break;
           end
         end
@@ -212,9 +212,9 @@ module mul_rs
       if (mul_start) begin
         mul_start <= '0;
       end
-      if (mul_done) begin 
+      if (mul_done) begin
         mul_executing <= '0;
-      end 
+      end
     end
   end
 
@@ -225,14 +225,14 @@ module mul_rs
     mul_rs_p = '0;
     if (mul_done) begin
       mul_rs_valid = '1;
-      mul_rs_pop = '1;
-      mul_rs_rob = mul_rob_executing;
+      mul_rs_pop   = '1;
+      mul_rs_rob   = mul_rob_executing;
       case (mul_funct3_executing)
         mul_funct3: mul_rs_p = mul_p_executing[31:0];
         default: mul_rs_p = mul_p_executing[63:32];
       endcase
-    end 
-  end 
+    end
+  end
 
   shift_add_multiplier multiplier (
       .clk(clk),

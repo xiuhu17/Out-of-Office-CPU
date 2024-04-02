@@ -7,84 +7,85 @@ package rv32i_types;
   int ROB_DEPTH = 4;
   int ALU_SIZE = 4;
 
-    typedef enum bit [6:0] {
-        lui_opcode   = 7'b0110111, // load upper immediate (U type)
-        auipc_opcode = 7'b0010111, // add upper immediate PC (U type)
-        jal_opcode   = 7'b1101111, // jump and link (J type)
-        jalr_opcode  = 7'b1100111, // jump and link register (I type)
-        br_opcode    = 7'b1100011, // branch (B type)
-        load_opcode  = 7'b0000011, // load (I type)
-        store_opcode = 7'b0100011, // store (S type)
-        imm_opcode   = 7'b0010011, // arith ops with register/immediate operands (I type)
-        reg_opcode   = 7'b0110011,  // arith ops with register operands (R type)
-        csr_opcode   = 7'b1110011  // I control and status register 
-    } rv32i_opcode;
-    typedef enum bit [2:0] {
-        add_funct3  = 3'b000, //check bit 30 for sub if op_reg opcode
-        sll_funct3  = 3'b001,
-        slt_funct3  = 3'b010,
-        sltu_funct3 = 3'b011,
-        axor_funct3 = 3'b100,
-        sr_funct3   = 3'b101, //check bit 30 for logical/arithmetic
-        aor_funt3  = 3'b110,
-        aand_funct3 = 3'b111
-    } arith_funct3_t;
-    typedef enum bit [2:0] {
-        beq_funct3  = 3'b000,
-        bne_funct3  = 3'b001,
-        blt_funct3  = 3'b100,
-        bge_funct3  = 3'b101,
-        bltu_funct3 = 3'b110,
-        bgeu_funct3 = 3'b111
-    } branch_funct3_t;
-    typedef enum bit [2:0] {
-        lb_funct3  = 3'b000,
-        lh_funct3  = 3'b001,
-        lw_funct3  = 3'b010,
-        lbu_funct3 = 3'b100,
-        lhu_funct3 = 3'b101
-    } load_funct3_t;
-    typedef enum bit [2:0] {
-        sb_funct3 = 3'b000,
-        sh_funct3 = 3'b001,
-        sw_funct3 = 3'b010
-    } store_funct3_t;
-    typedef enum bit [6:0] {
-        base_funct7    = 7'b0000000,
-        variant_funct7 = 7'b0100000,
-        multiply_funct7 = 7'b0000001
-    } arith_funct7_t;
-    typedef enum bit [2:0] {
-        add_alu_op = 3'b000,
-        sll_alu_op = 3'b001,
-        sra_alu_op = 3'b010,
-        sub_alu_op = 3'b011,
-        xor_alu_op = 3'b100,
-        srl_alu_op = 3'b101,
-        or_alu_op  = 3'b110,
-        and_alu_op = 3'b111
-    } alu_ops_t;
-    typedef enum bit [2:0] {
-        beq_cmp_op  = 3'b000,
-        bne_cmp_op  = 3'b001,
-        blt_cmp_op  = 3'b100,
-        bge_cmp_op  = 3'b101,
-        bltu_cmp_op = 3'b110,
-        bgeu_cmp_op = 3'b111
-    } cmp_ops_t;
+  typedef enum bit [6:0] {
+    lui_opcode   = 7'b0110111, // load upper immediate (U type)
+    auipc_opcode = 7'b0010111, // add upper immediate PC (U type)
+    jal_opcode   = 7'b1101111, // jump and link (J type)
+    jalr_opcode  = 7'b1100111, // jump and link register (I type)
+    br_opcode    = 7'b1100011, // branch (B type)
+    load_opcode  = 7'b0000011, // load (I type)
+    store_opcode = 7'b0100011, // store (S type)
+    imm_opcode   = 7'b0010011, // arith ops with register/immediate operands (I type)
+    reg_opcode   = 7'b0110011,  // arith ops with register operands (R type)
+    csr_opcode   = 7'b1110011  // I control and status register 
+  } rv32i_opcode;
 
-    typedef enum bit [2:0] {
-      mul_funct3 = 3'b000,
-      mulh_funct3 = 3'b001,
-      mulhsu_funct3 = 3'b010,
-      mulhu_funct3 = 3'b011
-    } mul_funct3_t;
+  typedef enum bit [2:0] {
+    add_funct3  = 3'b000,  //check bit 30 for sub if op_reg opcode
+    sll_funct3  = 3'b001,
+    slt_funct3  = 3'b010,
+    sltu_funct3 = 3'b011,
+    axor_funct3 = 3'b100,
+    sr_funct3   = 3'b101,  //check bit 30 for logical/arithmetic
+    aor_funt3   = 3'b110,
+    aand_funct3 = 3'b111
+  } arith_funct3_t;
+  typedef enum bit [2:0] {
+    beq_funct3  = 3'b000,
+    bne_funct3  = 3'b001,
+    blt_funct3  = 3'b100,
+    bge_funct3  = 3'b101,
+    bltu_funct3 = 3'b110,
+    bgeu_funct3 = 3'b111
+  } branch_funct3_t;
+  typedef enum bit [2:0] {
+    lb_funct3  = 3'b000,
+    lh_funct3  = 3'b001,
+    lw_funct3  = 3'b010,
+    lbu_funct3 = 3'b100,
+    lhu_funct3 = 3'b101
+  } load_funct3_t;
+  typedef enum bit [2:0] {
+    sb_funct3 = 3'b000,
+    sh_funct3 = 3'b001,
+    sw_funct3 = 3'b010
+  } store_funct3_t;
+  typedef enum bit [6:0] {
+    base_funct7    = 7'b0000000,
+    variant_funct7 = 7'b0100000,
+    multiply_funct7 = 7'b0000001
+  } arith_funct7_t;
+  typedef enum bit [2:0] {
+    add_alu_op = 3'b000,
+    sll_alu_op = 3'b001,
+    sra_alu_op = 3'b010,
+    sub_alu_op = 3'b011,
+    xor_alu_op = 3'b100,
+    srl_alu_op = 3'b101,
+    or_alu_op  = 3'b110,
+    and_alu_op = 3'b111
+  } alu_ops_t;
+  typedef enum bit [2:0] {
+    beq_cmp_op  = 3'b000,
+    bne_cmp_op  = 3'b001,
+    blt_cmp_op  = 3'b100,
+    bge_cmp_op  = 3'b101,
+    bltu_cmp_op = 3'b110,
+    bgeu_cmp_op = 3'b111
+  } cmp_ops_t;
 
-    typedef enum bit [1:0] {
-      mul_unsigned_unsigned = 2'b00,
-      mul_signed_signed = 2'b01,
-      mul_signed_unsigned = 2'b10
-    } mul_type_t;
+  typedef enum bit [2:0] {
+    mul_funct3 = 3'b000,
+    mulh_funct3 = 3'b001,
+    mulhsu_funct3 = 3'b010,
+    mulhu_funct3 = 3'b011
+  } mul_funct3_t;
+
+  typedef enum bit [1:0] {
+    mul_unsigned_unsigned = 2'b00,
+    mul_signed_signed = 2'b01,
+    mul_signed_unsigned = 2'b10
+  } mul_type_t;
 
 
   // Add more things here . . .
@@ -144,21 +145,5 @@ package rv32i_types;
     logic [31:0] mem_rdata;
   } rvfi_t;
 
-
-
-  typedef enum bit [3:0] {
-    alu_add  = 4'b0000,
-    alu_sub  = 4'b0001,
-    alu_sll  = 4'b0010,
-    alu_slt  = 4'b0011,
-    alu_sltu = 4'b0100,
-    alu_xor  = 4'b0101,
-    alu_srl  = 4'b0110,
-    alu_sra  = 4'b0111,
-    alu_or   = 4'b1100,
-    alu_and  = 4'b1101,
-    alu_lui  = 4'b1110,
-    alu_jalr = 4'b1111
-  } alu_ops_t;
 
 endpackage

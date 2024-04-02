@@ -7,79 +7,104 @@ module instruction_queue #(
     // outputing whether the instruction queue is full and the valid/opcode information
     // we assume the instr_push and instr_pop are always correct
     output logic instr_full,
-    output logic instr_valid_out,
+    output logic instr_valid,
+    output logic instr_ready,
 
-    input logic instr_push,
+    input logic move_fetch,
+    input logic imem_resp,
     input logic instr_pop,
-    input logic [31:0] instr_in,
-    input logic [63:0] order_in,
 
-    output logic [63:0] order,
-    output logic [31:0] instr,
-    output logic [ 2:0] funct3,
-    output logic [ 6:0] funct7,
-    output logic [ 6:0] opcode,
-    output logic [31:0] imm,
-    output logic [ 4:0] rs1_s,
-    output logic [ 4:0] rs2_s,
-    output logic [ 4:0] rd_s
+    input logic [31:0] imem_rdata,
+    input logic [63:0] fetch_order,
+    input logic [31:0] fetch_pc,
+
+    output logic [63:0] issue_order,
+    output logic [31:0] issue_instr,
+    output logic [31:0] issue_pc,
+    output logic [31:0] issue_pc_next,
+    output logic [ 2:0] issue_funct3,
+    output logic [ 6:0] issue_funct7,
+    output logic [ 6:0] issue_opcode,
+    output logic [31:0] issue_imm,
+    output logic [ 4:0] issue_rs1_s,
+    output logic [ 4:0] issue_rs2_s,
+    output logic [ 4:0] issue_rd_s
 );
 
   localparam MAX_NUM_ELEMS = 2 ** INSTR_DEPTH;  // Max number of elements queue can hold
-  logic [INSTR_DEPTH-1:0] head;
-  logic [INSTR_DEPTH-1:0] tail;
   logic [31:0] instr_arr[MAX_NUM_ELEMS];
   logic [63:0] order_arr[MAX_NUM_ELEMS];
-  logic valid_arr[MAX_NUM_ELEMS];
-  // immediate values
-  logic [31:0] i_imm, s_imm, b_imm, u_imm, j_imm;
+  logic [31:0] pc_arr[MAX_NUM_ELEMS];
 
+  logic [INSTR_DEPTH-1:0] valid_head;
+  logic [INSTR_DEPTH-1:0] valid_tail;
+  logic [INSTR_DEPTH-1:0] ready_head;
+  logic [INSTR_DEPTH-1:0] ready_tail;
+  logic valid_arr[MAX_NUM_ELEMS];
+  logic ready_arr[MAX_NUM_ELEMS];
+
+  // sending signal
   always_comb begin
-    // check if current line is empty (no instruction in the line)
-    instr_full = '0;
-    if (valid_arr[head]) begin
-      instr_full = '1;
-    end
-    instr = instr_arr[tail];
-    order = order_arr[tail];
-    instr_valid_out = valid_arr[tail];
+    instr_full = valid_arr[valid_head];
+    instr_valid = valid_arr[valid_tail];
+    instr_ready = ready_arr[ready_tail];
+  end
+
+  // sending value
+  always_comb begin
+    issue_instr = instr_arr[ready_tail];
+    issue_order = order_arr[ready_tail];
+    issue_pc = pc_arr[ready_tail];
+    issue_pc_next = issue_pc + 32'h4;
   end
 
   // if full (head == tail), we do not support pop tail and push head at same cycle
   // if empty (head == tail), we also do not support push and pop for same instructions at same cycle (we want instructions stay for at least one cycle)
   always_ff @(posedge clk) begin
     if (rst) begin
-      head <= '0;
-      tail <= '0;
+      valid_head <= '0;
+      valid_tail <= '0;
+      ready_head <= '0;
+      ready_tail <= '0;
       for (int i = 0; i < MAX_NUM_ELEMS; i++) begin
         valid_arr[i] <= '0;
+        ready_arr[i] <= '0;
       end
     end else begin
       // pop instruction if it's valid
       if (instr_pop) begin
-        valid_arr[tail] <= 1'b0;
-        tail <= tail + 1'b1;
+        valid_arr[valid_tail] <= 1'b0;
+        ready_arr[ready_tail] <= 1'b0;
+        valid_tail <= valid_tail + 1'b1;
+        ready_tail <= ready_tail + 1'b1;
       end
 
       // push instruction if there's push signal and queue is not full
-      if (instr_push) begin
-        valid_arr[head] <= 1'b1;
-        instr_arr[head] <= instr_in;
-        order_arr[head] <= order_in;
-        head <= head + 1'b1;
+      if (move_fetch) begin
+        valid_arr[valid_head] <= 1'b1;
+        pc_arr[valid_head] <= fetch_pc;
+        order_arr[valid_head] <= fetch_order;
+        valid_head <= valid_head + 1'b1;
       end
+
+      // 
+      if (imem_resp) begin
+        ready_arr[ready_head] <= 1'b1;
+        instr_arr[ready_head] <= imem_rdata;
+        ready_head <= ready_head + 1'b1;
+      end 
     end
   end
 
   decode decode (
-      .inst  (instr),
-      .funct3(funct3),
-      .funct7(funct7),
-      .opcode(opcode),
-      .imm(imm),
-      .rs1_s (rs1_s),
-      .rs2_s (rs2_s),
-      .rd_s  (rd_s)
+      .inst(issue_instr),
+      .funct3(issue_funct3),
+      .funct7(issue_funct7),
+      .opcode(issue_opcode),
+      .imm(issue_imm),
+      .rs1_s(issue_rs1_s),
+      .rs2_s(issue_rs2_s),
+      .rd_s(issue_rd_s)
   );
 
 endmodule : instruction_queue

@@ -19,14 +19,18 @@ module regfile_scoreboard #(
 
     // read from registerfile when instruction is issued
     // regfile_to_iq_t
-    input  logic [            4:0] issue_rs_1,
-    input  logic [            4:0] issue_rs_2,
+    input  logic [            4:0] issue_rs1_s,
+    input  logic [            4:0] issue_rs2_s,
     output logic [           31:0] issue_rs1_regfile_v,
     output logic [           31:0] issue_rs2_regfile_v,
     output logic                   issue_rs1_regfile_ready,
     output logic                   issue_rs2_regfile_ready,
     output logic [ROB_DEPTH - 1:0] issue_rs1_regfile_rob,
-    output logic [ROB_DEPTH - 1:0] issue_rs2_regfile_rob
+    output logic [ROB_DEPTH - 1:0] issue_rs2_regfile_rob,
+
+    // rvfi
+    input logic [4:0] rvfi_rs1_s_tail,
+    input logic [4:0] rvfi_rs2_s_tail
 );
 
   // 0 is oldest
@@ -34,6 +38,15 @@ module regfile_scoreboard #(
   logic [31:0] register_arr[32];
   logic [ROB_DEPTH - 1:0] scoreboard_arr[32];
   logic scoreboard_valid_arr[32];
+
+  // rvfi
+  logic [31:0] rvfi_rs1_v_tail;
+  logic [31:0] rvfi_rs2_v_tail;
+
+  always_comb begin
+    rvfi_rs1_v_tail = register_arr[rvfi_rs1_s_tail];
+    rvfi_rs2_v_tail = register_arr[rvfi_rs2_s_tail];
+  end
 
   always_ff @(posedge clk) begin
     if (rst) begin
@@ -64,12 +77,12 @@ module regfile_scoreboard #(
   end
 
   always_comb begin
-    issue_rs1_regfile_v = register_arr[issue_rs_1];
-    issue_rs2_regfile_v = register_arr[issue_rs_2];
-    issue_rs1_regfile_ready = ~scoreboard_valid_arr[issue_rs_1];
-    issue_rs2_regfile_ready = ~scoreboard_valid_arr[issue_rs_2];
-    issue_rs1_regfile_rob = scoreboard_arr[issue_rs_1];
-    issue_rs2_regfile_rob = scoreboard_arr[issue_rs_2];
+    issue_rs1_regfile_v = register_arr[issue_rs1_s];
+    issue_rs2_regfile_v = register_arr[issue_rs2_s];
+    issue_rs1_regfile_ready = ~scoreboard_valid_arr[issue_rs1_s];
+    issue_rs2_regfile_ready = ~scoreboard_valid_arr[issue_rs2_s];
+    issue_rs1_regfile_rob = scoreboard_arr[issue_rs1_s];
+    issue_rs2_regfile_rob = scoreboard_arr[issue_rs2_s];
   end
 
 endmodule

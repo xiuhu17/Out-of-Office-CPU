@@ -42,22 +42,31 @@ module cpu
   end
 
   // fetch variables
+  logic move_fetch;
   logic [63:0] order_curr;
   logic take_branch;
+  logic [31:0] pc;
+  logic [31:0] pc_next;
 
   // instruction queue variables
-  logic instr_pop;
-  logic [31:0] instr_in;
   logic instr_full;
-  logic instr_valid_out;
-  logic [31:0] instr;
-  logic [2:0] funct3;
-  logic [6:0] funct7;
-  logic [6:0] opcode;
-  logic [31:0] imm;
-  logic [4:0] rs1_s;
-  logic [4:0] rs2_s;
-  logic [4:0] rd_s;
+  logic instr_valid;
+  logic instr_ready;
+  logic instr_push;
+  logic instr_pop;
+  logic [31:0] fetch_instr;
+  logic [63:0] fetch_order;
+  logic [63:0] issue_order;
+  logic [31:0] issue_instr;
+  logic [31:0] issue_pc;
+  logic [31:0] issue_pc_next;
+  logic [2:0] issue_funct3;
+  logic [6:0] issue_funct7;
+  logic [6:0] issue_opcode;
+  logic [31:0] issue_imm;
+  logic [4:0] issue_rs1_s;
+  logic [4:0] issue_rs2_s;
+  logic [4:0] issue_rd_s;
 
   // alu_rs variables
   logic alu_rs_full;
@@ -70,7 +79,7 @@ module cpu
   logic mul_rs_full;
   logic mul_rs_issue;
   logic mul_rs_valid;
-  logic [31:0] mul_rs_f;
+  logic [31:0] mul_rs_p;
   logic [ROB_DEPTH-1:0] mul_rs_rob;
 
   // CDB variables
@@ -84,17 +93,16 @@ module cpu
     exe_valid[0] = alu_rs_valid;
     exe_valid[1] = mul_rs_valid;
     exe_alu_f[0] = alu_rs_f;
-    exe_alu_f[1] = mul_rs_f;
+    exe_alu_f[1] = mul_rs_p;
     exe_rob[0]   = alu_rs_rob;
     exe_rob[1]   = mul_rs_rob;
   end
 
   // ROB variables
   logic rob_full;
-  logic rob_valid_out;
-  logic rob_ready_out;
+  logic rob_valid;
+  logic rob_ready;
   logic rob_push;
-  logic [4:0] issue_rd_s;
   logic [ROB_DEPTH-1:0] issue_rob;
   logic [ROB_DEPTH - 1:0] issue_rs1_rob;
   logic [ROB_DEPTH - 1:0] issue_rs2_rob;
@@ -106,9 +114,14 @@ module cpu
   logic [4:0] commit_rd_s;
   logic [31:0] commit_rd_v;
   logic [ROB_DEPTH-1:0] commit_rob;
+  logic [4:0] rvfi_rs1_s_tail;
+  logic [4:0] rvfi_rs2_s_tail;
 
   // regfile_scoreboard variables
   logic commit_regfile_we;
+  logic issue_valid;
+  logic [4:0] issue_rs_1;
+  logic [4:0] issue_rs_2;
   logic [31:0] issue_rs1_regfile_v;
   logic [31:0] issue_rs2_regfile_v;
   logic issue_rs1_regfile_ready;
@@ -117,15 +130,22 @@ module cpu
   logic [ROB_DEPTH-1:0] issue_rs2_regfile_rob;
 
 
+    fetch_fsm fetch_fsm(
+        .instr_full(instr_full),
+        .move_fetch(move_fetch)
+    );
+
   fetch fetch (
       .clk(clk),
       .rst(rst),
-      .fetch_stall(instr_full),  // TODO: use FSM to control stall
+      .move_fetch(move_fetch),
       .take_branch('0),
       .pc_branch('0),
       .imem_addr(imem_addr),
       .imem_rmask(imem_rmask),
-      .order_curr(order_curr)
+      .order_curr(order_curr),
+      .pc(pc),
+      .pc_next(pc_next)
   );
 
   instruction_queue #(
@@ -133,31 +153,43 @@ module cpu
   ) instruction_queue (
       .clk(clk),
       .rst(rst),
-      .instr_push(imem_resp),
-      .instr_pop(instr_pop),
-      .instr_in(imem_rdata),
       .instr_full(instr_full),
-      .instr_valid_out(instr_valid_out),
-      .instr(instr),
-      .funct3(funct3),
-      .funct7(funct7),
-      .opcode(opcode),
-      .imm(imm),
-      .rs1_s(rs1_s),
-      .rs2_s(rs2_s),
-      .rd_s(rd_s)
+      .instr_valid(instr_valid),
+      .instr_ready(instr_ready),
+      .move_fetch(move_fetch),
+      .imem_resp(imem_resp),
+      .instr_pop(instr_pop),
+      .imem_rdata(imem_rdata),
+      .fetch_order(order_curr),
+      .fetch_pc(pc),
+      .issue_order(issue_order),
+      .issue_instr(issue_instr),
+      .issue_pc(issue_pc),
+      .issue_pc_next(issue_pc_next),
+      .issue_funct3(issue_funct3),
+      .issue_funct7(issue_funct7),
+      .issue_opcode(issue_opcode),
+      .issue_imm(issue_imm),
+      .issue_rs1_s(issue_rs1_s),
+      .issue_rs2_s(issue_rs2_s),
+      .issue_rd_s(issue_rd_s)
   );
 
-  issue issue (
-      .instr_valid_out(instr_valid_out),
-      .opcode(opcode),
-      .funct7(funct7),
+  issue #(
+      .ROB_DEPTH(ROB_DEPTH)
+  ) issue (
+      .instr_valid(instr_valid),
+      .instr_ready(instr_ready),
+      .opcode(issue_opcode),
+      .funct7(issue_funct7),
       .alu_rs_full(alu_rs_full),
       .mul_rs_full(mul_rs_full),
       .rob_full(rob_full),
       .instr_pop(instr_pop),
       .alu_rs_issue(alu_rs_issue),
-      .mul_rs_issue(mul_rs_issue)
+      .mul_rs_issue(mul_rs_issue),
+      .rob_push(rob_push),
+      .issue_valid(issue_valid)
   );
 
   alu_rs #(
@@ -169,9 +201,9 @@ module cpu
       .rst(rst),
       .alu_rs_full(alu_rs_full),
       .alu_rs_issue(alu_rs_issue),
-      .opcode(opcode),
-      .funct3(funct3),
-      .funct7(funct7),
+      .opcode(issue_opcode),
+      .funct3(issue_funct3),
+      .funct7(issue_funct7),
       .issue_rs1_regfile_ready(issue_rs1_regfile_ready),
       .issue_rs2_regfile_ready(issue_rs2_regfile_ready),
       .issue_rs1_regfile_v(issue_rs1_regfile_v),
@@ -185,8 +217,9 @@ module cpu
       .cdb_valid(cdb_valid),
       .cdb_rob(cdb_rob),
       .cdb_rd_v(cdb_rd_v),
-      .imm(imm),
-      .issue_target_rob(),
+      .imm(issue_imm),
+      .pc(issue_pc),
+      .issue_target_rob(issue_rob),
       .alu_rs_valid(alu_rs_valid),
       .alu_rs_f(alu_rs_f),
       .alu_rs_rob(alu_rs_rob)
@@ -201,9 +234,9 @@ module cpu
       .rst(rst),
       .mul_rs_full(mul_rs_full),
       .mul_rs_issue(mul_rs_issue),
-      .opcode(opcode),
-      .funct3(funct3),
-      .funct7(funct7),
+      .opcode(issue_opcode),
+      .funct3(issue_funct3),
+      .funct7(issue_funct7),
       .issue_rs1_regfile_ready(issue_rs1_regfile_ready),
       .issue_rs2_regfile_ready(issue_rs2_regfile_ready),
       .issue_rs1_regfile_v(issue_rs1_regfile_v),
@@ -217,9 +250,9 @@ module cpu
       .cdb_valid(cdb_valid),
       .cdb_rob(cdb_rob),
       .cdb_rd_v(cdb_rd_v),
-      .issue_target_rob(),
+      .issue_target_rob(issue_rob),
       .mul_rs_valid(mul_rs_valid),
-      .mul_rs_f(mul_rs_f),
+      .mul_rs_p(mul_rs_p),
       .mul_rs_rob(mul_rs_rob)
   );
 
@@ -242,16 +275,16 @@ module cpu
       .clk(clk),
       .rst(rst),
       .rob_full(rob_full),
-      .rob_valid_out(rob_valid_out),
-      .rob_ready_out(rob_ready_out),
+      .rob_valid(rob_valid),
+      .rob_ready(rob_ready),
       .cdb_valid(cdb_valid),
       .cdb_rob(cdb_rob),
       .cdb_rd_v(cdb_rd_v),
       .rob_push(rob_push),
       .issue_rd_s(issue_rd_s),
       .issue_rob(issue_rob),
-      .issue_rs1_rob(issue_rs1_rob),
-      .issue_rs2_rob(issue_rs2_rob),
+      .issue_rs1_rob(issue_rs1_regfile_rob),  // read from regfile_scoreboard
+      .issue_rs2_rob(issue_rs2_regfile_rob),
       .issue_rs1_rob_v(issue_rs1_rob_v),
       .issue_rs2_rob_v(issue_rs2_rob_v),
       .issue_rs1_rob_ready(issue_rs1_rob_ready),
@@ -259,7 +292,16 @@ module cpu
       .rob_pop(rob_pop),
       .commit_rd_s(commit_rd_s),
       .commit_rd_v(commit_rd_v),
-      .commit_rob(commit_rob)
+      .commit_rob(commit_rob),
+      .rvfi_order(issue_order),
+      .rvfi_inst(issue_instr),
+      .rvfi_rs1_s(issue_rs1_s),
+      .rvfi_rs2_s(issue_rs2_s),
+      .rvfi_rd_s(issue_rd_s),
+      .rvfi_pc(issue_pc),
+      .rvfi_pc_next(issue_pc_next),
+      .rvfi_rs1_s_tail(rvfi_rs1_s_tail),
+      .rvfi_rs2_s_tail(rvfi_rs2_s_tail)
   );
 
   regfile_scoreboard #(
@@ -271,17 +313,26 @@ module cpu
       .commit_rd_s(commit_rd_s),
       .commit_rd_v(commit_rd_v),
       .commit_rob(commit_rob),
-      .issue_valid(alu_rs_issue),
-      .issue_rd_s(rd_s),
-      .issue_rob(alu_rs_rob),
-      .issue_rs_1(rs1_s),
-      .issue_rs_2(rs2_s),
+      .issue_valid(issue_valid),
+      .issue_rd_s(issue_rd_s),
+      .issue_rob(issue_rob),
+      .issue_rs1_s(issue_rs1_s),
+      .issue_rs2_s(issue_rs2_s),
       .issue_rs1_regfile_v(issue_rs1_regfile_v),
       .issue_rs2_regfile_v(issue_rs2_regfile_v),
       .issue_rs1_regfile_ready(issue_rs1_regfile_ready),
       .issue_rs2_regfile_ready(issue_rs2_regfile_ready),
       .issue_rs1_regfile_rob(issue_rs1_regfile_rob),
-      .issue_rs2_regfile_rob(issue_rs2_regfile_rob)
+      .issue_rs2_regfile_rob(issue_rs2_regfile_rob),
+      .rvfi_rs1_s_tail(rvfi_rs1_s_tail),
+      .rvfi_rs2_s_tail(rvfi_rs2_s_tail)
+  );
+
+  commit commit (
+      .rob_valid(rob_valid),
+      .rob_ready(rob_ready),
+      .rob_pop(rob_pop),
+      .commit_regfile_we(commit_regfile_we)
   );
 
 endmodule : cpu

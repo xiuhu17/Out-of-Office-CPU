@@ -9,8 +9,8 @@ module ROB
 
     // status signal
     output logic rob_full,
-    output logic rob_valid_out,
-    output logic rob_ready_out,
+    output logic rob_valid,
+    output logic rob_ready,
 
     // for cdb write into rob
     // cdb_t
@@ -34,7 +34,18 @@ module ROB
     input logic rob_pop,
     output logic [4:0] commit_rd_s,
     output logic [31:0] commit_rd_v,
-    output logic [ROB_DEPTH-1:0] commit_rob
+    output logic [ROB_DEPTH-1:0] commit_rob,
+
+    // for rvfi
+    input  logic [63:0] rvfi_order,
+    input  logic [31:0] rvfi_inst,
+    input  logic [ 4:0] rvfi_rs1_s,
+    input  logic [ 4:0] rvfi_rs2_s,
+    input  logic [ 4:0] rvfi_rd_s,
+    input  logic [31:0] rvfi_pc,
+    input  logic [31:0] rvfi_pc_next,
+    output logic [ 4:0] rvfi_rs1_s_tail,
+    output logic [ 4:0] rvfi_rs2_s_tail
 );
 
   localparam MAX_NUM_ELEMS = 2 ** ROB_DEPTH;
@@ -50,7 +61,29 @@ module ROB
   logic [31:0] rd_v_arr[MAX_NUM_ELEMS];
 
   // for rvfi
-  rvfi_t rvfi[MAX_NUM_ELEMS];
+  logic [63:0] rvfi_order_arr[MAX_NUM_ELEMS];
+  logic [31:0] rvfi_inst_arr[MAX_NUM_ELEMS];
+  logic [4:0] rvfi_rs1_s_arr[MAX_NUM_ELEMS];
+  logic [4:0] rvfi_rs2_s_arr[MAX_NUM_ELEMS];
+  logic [4:0] rvfi_rd_s_arr[MAX_NUM_ELEMS];
+  logic [31:0] rvfi_pc_arr[MAX_NUM_ELEMS];
+  logic [31:0] rvfi_pc_next_arr[MAX_NUM_ELEMS];
+  logic [31:0] rvfi_mem_addr_arr[MAX_NUM_ELEMS];
+  logic [3:0] rvfi_mem_rmask_arr[MAX_NUM_ELEMS];
+  logic [3:0] rvfi_mem_wmask_arr[MAX_NUM_ELEMS];
+  logic [31:0] rvfi_mem_rdata_arr[MAX_NUM_ELEMS];
+  logic [31:0] rvfi_mem_wdata_arr[MAX_NUM_ELEMS];
+  logic [63:0] rvfi_order_tail;
+  logic [31:0] rvfi_inst_tail;
+  logic [4:0] rvfi_rd_s_tail;
+  logic [31:0] rvfi_rd_v_tail;
+  logic [31:0] rvfi_pc_tail;
+  logic [31:0] rvfi_pc_next_tail;
+  logic [31:0] rvfi_mem_addr_tail;
+  logic [3:0] rvfi_mem_rmask_tail;
+  logic [3:0] rvfi_mem_wmask_tail;
+  logic [31:0] rvfi_mem_rdata_tail;
+  logic [31:0] rvfi_mem_wdata_tail;
 
   always_comb begin
     // check if current line is empty (no instruction in the line)
@@ -58,8 +91,8 @@ module ROB
     if (valid_arr[head]) begin
       rob_full = '1;
     end
-    rob_valid_out = valid_arr[tail];
-    rob_ready_out = ready_arr[tail];
+    rob_valid = valid_arr[tail];
+    rob_ready = ready_arr[tail];
 
     // for assinging rob number to issued instruction
     issue_rob = head;
@@ -132,4 +165,56 @@ module ROB
       end
     end
   end
+
+  // for storing rvfi
+  always_ff @(posedge clk) begin
+    if (rst) begin
+      for (int i = 0; i < MAX_NUM_ELEMS; i++) begin
+        rvfi_order_arr[i] <= '0;
+        rvfi_inst_arr[i] <= '0;
+        rvfi_rs1_s_arr[i] <= '0;
+        rvfi_rs2_s_arr[i] <= '0;
+        rvfi_rd_s_arr[i] <= '0;
+        rvfi_pc_arr[i] <= '0;
+        rvfi_pc_next_arr[i] <= '0;
+        rvfi_mem_addr_arr[i] <= '0;
+        rvfi_mem_rmask_arr[i] <= '0;
+        rvfi_mem_wmask_arr[i] <= '0;
+        rvfi_mem_rdata_arr[i] <= '0;
+        rvfi_mem_wdata_arr[i] <= '0;
+      end
+    end else begin
+      if (rob_push) begin
+        rvfi_order_arr[head] <= rvfi_order;
+        rvfi_inst_arr[head] <= rvfi_inst;
+        rvfi_rs1_s_arr[head] <= rvfi_rs1_s;
+        rvfi_rs2_s_arr[head] <= rvfi_rs2_s;
+        rvfi_rd_s_arr[head] <= rvfi_rd_s;
+        rvfi_pc_arr[head] <= rvfi_pc;
+        rvfi_pc_next_arr[head] <= rvfi_pc_next;
+        rvfi_mem_addr_arr[head] <= '0;
+        rvfi_mem_rmask_arr[head] <= '0;
+        rvfi_mem_wmask_arr[head] <= '0;
+        rvfi_mem_rdata_arr[head] <= '0;
+        rvfi_mem_wdata_arr[head] <= '0;
+      end
+    end
+  end
+
+  always_comb begin
+    rvfi_order_tail = rvfi_order_arr[tail];
+    rvfi_inst_tail = rvfi_inst_arr[tail];
+    rvfi_rs1_s_tail = rvfi_rs1_s_arr[tail];
+    rvfi_rs2_s_tail = rvfi_rs2_s_arr[tail];
+    rvfi_rd_s_tail = rvfi_rd_s_arr[tail];
+    rvfi_rd_v_tail = rd_v_arr[tail];
+    rvfi_pc_tail = rvfi_pc_arr[tail];
+    rvfi_pc_next_tail = rvfi_pc_next_arr[tail];
+    rvfi_mem_addr_tail = rvfi_mem_addr_arr[tail];
+    rvfi_mem_rmask_tail = rvfi_mem_rmask_arr[tail];
+    rvfi_mem_wmask_tail = rvfi_mem_wmask_arr[tail];
+    rvfi_mem_rdata_tail = rvfi_mem_rdata_arr[tail];
+    rvfi_mem_wdata_tail = rvfi_mem_wdata_arr[tail];
+  end
+
 endmodule
