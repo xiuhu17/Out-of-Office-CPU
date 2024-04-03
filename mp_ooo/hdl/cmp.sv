@@ -2,7 +2,8 @@ module cmp
   import rv32i_types::*;
 (
     input  logic [ 2:0] cmpop,
-    input  logic [31:0] a, b,
+    input  logic [31:0] a,
+    b,
     output logic        br_en
 );
 
