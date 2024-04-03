@@ -9,7 +9,7 @@ module commit (
     rob_pop = '0;
     if (rob_valid && rob_ready) begin
       commit_regfile_we = '1;
-      rob_pop = '1;
+      rob_pop = '1;       
     end
   end
-endmodule
+endmodule 
