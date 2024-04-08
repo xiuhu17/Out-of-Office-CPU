@@ -1,3 +1,4 @@
+// all status:  all valid & ready use a logic wire to represent
 module alu_rs
   import rv32i_types::*;
 #(
