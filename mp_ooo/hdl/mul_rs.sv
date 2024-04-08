@@ -187,25 +187,25 @@ module mul_rs
       mul_funct3_executing <= '0;
       mul_type_executing <= '0;
     end else begin
-      for (int i = 0; i < MUL_RS_NUM_ELEM; i++) begin
-        // valid & ready & spare multiplier, then execute
-        if (!mul_rs_available[(i+counter)&3'b111]) begin
-          if (rs1_ready_arr[(i+counter)&3'b111] && rs2_ready_arr[(i+counter)&3'b111]) begin
-            if (!mul_executing) begin
-              mul_executing <= '1;
-              mul_start <= '1;
-              mul_rs_idx_executing <= i + counter;
-              mul_rob_executing <= target_rob_arr[(i+counter)&3'b111];
-              mul_a_executing <= rs1_v_arr[(i+counter)&3'b111];
-              mul_b_executing <= rs2_v_arr[(i+counter)&3'b111];
-              mul_funct3_executing <= funct3_arr[(i+counter)&3'b111];
-              case (funct3_arr[(i+counter)&3'b111])
-                mul_funct3, mulh_funct3: mul_type_executing <= mul_signed_signed;
-                mulhsu_funct3: mul_type_executing <= mul_signed_unsigned;
-                mulhu_funct3: mul_type_executing <= mul_unsigned_unsigned;
-              endcase
+      if (!mul_executing) begin
+        for (int i = 0; i < MUL_RS_NUM_ELEM; i++) begin
+          // spare multiplier & valid & ready  then execute
+          if (!mul_rs_available[(i+counter)&3'b111]) begin
+            if (rs1_ready_arr[(i+counter)&3'b111] && rs2_ready_arr[(i+counter)&3'b111]) begin
+                mul_executing <= '1;
+                mul_start <= '1;
+                mul_rs_idx_executing <= i + counter;
+                mul_rob_executing <= target_rob_arr[(i+counter)&3'b111];
+                mul_a_executing <= rs1_v_arr[(i+counter)&3'b111];
+                mul_b_executing <= rs2_v_arr[(i+counter)&3'b111];
+                mul_funct3_executing <= funct3_arr[(i+counter)&3'b111];
+                case (funct3_arr[(i+counter)&3'b111])
+                  mul_funct3, mulh_funct3: mul_type_executing <= mul_signed_signed;
+                  mulhsu_funct3: mul_type_executing <= mul_signed_unsigned;
+                  mulhu_funct3: mul_type_executing <= mul_unsigned_unsigned;
+                endcase
+              break;
             end
-            break;
           end
         end
       end
