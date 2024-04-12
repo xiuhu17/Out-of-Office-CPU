@@ -65,20 +65,7 @@ import cache_types::*;
     always_comb begin
         ufp_rdata = '0;
         if (Sram_op == Hit_Read_Clean) begin
-            case (PLRU_Way_Visit)
-                Way_A: begin 
-                    ufp_rdata = internal_data_array_read[Way_A][32 * ufp_addr[4:2] +: 32];
-                end 
-                Way_B: begin 
-                    ufp_rdata = internal_data_array_read[Way_B][32 * ufp_addr[4:2] +: 32];
-                end 
-                Way_C: begin 
-                    ufp_rdata = internal_data_array_read[Way_C][32 * ufp_addr[4:2] +: 32];
-                end
-                Way_D: begin 
-                    ufp_rdata = internal_data_array_read[Way_D][32 * ufp_addr[4:2] +: 32];
-                end
-            endcase
+            ufp_rdata = internal_data_array_read[PLRU_Way_Visit][32 * ufp_addr[4:2] +: 32];
         end 
     end 
 
