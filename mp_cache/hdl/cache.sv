@@ -138,6 +138,7 @@ import cache_types::*;
         Hit_Miss = 'x;
         PLRU_Way_Visit = 'x;
 
+        // valid && equal
         PLRU_Way_4[3] = (internal_tag_array_read[Way_A][22:0] == curr_tag) & internal_valid_array_read[Way_A];
         PLRU_Way_4[2] = (internal_tag_array_read[Way_B][22:0] == curr_tag) & internal_valid_array_read[Way_B];
         PLRU_Way_4[1] = (internal_tag_array_read[Way_C][22:0] == curr_tag) & internal_valid_array_read[Way_C];
@@ -159,7 +160,8 @@ import cache_types::*;
                     PLRU_Way_Visit = Way_D;
                 end
             endcase
-        end else begin 
+        end else begin
+            // valid && dirty
             if (internal_valid_array_read[PLRU_Way_Replace] && internal_tag_array_read[PLRU_Way_Replace][23]) begin 
                 Hit_Miss = Dirty_Miss;
             end else begin
