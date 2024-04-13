@@ -2,12 +2,13 @@
 
 # Settings
 # Available options are rv32i, rv32ic, rv32im, rv32imc
-ARCH=rv32im
+ARCH=rv32i
 # Bytes per memory address. Note that you may need to change this as your memory model evolves throughout the MP
 # or you use memories from past MPs for testing purposes.
 #   Magic Memory = 32 bits per address -> 4 byte ADDRESSABILITY
 #   Burst Memory = 64 bits per address -> 8 byte ADDRESSABILITY
 #   Simple Memory = 256 bits per address -> 32 byte ADDRESSABILITY
+#   Banked Memory = 256 bits per address -> 32 byte ADDRESSABILITY
 ADDRESSABILITY=4
 
 # some other settings

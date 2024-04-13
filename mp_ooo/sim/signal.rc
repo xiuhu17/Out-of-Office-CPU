@@ -2,7 +2,7 @@ Magic 271485
 Revision Verdi_R-2020.12-SP1-1
 
 ; Window Layout <x> <y> <width> <height> <signalwidth> <valuewidth>
-viewPort 0 25 2560 560 322 137
+viewPort 0 25 1920 736 322 137
 
 ; File list:
 ; openDirFile [-d delimiter] [-s time_offset] [-rf auto_bus_rule_file] path_name file_name
@@ -16,16 +16,16 @@ signalSpacing 5
 
 ; windowTimeUnit is used for zoom, cursor & marker
 ; waveform viewport range
-zoom 456.343157 805.418962
+zoom 0.000000 290.263033
 cursor 565.000000
 marker 0.000000
 
 ; user define markers
 ; userMarker time_pos marker_name color linestyle
 ; visible top row signal index
-top 21
+top 10
 ; marker line index
-markerPos 46
+markerPos 33
 
 ; event list
 ; addEvent event_name event_expression
@@ -54,19 +54,32 @@ addSignal -h 15 -holdScope imem_rdata[31:0]
 addSignal -h 15 -holdScope imem_resp
 addSignal -h 15 -holdScope imem_rmask[3:0]
 addGroup "fetch"
-addSignal -h 15 /top_tb/dut/fetch/fetch_stall
 addSignal -h 15 /top_tb/dut/instruction_queue/instr_full
 addSignal -h 15 -holdScope instr_arr[0:15]
-addSignal -h 15 -holdScope tail[3:0]
-addSignal -h 15 -holdScope head[3:0]
 addSignal -h 15 -holdScope valid_arr[0:15]
 addGroup "ROB"
-addSignal -h 15 /top_tb/dut/ROB/rob_ready_out
-addSignal -h 15 -holdScope rob_valid_out
-addSignal -h 15 -holdScope tail[3:0]
+addSignal -h 15 /top_tb/dut/ROB/tail[3:0]
 addSignal -h 15 -holdScope head[3:0]
 addSignal -h 15 -holdScope rob_push
 addSignal -h 15 -holdScope valid_arr[0:15]
+addSignal -h 15 -holdScope rd_v_arr[0:15]
+addSignal -expanded -h 15 -holdScope ready_arr[0:15]
+addSignal -h 15 -holdScope ready_arr[0]
+addSignal -h 15 -holdScope ready_arr[1]
+addSignal -h 15 -holdScope ready_arr[2]
+addSignal -h 15 -holdScope ready_arr[3]
+addSignal -h 15 -holdScope ready_arr[4]
+addSignal -h 15 -holdScope ready_arr[5]
+addSignal -h 15 -holdScope ready_arr[6]
+addSignal -h 15 -holdScope ready_arr[7]
+addSignal -h 15 -holdScope ready_arr[8]
+addSignal -h 15 -holdScope ready_arr[9]
+addSignal -h 15 -holdScope ready_arr[10]
+addSignal -h 15 -holdScope ready_arr[11]
+addSignal -h 15 -holdScope ready_arr[12]
+addSignal -h 15 -holdScope ready_arr[13]
+addSignal -h 15 -holdScope ready_arr[14]
+addSignal -h 15 -holdScope ready_arr[15]
 addGroup "CDB"
 addSignal -h 15 /top_tb/dut/CDB/cdb_rd_v[0:1]
 addSignal -h 15 -holdScope cdb_rob[0:1]
@@ -83,7 +96,7 @@ addSignal -h 15 -holdScope rvfi_rd_s_tail[4:0]
 addSignal -h 15 /top_tb/dut/regfile_scoreboard/rvfi_rs1_v_tail[31:0]
 addSignal -h 15 -holdScope rvfi_rs2_v_tail[31:0]
 addSignal -h 15 /top_tb/dut/ROB/rvfi_rd_v_tail[31:0]
-addGroup "G5" -e FALSE
+addGroup "RVFI_DMEM"
 addSignal -h 15 /top_tb/dut/ROB/rvfi_mem_addr_tail[31:0]
 addSignal -h 15 -holdScope rvfi_mem_rdata_tail[31:0]
 addSignal -h 15 -holdScope rvfi_mem_rmask_tail[3:0]
