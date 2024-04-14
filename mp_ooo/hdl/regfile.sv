@@ -1,4 +1,6 @@
-module regfile_scoreboard #(
+module regfile_scoreboard
+  import rv32i_types::*;
+#(
     parameter ROB_DEPTH = 4
 ) (
     input logic clk,
@@ -14,6 +16,7 @@ module regfile_scoreboard #(
     // overwrite the scoreboard when instruction is issued
     // iq_to_regfile_t
     input logic                   issue_valid,
+    input logic [            6:0] issue_opcode,
     input logic [            4:0] issue_rd_s,
     input logic [ROB_DEPTH - 1:0] issue_rob,
 
@@ -70,8 +73,10 @@ module regfile_scoreboard #(
 
       // after updating the scoreboard, we may need to update scoreboard if there's a newly issued instruction
       if (issue_valid && (issue_rd_s != 5'd0)) begin
-        scoreboard_arr[issue_rd_s] <= issue_rob;
-        scoreboard_valid_arr[issue_rd_s] <= '1;
+        if (issue_opcode != store_opcode && issue_opcode != br_opcode) begin
+          scoreboard_arr[issue_rd_s] <= issue_rob;
+          scoreboard_valid_arr[issue_rd_s] <= '1;
+        end
       end
     end
   end

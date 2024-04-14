@@ -13,10 +13,12 @@ module ROB
     output logic rob_ready,
 
     // for cdb write into rob
-    // cdb_t
-    input logic                 cdb_valid[CDB_SIZE],
-    input logic [ROB_DEPTH-1:0] cdb_rob  [CDB_SIZE],
-    input logic [         31:0] cdb_rd_v [CDB_SIZE],
+    input logic                 cdb_valid  [CDB_SIZE],
+    input logic [ROB_DEPTH-1:0] cdb_rob    [CDB_SIZE],
+    input logic [         31:0] cdb_rd_v   [CDB_SIZE],
+    // for branch
+    input logic                 branch_take,
+    input logic [         31:0] branch_pc,
 
     // for instruction_issue write into rob
     input  logic                   rob_push,
@@ -31,10 +33,12 @@ module ROB
     output logic                   issue_rs2_rob_ready,
 
     // for rob to commit out
+    
     input logic rob_pop,
     output logic [4:0] commit_rd_s,
     output logic [31:0] commit_rd_v,
     output logic [ROB_DEPTH-1:0] commit_rob,
+    output logic [6:0] commit_opcode,  // for commit.sv to determine regfile_we
 
     // for rvfi
     input  logic [63:0] rvfi_order,
@@ -59,6 +63,9 @@ module ROB
   // for committing to regfile
   logic [4:0] rd_s_arr[MAX_NUM_ELEMS];
   logic [31:0] rd_v_arr[MAX_NUM_ELEMS];
+
+  // for branch take/not take
+  logic branch_take_arr[MAX_NUM_ELEMS];
 
   // for rvfi
   logic [63:0] rvfi_order_arr[MAX_NUM_ELEMS];
@@ -98,6 +105,7 @@ module ROB
     issue_rob = head;
 
     // for committing
+    commit_opcode = rvfi_inst_arr[tail][6:0];
     commit_rob = tail;
     commit_rd_s = rd_s_arr[tail];
     commit_rd_v = rd_v_arr[tail];
@@ -110,6 +118,18 @@ module ROB
       for (int i = 0; i < MAX_NUM_ELEMS; i++) begin
         valid_arr[i] <= '0;
         ready_arr[i] <= '0;
+        rvfi_order_arr[i] <= '0;
+        rvfi_inst_arr[i] <= '0;
+        rvfi_rs1_s_arr[i] <= '0;
+        rvfi_rs2_s_arr[i] <= '0;
+        rvfi_rd_s_arr[i] <= '0;
+        rvfi_pc_arr[i] <= '0;
+        rvfi_pc_next_arr[i] <= '0;
+        rvfi_mem_addr_arr[i] <= '0;
+        rvfi_mem_rmask_arr[i] <= '0;
+        rvfi_mem_wmask_arr[i] <= '0;
+        rvfi_mem_rdata_arr[i] <= '0;
+        rvfi_mem_wdata_arr[i] <= '0;
       end
     end else begin
       if (rob_pop) begin
@@ -122,6 +142,12 @@ module ROB
         if (cdb_valid[i]) begin
           ready_arr[cdb_rob[i]] <= '1;
           rd_v_arr[cdb_rob[i]]  <= cdb_rd_v[i];
+          if (rvfi_inst_arr[cdb_rob[i]][6:0] == br_opcode
+          || rvfi_inst_arr[cdb_rob[i]][6:0] == jal_opcode
+          || rvfi_inst_arr[cdb_rob[i]][6:0] == jalr_opcode) begin
+            branch_take_arr[cdb_rob[i]]  <= (branch_take && (rvfi_pc_next_arr[cdb_rob[i]] != branch_pc));
+            rvfi_pc_next_arr[cdb_rob[i]] <= (branch_take && (rvfi_pc_next_arr[cdb_rob[i]] != branch_pc)) ? branch_pc : rvfi_pc_next_arr[cdb_rob[i]];
+          end
         end
       end
 
@@ -130,6 +156,18 @@ module ROB
         ready_arr[head] <= 1'b0;
         rd_s_arr[head] <= issue_rd_s;
         head <= head + 1'b1;
+        rvfi_order_arr[head] <= rvfi_order;
+        rvfi_inst_arr[head] <= rvfi_inst;
+        rvfi_rs1_s_arr[head] <= rvfi_rs1_s;
+        rvfi_rs2_s_arr[head] <= rvfi_rs2_s;
+        rvfi_rd_s_arr[head] <= rvfi_rd_s;
+        rvfi_pc_arr[head] <= rvfi_pc;
+        rvfi_pc_next_arr[head] <= rvfi_pc_next;
+        rvfi_mem_addr_arr[head] <= '0;
+        rvfi_mem_rmask_arr[head] <= '0;
+        rvfi_mem_wmask_arr[head] <= '0;
+        rvfi_mem_rdata_arr[head] <= '0;
+        rvfi_mem_wdata_arr[head] <= '0;
       end
     end
   end
@@ -162,41 +200,6 @@ module ROB
           issue_rs2_rob_ready = '1;
           issue_rs2_rob_v = cdb_rd_v[i];
         end
-      end
-    end
-  end
-
-  // for storing rvfi
-  always_ff @(posedge clk) begin
-    if (rst) begin
-      for (int i = 0; i < MAX_NUM_ELEMS; i++) begin
-        rvfi_order_arr[i] <= '0;
-        rvfi_inst_arr[i] <= '0;
-        rvfi_rs1_s_arr[i] <= '0;
-        rvfi_rs2_s_arr[i] <= '0;
-        rvfi_rd_s_arr[i] <= '0;
-        rvfi_pc_arr[i] <= '0;
-        rvfi_pc_next_arr[i] <= '0;
-        rvfi_mem_addr_arr[i] <= '0;
-        rvfi_mem_rmask_arr[i] <= '0;
-        rvfi_mem_wmask_arr[i] <= '0;
-        rvfi_mem_rdata_arr[i] <= '0;
-        rvfi_mem_wdata_arr[i] <= '0;
-      end
-    end else begin
-      if (rob_push) begin
-        rvfi_order_arr[head] <= rvfi_order;
-        rvfi_inst_arr[head] <= rvfi_inst;
-        rvfi_rs1_s_arr[head] <= rvfi_rs1_s;
-        rvfi_rs2_s_arr[head] <= rvfi_rs2_s;
-        rvfi_rd_s_arr[head] <= rvfi_rd_s;
-        rvfi_pc_arr[head] <= rvfi_pc;
-        rvfi_pc_next_arr[head] <= rvfi_pc_next;
-        rvfi_mem_addr_arr[head] <= '0;
-        rvfi_mem_rmask_arr[head] <= '0;
-        rvfi_mem_wmask_arr[head] <= '0;
-        rvfi_mem_rdata_arr[head] <= '0;
-        rvfi_mem_wdata_arr[head] <= '0;
       end
     end
   end
