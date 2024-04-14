@@ -1,0 +1,151 @@
+library(stdcells) {
+
+  delay_model : table_lookup;
+
+  time_unit : "1ns";
+  voltage_unit : "1V";
+  current_unit : "1uA";
+  pulling_resistance_unit : "1kohm";
+  leakage_power_unit : "1nW";
+  capacitive_load_unit (1,pf);
+
+  cell (INV) {
+    area : 1;
+    pin(A)  {
+      direction : input;
+    }
+    pin(Z)  {
+      direction : output;
+      function : "(!A)";
+      timing() {
+        related_pin : "A";
+        cell_rise(scalar) {
+          values("0.0");
+        }
+        rise_transition(scalar) {
+          values("0.0");
+        }
+        cell_fall(scalar) {
+          values("0.0");
+        }
+        fall_transition(scalar) {
+          values("0.0");
+        }
+      }
+    }
+  }
+
+  cell (NOR2) {
+    area : 1;
+    pin(A)  {
+      direction : input;
+    }
+    pin(B)  {
+      direction : input;
+    }
+    pin(Z)  {
+      direction : output;
+      function : "(!(A+B))";
+      timing() {
+        related_pin : "A B";
+        cell_rise(scalar) {
+          values("0.0");
+        }
+        rise_transition(scalar) {
+          values("0.0");
+        }
+        cell_fall(scalar) {
+          values("0.0");
+        }
+        fall_transition(scalar) {
+          values("0.0");
+        }
+      }
+    }
+  }
+
+  cell (NAND2) {
+    area : 1;
+    pin(A)  {
+      direction : input;
+    }
+    pin(B)  {
+      direction : input;
+    }
+    pin(Z)  {
+      direction : output;
+      function : "(!(A B))";
+      timing() {
+        related_pin : "A B";
+        cell_rise(scalar) {
+          values("0.0");
+        }
+        rise_transition(scalar) {
+          values("0.0");
+        }
+        cell_fall(scalar) {
+          values("0.0");
+        }
+        fall_transition(scalar) {
+          values("0.0");
+        }
+      }
+    }
+  }
+
+  cell (DFF) {
+    area : 1;
+    ff (I_Q,I_QN) {
+      next_state : "D";
+      clocked_on : "CLK";
+    }
+    pin(CLK)  {
+      direction : input;
+      clock : true;
+    }
+    pin(D)  {
+      direction : input;
+    }
+    pin(Q)  {
+      direction : output;
+      function : "I_Q";
+      timing() {
+        related_pin : "CLK";
+        timing_type : rising_edge;
+        cell_rise(scalar) {
+          values("0.0");
+        }
+        rise_transition(scalar) {
+          values("0.0");
+        }
+        cell_fall(scalar) {
+          values("0.0");
+        }
+        fall_transition(scalar) {
+          values("0.0");
+        }
+      }
+    }
+    pin(QN)  {
+      direction : output;
+      function : "I_QN";
+      timing() {
+        related_pin : "CLK";
+        timing_type : rising_edge;
+        cell_rise(scalar) {
+          values("0.0");
+        }
+        rise_transition(scalar) {
+          values("0.0");
+        }
+        cell_fall(scalar) {
+          values("0.0");
+        }
+        fall_transition(scalar) {
+          values("0.0");
+        }
+      }
+    }
+  }
+
+}
