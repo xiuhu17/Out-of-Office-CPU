@@ -2,7 +2,7 @@
 
 # Settings
 # Available options are rv32i, rv32ic, rv32im, rv32imc
-ARCH=rv32i
+ARCH=rv32im
 # Bytes per memory address. Note that you may need to change this as your memory model evolves throughout the MP
 # or you use memories from past MPs for testing purposes.
 #   Magic Memory = 32 bits per address -> 4 byte ADDRESSABILITY

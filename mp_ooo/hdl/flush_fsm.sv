@@ -1,21 +1,21 @@
-// restructure
-
-module instr_fsm(
+module flush_fsm(
 	input logic clk,
 	input logic rst,
 
 	input logic imem_resp,
 	input logic imem_rqst,
 
-	input logic instr_full,
+    input logic rob_valid,
+    input logic rob_ready,
+	input logic flush_branch,
 	
-	output logic fetch_move
+	output logic move_flush
 );	
 
 	enum logic {Start, IMEM_STALL} curr_state, next_state;
 
 	always_ff @(posedge clk) begin 
-		if (rst) begin 
+		if (rst || move_flush) begin 
 			curr_state <= Start;
 		end else begin 
 			curr_state <= next_state;
@@ -24,7 +24,7 @@ module instr_fsm(
 
 	always_comb begin
 		next_state = curr_state;
-		fetch_move = '0;
+		move_flush = '0;
 
 		case (curr_state) 
 			Start:
@@ -45,18 +45,18 @@ module instr_fsm(
 
 		case (curr_state)
 			Start:
-				if (instr_full) begin 
-					fetch_move = '0;
+				if (rob_valid && rob_ready && flush_branch) begin 
+					move_flush = '1;
 				end else begin 
-					fetch_move = '1;
+					move_flush = '0;
 				end 	
 			IMEM_STALL:
 				if (imem_resp) begin 
-					if (instr_full) begin 
-						fetch_move = '0;
-					end else begin
-						fetch_move = '1;
-					end 
+					if (rob_valid && rob_ready && flush_branch) begin 
+                        move_flush = '1;
+                    end else begin 
+                        move_flush = '0;
+                    end
 				end
 		endcase
 	end 

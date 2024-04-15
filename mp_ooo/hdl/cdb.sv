@@ -1,5 +1,5 @@
 module CDB #(
-    parameter CDB_SIZE  = 2,  // total number of reservation stations (one CDB slot for each)
+    parameter CDB_SIZE  = 3,  // total number of reservation stations (one CDB slot for each)
     parameter ROB_DEPTH = 4
 ) (
     input logic                 exe_valid[CDB_SIZE],  // valid bit for each reservation station

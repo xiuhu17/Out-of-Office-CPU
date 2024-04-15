@@ -2,7 +2,7 @@ Magic 271485
 Revision Verdi_R-2020.12-SP1-1
 
 ; Window Layout <x> <y> <width> <height> <signalwidth> <valuewidth>
-viewPort 0 25 1920 736 322 137
+viewPort 0 25 2560 1205 322 137
 
 ; File list:
 ; openDirFile [-d delimiter] [-s time_offset] [-rf auto_bus_rule_file] path_name file_name
@@ -16,16 +16,16 @@ signalSpacing 5
 
 ; windowTimeUnit is used for zoom, cursor & marker
 ; waveform viewport range
-zoom 0.000000 290.263033
-cursor 565.000000
+zoom 141.755119 565.174064
+cursor 265.000000
 marker 0.000000
 
 ; user define markers
 ; userMarker time_pos marker_name color linestyle
 ; visible top row signal index
-top 10
+top 27
 ; marker line index
-markerPos 33
+markerPos 62
 
 ; event list
 ; addEvent event_name event_expression
@@ -45,7 +45,7 @@ COMPLEX_EVENT_END
 curSTATUS ByChange
 
 
-addGroup "G1"
+addGroup "Top-level"
 activeDirFile "" "/home/zijunz6/411/mp_ooo/sim/sim/dump.fsdb"
 addSignal -h 15 /top_tb/dut/clk
 addSignal -h 15 -holdScope rst
@@ -53,37 +53,75 @@ addSignal -h 15 -holdScope imem_addr[31:0]
 addSignal -h 15 -holdScope imem_rdata[31:0]
 addSignal -h 15 -holdScope imem_resp
 addSignal -h 15 -holdScope imem_rmask[3:0]
-addGroup "fetch"
+addGroup "Fetch"
 addSignal -h 15 /top_tb/dut/instruction_queue/instr_full
 addSignal -h 15 -holdScope instr_arr[0:15]
 addSignal -h 15 -holdScope valid_arr[0:15]
+addGroup "Instruction Queue"
+addSignal -h 15 /top_tb/dut/instruction_queue/instr_pop
+addSignal -h 15 -holdScope instr_arr[0:15]
+addSignal -h 15 -holdScope issue_funct3[2:0]
+addSignal -h 15 -holdScope issue_funct7[6:0]
+addSignal -h 15 -holdScope issue_imm[31:0]
+addSignal -h 15 -holdScope issue_instr[31:0]
+addSignal -h 15 -holdScope issue_opcode[6:0]
+addSignal -h 15 -holdScope issue_order[63:0]
+addSignal -h 15 -holdScope issue_pc[31:0]
+addSignal -h 15 -holdScope issue_pc_next[31:0]
+addSignal -h 15 -holdScope issue_rd_s[4:0]
+addSignal -h 15 -holdScope issue_rs1_s[4:0]
+addSignal -h 15 -holdScope issue_rs2_s[4:0]
+addGroup "Issue"
+addSignal -h 15 /top_tb/dut/issue/issue_valid
+addSignal -h 15 -holdScope alu_rs_issue
+addSignal -h 15 -holdScope branch_rs_issue
+addSignal -h 15 -holdScope mul_rs_issue
+addGroup "ALU_RS"
+addSignal -h 15 /top_tb/dut/alu_rs/opcode_arr[0:7]
+addSignal -expanded -h 15 -holdScope funct3_arr[0:7]
+addSignal -h 15 -holdScope funct3_arr[0][2:0]
+addSignal -h 15 -holdScope funct3_arr[1][2:0]
+addSignal -h 15 -holdScope funct3_arr[2][2:0]
+addSignal -h 15 -holdScope funct3_arr[3][2:0]
+addSignal -h 15 -holdScope funct3_arr[4][2:0]
+addSignal -h 15 -holdScope funct3_arr[5][2:0]
+addSignal -h 15 -holdScope funct3_arr[6][2:0]
+addSignal -h 15 -holdScope funct3_arr[7][2:0]
+addSignal -h 15 -holdScope funct7_arr[0:7]
+addSignal -expanded -h 15 -holdScope rs1_ready_arr[0:7]
+addSignal -h 15 -holdScope rs1_ready_arr[0]
+addSignal -h 15 -holdScope rs1_ready_arr[1]
+addSignal -h 15 -holdScope rs1_ready_arr[2]
+addSignal -h 15 -holdScope rs1_ready_arr[3]
+addSignal -h 15 -holdScope rs1_ready_arr[4]
+addSignal -h 15 -holdScope rs1_ready_arr[5]
+addSignal -h 15 -holdScope rs1_ready_arr[6]
+addSignal -h 15 -holdScope rs1_ready_arr[7]
+addSignal -h 15 -holdScope rs1_rob_arr[0:7]
+addSignal -h 15 -holdScope rs1_v_arr[0:7]
+addSignal -h 15 -holdScope rs2_ready_arr[0:7]
+addSignal -h 15 -holdScope rs2_rob_arr[0:7]
+addSignal -h 15 -holdScope rs2_v_arr[0:7]
+addSignal -h 15 -holdScope target_rob_arr[0:7]
+addSignal -h 15 -holdScope exe_a[31:0]
+addSignal -h 15 -holdScope exe_b[31:0]
+addSignal -h 15 -holdScope exe_alu_op[2:0]
+addSignal -h 15 -holdScope exe_alu_f[31:0]
+addSignal -h 15 -holdScope exe_cmp_f
+addSignal -h 15 -holdScope exe_alu_valid
+addSignal -h 15 -holdScope exe_cmp_valid
+addGroup "CDB" -e FALSE
+addSignal -h 15 /top_tb/dut/CDB/cdb_rd_v[0:1]
+addSignal -h 15 -holdScope cdb_rob[0:1]
+addSignal -h 15 -holdScope cdb_valid[0:1]
 addGroup "ROB"
 addSignal -h 15 /top_tb/dut/ROB/tail[3:0]
 addSignal -h 15 -holdScope head[3:0]
 addSignal -h 15 -holdScope rob_push
 addSignal -h 15 -holdScope valid_arr[0:15]
+addSignal -h 15 -holdScope rd_s_arr[0:15]
 addSignal -h 15 -holdScope rd_v_arr[0:15]
-addSignal -expanded -h 15 -holdScope ready_arr[0:15]
-addSignal -h 15 -holdScope ready_arr[0]
-addSignal -h 15 -holdScope ready_arr[1]
-addSignal -h 15 -holdScope ready_arr[2]
-addSignal -h 15 -holdScope ready_arr[3]
-addSignal -h 15 -holdScope ready_arr[4]
-addSignal -h 15 -holdScope ready_arr[5]
-addSignal -h 15 -holdScope ready_arr[6]
-addSignal -h 15 -holdScope ready_arr[7]
-addSignal -h 15 -holdScope ready_arr[8]
-addSignal -h 15 -holdScope ready_arr[9]
-addSignal -h 15 -holdScope ready_arr[10]
-addSignal -h 15 -holdScope ready_arr[11]
-addSignal -h 15 -holdScope ready_arr[12]
-addSignal -h 15 -holdScope ready_arr[13]
-addSignal -h 15 -holdScope ready_arr[14]
-addSignal -h 15 -holdScope ready_arr[15]
-addGroup "CDB"
-addSignal -h 15 /top_tb/dut/CDB/cdb_rd_v[0:1]
-addSignal -h 15 -holdScope cdb_rob[0:1]
-addSignal -h 15 -holdScope cdb_valid[0:1]
+addSignal -h 15 -holdScope ready_arr[0:15]
 addGroup "RVFI"
 addSignal -h 15 /top_tb/dut/ROB/rob_pop
 addSignal -h 15 -holdScope rvfi_inst_tail[31:0]
@@ -96,17 +134,24 @@ addSignal -h 15 -holdScope rvfi_rd_s_tail[4:0]
 addSignal -h 15 /top_tb/dut/regfile_scoreboard/rvfi_rs1_v_tail[31:0]
 addSignal -h 15 -holdScope rvfi_rs2_v_tail[31:0]
 addSignal -h 15 /top_tb/dut/ROB/rvfi_rd_v_tail[31:0]
-addGroup "RVFI_DMEM"
+addGroup "regfile_scoreboard"
+addSignal -h 15 /top_tb/dut/regfile_scoreboard/register_arr[0:31]
+addSignal -h 15 -holdScope scoreboard_arr[0:31]
+addSignal -h 15 -holdScope scoreboard_valid_arr[0:31]
+addGroup "branch"
+addSignal -h 15 /top_tb/dut/ROB/rob_branch_order[63:0]
+addSignal -h 15 -holdScope rob_branch_pc[31:0]
+addSignal -h 15 -holdScope rob_flush
+addGroup "branch timing"
+addSignal -h 15 /top_tb/dut/flush_fsm/rob_pop_move
+addSignal -h 15 -holdScope curr_state
+addGroup "RVFI_DMEM" -e FALSE
 addSignal -h 15 /top_tb/dut/ROB/rvfi_mem_addr_tail[31:0]
 addSignal -h 15 -holdScope rvfi_mem_rdata_tail[31:0]
 addSignal -h 15 -holdScope rvfi_mem_rmask_tail[3:0]
 addSignal -h 15 -holdScope rvfi_mem_wdata_tail[31:0]
 addSignal -h 15 -holdScope rvfi_mem_wmask_tail[3:0]
-addGroup "regfile_scoreboard"
-addSignal -h 15 /top_tb/dut/regfile_scoreboard/register_arr[0:31]
-addSignal -h 15 -holdScope scoreboard_arr[0:31]
-addSignal -h 15 -holdScope scoreboard_valid_arr[0:31]
-addGroup "G8"
+addGroup "G13"
 
 ; getSignalForm Scope Hierarchy Status
 ; active file of getSignalForm
@@ -120,6 +165,7 @@ getSignalForm close
 "/top_tb/dut"
 "/top_tb/dut/CDB"
 "/top_tb/dut/ROB"
+"/top_tb/dut/alu_rs"
 "/top_tb/dut/fetch"
 "/top_tb/dut/instruction_queue"
 "/top_tb/dut/regfile_scoreboard"
@@ -137,6 +183,11 @@ SCOPE_LIST_BEGIN
 "/top_tb/dut/CDB"
 "/top_tb/dut/ROB"
 "/top_tb/dut/fetch"
+"/top_tb/dut/fetch_fsm"
+"/top_tb/dut/flush_fsm"
+"/top_tb/dut/alu_rs"
+"/top_tb/dut/commit"
+"/top_tb/dut/issue"
 SCOPE_LIST_END
 
 GETSIGNALFORM_SCOPE_HIERARCHY_END

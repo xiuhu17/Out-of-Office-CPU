@@ -4,8 +4,9 @@ module cpu
     parameter INSTR_DEPTH = 4,
     parameter ALU_RS_DEPTH = 3,
     parameter MUL_RS_DEPTH = 3,
+    parameter BRANCH_RS_DEPTH = 3,
     parameter ROB_DEPTH = 4,
-    parameter CDB_SIZE = 2
+    parameter CDB_SIZE = 3
 ) (
     // Explicit dual port connections when caches are not integrated into design yet (Before CP3)
     input logic clk,
@@ -41,10 +42,13 @@ module cpu
     dmem_wdata = dmem_rdata;
   end
 
+  // fetch fsm
+  logic imem_rqst;
+
   // fetch variables
   logic move_fetch;
-  logic [63:0] order_curr;
-  logic take_branch;
+  logic move_flush;
+  logic [63:0] order;
   logic [31:0] pc;
   logic [31:0] pc_next;
 
@@ -71,16 +75,25 @@ module cpu
   // alu_rs variables
   logic alu_rs_full;
   logic alu_rs_issue;
-  logic alu_rs_valid;
-  logic [31:0] alu_rs_f;
-  logic [ROB_DEPTH-1:0] alu_rs_rob;
+  logic cdb_alu_rs_valid;
+  logic [31:0] cdb_alu_rs_f;
+  logic [ROB_DEPTH-1:0] cdb_alu_rs_rob;
 
   // mul_rs variables
   logic mul_rs_full;
   logic mul_rs_issue;
-  logic mul_rs_valid;
-  logic [31:0] mul_rs_p;
-  logic [ROB_DEPTH-1:0] mul_rs_rob;
+  logic cdb_mul_rs_valid;
+  logic [31:0] cdb_mul_rs_p;
+  logic [ROB_DEPTH-1:0] cdb_mul_rs_rob;
+
+  // branch_rs variables
+  logic branch_rs_full;
+  logic branch_rs_issue;
+  logic     cdb_branch_rs_valid;
+  logic [31:0]    cdb_branch_rs_v;
+  logic [ROB_DEPTH-1:0]    cdb_branch_rs_rob;
+  logic cdb_branch_take;
+  logic [31:0] cdb_branch_pc;
 
   // CDB variables
   logic exe_valid[CDB_SIZE];
@@ -90,12 +103,15 @@ module cpu
   logic [31:0] cdb_rd_v[CDB_SIZE];
   logic [ROB_DEPTH-1:0] cdb_rob[CDB_SIZE];
   always_comb begin
-    exe_valid[0] = alu_rs_valid;
-    exe_valid[1] = mul_rs_valid;
-    exe_alu_f[0] = alu_rs_f;
-    exe_alu_f[1] = mul_rs_p;
-    exe_rob[0]   = alu_rs_rob;
-    exe_rob[1]   = mul_rs_rob;
+    exe_valid[0] = cdb_alu_rs_valid;
+    exe_valid[1] = cdb_mul_rs_valid;
+    exe_valid[2] = cdb_branch_rs_valid;
+    exe_alu_f[0] = cdb_alu_rs_f;
+    exe_alu_f[1] = cdb_mul_rs_p;
+    exe_alu_f[2] = cdb_branch_rs_v;
+    exe_rob[0]   = cdb_alu_rs_rob;
+    exe_rob[1]   = cdb_mul_rs_rob;
+    exe_rob[2] = cdb_branch_rs_rob;
   end
 
   // ROB variables
@@ -114,8 +130,15 @@ module cpu
   logic [4:0] commit_rd_s;
   logic [31:0] commit_rd_v;
   logic [ROB_DEPTH-1:0] commit_rob;
+  logic [6:0] commit_opcode;
   logic [4:0] rvfi_rs1_s_tail;
   logic [4:0] rvfi_rs2_s_tail;
+  logic flush_branch;
+  logic [31:0] pc_branch;
+  logic [63:0] order_branch;
+
+
+
 
   // regfile_scoreboard variables
   logic commit_regfile_we;
@@ -131,20 +154,38 @@ module cpu
 
 
     fetch_fsm fetch_fsm(
+        .clk(clk),
+        .rst(rst),
+        .imem_resp(imem_resp),
+        .imem_rqst(imem_rqst),
         .instr_full(instr_full),
+        .move_flush(move_flush),
         .move_fetch(move_fetch)
+    );
+
+    flush_fsm flush_fsm(
+        .clk(clk),
+        .rst(rst),
+        .imem_resp(imem_resp),
+        .imem_rqst(imem_rqst),  
+        .rob_valid(rob_valid),
+        .rob_ready(rob_ready),
+        .flush_branch(flush_branch),
+        .move_flush(move_flush)
     );
 
   fetch fetch (
       .clk(clk),
       .rst(rst),
       .move_fetch(move_fetch),
-      .take_branch('0),
-      .pc_branch('0),
+      .move_flush(move_flush),
+      .pc_branch(pc_branch),
+      .order_branch(order_branch),
       .imem_addr(imem_addr),
       .imem_rmask(imem_rmask),
-      .order_curr(order_curr),
+      .imem_rqst(imem_rqst),
       .pc(pc),
+      .order(order),
       .pc_next(pc_next)
   );
 
@@ -153,6 +194,7 @@ module cpu
   ) instruction_queue (
       .clk(clk),
       .rst(rst),
+      .move_flush(move_flush),
       .instr_full(instr_full),
       .instr_valid(instr_valid),
       .instr_ready(instr_ready),
@@ -160,7 +202,7 @@ module cpu
       .imem_resp(imem_resp),
       .instr_pop(instr_pop),
       .imem_rdata(imem_rdata),
-      .fetch_order(order_curr),
+      .fetch_order(order),
       .fetch_pc(pc),
       .issue_order(issue_order),
       .issue_instr(issue_instr),
@@ -184,10 +226,12 @@ module cpu
       .funct7(issue_funct7),
       .alu_rs_full(alu_rs_full),
       .mul_rs_full(mul_rs_full),
+      .branch_rs_full(branch_rs_full),
       .rob_full(rob_full),
       .instr_pop(instr_pop),
       .alu_rs_issue(alu_rs_issue),
       .mul_rs_issue(mul_rs_issue),
+      .branch_rs_issue(branch_rs_issue),
       .rob_push(rob_push),
       .issue_valid(issue_valid)
   );
@@ -199,11 +243,12 @@ module cpu
   ) alu_rs (
       .clk(clk),
       .rst(rst),
+      .move_flush(move_flush),
       .alu_rs_full(alu_rs_full),
       .alu_rs_issue(alu_rs_issue),
-      .opcode(issue_opcode),
-      .funct3(issue_funct3),
-      .funct7(issue_funct7),
+      .issue_opcode(issue_opcode),
+      .issue_funct3(issue_funct3),
+      .issue_funct7(issue_funct7),
       .issue_rs1_regfile_ready(issue_rs1_regfile_ready),
       .issue_rs2_regfile_ready(issue_rs2_regfile_ready),
       .issue_rs1_regfile_v(issue_rs1_regfile_v),
@@ -217,12 +262,12 @@ module cpu
       .cdb_valid(cdb_valid),
       .cdb_rob(cdb_rob),
       .cdb_rd_v(cdb_rd_v),
-      .imm(issue_imm),
-      .pc(issue_pc),
+      .issue_imm(issue_imm),
+      .issue_pc(issue_pc),
       .issue_target_rob(issue_rob),
-      .alu_rs_valid(alu_rs_valid),
-      .alu_rs_f(alu_rs_f),
-      .alu_rs_rob(alu_rs_rob)
+      .cdb_alu_rs_valid(cdb_alu_rs_valid),
+      .cdb_alu_rs_f(cdb_alu_rs_f),
+      .cdb_alu_rs_rob(cdb_alu_rs_rob)
   );
 
   mul_rs #(
@@ -232,11 +277,12 @@ module cpu
   ) mul_rs (
       .clk(clk),
       .rst(rst),
+      .move_flush(move_flush),
       .mul_rs_full(mul_rs_full),
       .mul_rs_issue(mul_rs_issue),
-      .opcode(issue_opcode),
-      .funct3(issue_funct3),
-      .funct7(issue_funct7),
+      .issue_opcode(issue_opcode),
+      .issue_funct3(issue_funct3),
+      .issue_funct7(issue_funct7),
       .issue_rs1_regfile_ready(issue_rs1_regfile_ready),
       .issue_rs2_regfile_ready(issue_rs2_regfile_ready),
       .issue_rs1_regfile_v(issue_rs1_regfile_v),
@@ -251,9 +297,44 @@ module cpu
       .cdb_rob(cdb_rob),
       .cdb_rd_v(cdb_rd_v),
       .issue_target_rob(issue_rob),
-      .mul_rs_valid(mul_rs_valid),
-      .mul_rs_p(mul_rs_p),
-      .mul_rs_rob(mul_rs_rob)
+      .cdb_mul_rs_valid(cdb_mul_rs_valid),
+      .cdb_mul_rs_p(cdb_mul_rs_p),
+      .cdb_mul_rs_rob(cdb_mul_rs_rob)
+  );
+
+  branch_rs #(
+      .BRANCH_RS_DEPTH(BRANCH_RS_DEPTH),
+      .ROB_DEPTH(ROB_DEPTH),
+      .CDB_SIZE(CDB_SIZE)
+  ) branch_rs (
+      .clk(clk),
+      .rst(rst),
+      .move_flush(move_flush),
+      .branch_rs_full(branch_rs_full),
+      .branch_rs_issue(branch_rs_issue),
+      .issue_opcode(issue_opcode),
+      .issue_funct3(issue_funct3),
+      .issue_imm(issue_imm),
+      .issue_pc(issue_pc),
+      .issue_target_rob(issue_rob),
+      .issue_rs1_regfile_ready(issue_rs1_regfile_ready),
+      .issue_rs2_regfile_ready(issue_rs2_regfile_ready),
+      .issue_rs1_regfile_v(issue_rs1_regfile_v),
+      .issue_rs2_regfile_v(issue_rs2_regfile_v),
+      .issue_rs1_regfile_rob(issue_rs1_regfile_rob),
+      .issue_rs2_regfile_rob(issue_rs2_regfile_rob),
+      .issue_rs1_rob_ready(issue_rs1_rob_ready),
+      .issue_rs2_rob_ready(issue_rs2_rob_ready),
+      .issue_rs1_rob_v(issue_rs1_rob_v),
+      .issue_rs2_rob_v(issue_rs2_rob_v),
+      .cdb_valid(cdb_valid),
+      .cdb_rob(cdb_rob),
+      .cdb_rd_v(cdb_rd_v),
+      .cdb_branch_rs_valid(cdb_branch_rs_valid),
+      .cdb_branch_rs_v(cdb_branch_rs_v),
+      .cdb_branch_rs_rob(cdb_branch_rs_rob),
+      .cdb_branch_take(cdb_branch_take),
+      .cdb_branch_pc(cdb_branch_pc)
   );
 
   CDB #(
@@ -274,12 +355,15 @@ module cpu
   ) ROB (
       .clk(clk),
       .rst(rst),
+      .move_flush(move_flush),
       .rob_full(rob_full),
       .rob_valid(rob_valid),
       .rob_ready(rob_ready),
       .cdb_valid(cdb_valid),
       .cdb_rob(cdb_rob),
       .cdb_rd_v(cdb_rd_v),
+      .cdb_branch_take(cdb_branch_take),
+      .cdb_branch_pc(cdb_branch_pc),
       .rob_push(rob_push),
       .issue_rd_s(issue_rd_s),
       .issue_rob(issue_rob),
@@ -293,6 +377,10 @@ module cpu
       .commit_rd_s(commit_rd_s),
       .commit_rd_v(commit_rd_v),
       .commit_rob(commit_rob),
+      .commit_opcode(commit_opcode),
+      .flush_branch(flush_branch),
+      .pc_branch(pc_branch),
+      .order_branch(order_branch),
       .rvfi_order(issue_order),
       .rvfi_inst(issue_instr),
       .rvfi_rs1_s(issue_rs1_s),
@@ -309,11 +397,13 @@ module cpu
   ) regfile_scoreboard (
       .clk(clk),
       .rst(rst),
+      .move_flush(move_flush),
       .commit_regfile_we(commit_regfile_we),
       .commit_rd_s(commit_rd_s),
       .commit_rd_v(commit_rd_v),
       .commit_rob(commit_rob),
       .issue_valid(issue_valid),
+      .issue_opcode(issue_opcode),
       .issue_rd_s(issue_rd_s),
       .issue_rob(issue_rob),
       .issue_rs1_s(issue_rs1_s),
@@ -331,6 +421,9 @@ module cpu
   commit commit (
       .rob_valid(rob_valid),
       .rob_ready(rob_ready),
+      .commit_opcode(commit_opcode),
+      .flush_branch(flush_branch),
+      .move_flush(move_flush),
       .rob_pop(rob_pop),
       .commit_regfile_we(commit_regfile_we)
   );

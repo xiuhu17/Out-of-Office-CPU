@@ -1,24 +1,25 @@
-// all status:  all valid & ready use a logic wire to represent
 module alu_rs
   import rv32i_types::*;
 #(
     parameter ALU_RS_DEPTH = 3,
     parameter ROB_DEPTH = 3,
-    parameter CDB_SIZE = 2
+    parameter CDB_SIZE = 3
 ) (
     input  logic clk,
     input  logic rst,
-    output logic alu_rs_full,
+    input logic move_flush,
 
+    output logic alu_rs_full,
+  
     // assigned issue
     input logic alu_rs_issue,
 
     // instructions issued from instruction_queue
-    input logic [ 6:0] opcode,
-    input logic [ 2:0] funct3,
-    input logic [ 6:0] funct7,
-    input logic [31:0] imm,
-    input logic [31:0] pc,
+    input logic [ 6:0] issue_opcode,
+    input logic [ 2:0] issue_funct3,
+    input logic [ 6:0] issue_funct7,
+    input logic [31:0] issue_imm,
+    input logic [31:0] issue_pc,
 
     // assigned rob
     input logic [ROB_DEPTH-1:0] issue_target_rob,
@@ -43,9 +44,9 @@ module alu_rs
     input logic [         31:0] cdb_rd_v [CDB_SIZE],
 
     // output result to CDB
-    output logic alu_rs_valid,
-    output logic [31:0] alu_rs_f,
-    output logic [ROB_DEPTH-1:0] alu_rs_rob
+    output logic cdb_alu_rs_valid,
+    output logic [31:0] cdb_alu_rs_f,
+    output logic [ROB_DEPTH-1:0] cdb_alu_rs_rob
 );
 
   // number of elements in the ALU_RS
@@ -88,7 +89,7 @@ module alu_rs
   logic                    exe_cmp_f;
 
   always_ff @(posedge clk) begin
-    if (rst) begin
+    if (rst || move_flush) begin
       counter <= '0;
       for (int i = 0; i < ALU_RS_NUM_ELEM; i++) begin
         alu_rs_available[i] <= '1;
@@ -109,9 +110,9 @@ module alu_rs
         for (int i = 0; i < ALU_RS_NUM_ELEM; i++) begin
           if (alu_rs_available[i]) begin
             alu_rs_available[i] <= '0;
-            opcode_arr[i] <= opcode;
-            funct3_arr[i] <= funct3;
-            funct7_arr[i] <= funct7;
+            opcode_arr[i] <= issue_opcode;
+            funct3_arr[i] <= issue_funct3;
+            funct7_arr[i] <= issue_funct7;
             rs1_ready_arr[i] <= '0;
             rs2_ready_arr[i] <= '0;
             rs1_v_arr[i] <= '0;
@@ -121,18 +122,18 @@ module alu_rs
             target_rob_arr[i] <= issue_target_rob;
 
             // for each opcode
-            case (opcode)
+            case (issue_opcode)
               lui_opcode: begin
                 rs1_ready_arr[i] <= '1;
                 rs1_v_arr[i] <= '0;
                 rs2_ready_arr[i] <= '1;
-                rs2_v_arr[i] <= imm;
+                rs2_v_arr[i] <= issue_imm;
               end
               auipc_opcode: begin
                 rs1_ready_arr[i] <= '1;
-                rs1_v_arr[i] <= pc;
+                rs1_v_arr[i] <= issue_pc;
                 rs2_ready_arr[i] <= '1;
-                rs2_v_arr[i] <= imm;
+                rs2_v_arr[i] <= issue_imm;
               end
               imm_opcode: begin
                 if (issue_rs1_regfile_ready) begin
@@ -145,7 +146,7 @@ module alu_rs
                   rs1_ready_arr[i] <= '0;
                 end
                 rs2_ready_arr[i] <= '1;
-                rs2_v_arr[i] <= imm;
+                rs2_v_arr[i] <= issue_imm;
               end
               reg_opcode: begin
                 if (issue_rs1_regfile_ready) begin
@@ -214,8 +215,8 @@ module alu_rs
   always_comb begin
     alu_rs_pop = '0;
     alu_rs_pop_index = '0;
-    alu_rs_valid = '0;
-    alu_rs_rob = '0;
+    cdb_alu_rs_valid = '0;
+    cdb_alu_rs_rob = '0;
     // execution logic
     for (int i = 0; i < ALU_RS_NUM_ELEM; i++) begin
       // valied && ready, then execute and finish in the same cycle
@@ -223,10 +224,10 @@ module alu_rs
         if (rs1_ready_arr[(i+counter)&3'b111] && rs2_ready_arr[(i+counter)&3'b111]) begin
           // signal pop in the next cycle
           alu_rs_pop = '1;
-          alu_rs_pop_index = (i + counter) & 3'b111;
+          alu_rs_pop_index = (3)'(i + counter) & 3'b111;
           // signal for cdb
-          alu_rs_valid = '1;
-          alu_rs_rob = target_rob_arr[(i+counter)&3'b111];
+          cdb_alu_rs_valid = '1;
+          cdb_alu_rs_rob = target_rob_arr[(i+counter)&3'b111];
           break;
         end
       end
@@ -329,11 +330,11 @@ module alu_rs
 
   // for outputting
   always_comb begin
-    alu_rs_f = '0;
+    cdb_alu_rs_f = '0;
     if (exe_alu_valid) begin
-      alu_rs_f = exe_alu_f;
+      cdb_alu_rs_f = exe_alu_f;
     end else if (exe_cmp_valid) begin
-      alu_rs_f = {31'b0, exe_cmp_f};
+      cdb_alu_rs_f = {31'b0, exe_cmp_f};
     end
   end
 

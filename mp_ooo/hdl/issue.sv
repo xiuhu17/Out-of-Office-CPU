@@ -11,6 +11,7 @@ module issue
     // reservation station variables
     input logic alu_rs_full,
     input logic mul_rs_full,
+    input logic branch_rs_full,
     // rob is available
     input logic rob_full,
     // output signals
@@ -19,6 +20,7 @@ module issue
     // reservation stations
     output logic alu_rs_issue,
     output logic mul_rs_issue,
+    output logic branch_rs_issue,
     // ROB
     output logic rob_push,
     // scoreboard
@@ -29,6 +31,7 @@ module issue
     instr_pop = '0;
     alu_rs_issue = '0;
     mul_rs_issue = '0;
+    branch_rs_issue = '0;
     rob_push = '0;
     issue_valid = '0;
     if (!rob_full) begin
@@ -51,6 +54,18 @@ module issue
             instr_pop = '1;
             // issue to the mul reservation station
             mul_rs_issue = '1;
+            // update ROB
+            rob_push = '1;
+            // update scoreboard
+            issue_valid = '1;
+          end
+        end
+        if (!branch_rs_full) begin
+          if (opcode == br_opcode || opcode == jal_opcode || opcode == jalr_opcode) begin
+            // pop from instruction queue
+            instr_pop = '1;
+            // issue to the branch reservation station
+            branch_rs_issue = '1;
             // update ROB
             rob_push = '1;
             // update scoreboard

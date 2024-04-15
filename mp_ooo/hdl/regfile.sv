@@ -5,6 +5,7 @@ module regfile_scoreboard
 ) (
     input logic clk,
     input logic rst,
+    input logic move_flush,
 
     // rob_to_regfile_t
     // each time we may not write SUPERSCALAR robs to regfile, e.g only one could commit, but superscalar = 2
@@ -60,9 +61,6 @@ module regfile_scoreboard
       end
     end else begin
       if (commit_regfile_we && (commit_rd_s != 5'd0)) begin
-        // value update
-        register_arr[commit_rd_s] <= commit_rd_v;
-
         // scoreboard update
         //  update only when scoreboard exists and the commit is the rob which matches the scoreboard; stop looking up the rob
         //  otherwise, scoreboard still exists
@@ -77,6 +75,18 @@ module regfile_scoreboard
           scoreboard_arr[issue_rd_s] <= issue_rob;
           scoreboard_valid_arr[issue_rd_s] <= '1;
         end
+      end
+
+      if (move_flush) begin
+        for (int i = 0; i < 32; i++) begin
+          scoreboard_arr[i] <= '0;
+          scoreboard_valid_arr[i] <= '0;
+        end
+      end
+
+      if (commit_regfile_we && (commit_rd_s != 5'd0)) begin
+        // value update
+        register_arr[commit_rd_s] <= commit_rd_v;
       end
     end
   end

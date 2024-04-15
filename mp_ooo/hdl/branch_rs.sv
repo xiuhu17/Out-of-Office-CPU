@@ -7,6 +7,7 @@ module branch_rs
 ) (
     input logic clk,
     input logic rst,
+    input logic move_flush,
 
     // control signal
     input logic branch_rs_issue,
@@ -47,8 +48,8 @@ module branch_rs
     output logic [ROB_DEPTH-1:0] cdb_branch_rs_rob,
 
     // output target branch_pc
-    output logic branch_take,
-    output logic [31:0] branch_pc
+    output logic cdb_branch_take,
+    output logic [31:0] cdb_branch_pc
 );
 
   localparam BRANCH_RS_NUM_ELEM = 2 ** BRANCH_RS_DEPTH;
@@ -82,7 +83,7 @@ module branch_rs
   logic                       br_en;
 
   always_ff @(posedge clk) begin
-    if (rst) begin
+    if (rst || move_flush) begin
       counter <= '0;
       for (int i = 0; i < BRANCH_RS_NUM_ELEM; i++) begin
         branch_rs_available[i] <= '1;
@@ -215,7 +216,7 @@ module branch_rs
         if (rs1_ready_arr[(i+counter)&3'b111] && rs2_ready_arr[(i+counter)&3'b111]) begin
           // signal pop in the next cycle
           branch_rs_pop = '1;
-          branch_rs_pop_index = (i + counter) & 3'b111;
+          branch_rs_pop_index = (3)'(i + counter) & 3'b111;
           // branch rob
           cdb_branch_rs_rob = target_rob_arr[(i+counter)&3'b111];
           cdb_branch_rs_valid = '1;
@@ -226,25 +227,25 @@ module branch_rs
   end
 
   always_comb begin
-    branch_take = '0;
-    branch_pc = '0;
+    cdb_branch_take = '0;
+    cdb_branch_pc = '0;
     cdb_branch_rs_v = '0;
 
     case (opcode_arr[branch_rs_pop_index])
       jal_opcode: begin
-        branch_take = '1;
-        branch_pc = pc_arr[branch_rs_pop_index] + imm_arr[branch_rs_pop_index];
+        cdb_branch_take = '1;
+        cdb_branch_pc = pc_arr[branch_rs_pop_index] + imm_arr[branch_rs_pop_index];
         cdb_branch_rs_v = pc_arr[branch_rs_pop_index] + 32'h4;
       end
       jalr_opcode: begin
-        branch_take = '1;
-        branch_pc = rs1_v_arr[branch_rs_pop_index] + imm_arr[branch_rs_pop_index];
+        cdb_branch_take = '1;
+        cdb_branch_pc = rs1_v_arr[branch_rs_pop_index] + imm_arr[branch_rs_pop_index];
         cdb_branch_rs_v = pc_arr[branch_rs_pop_index] + 32'h4;
       end
       br_opcode: begin
         if (br_en) begin
-          branch_take = '1;
-          branch_pc   = pc_arr[branch_rs_pop_index] + imm_arr[branch_rs_pop_index];
+          cdb_branch_take = '1;
+          cdb_branch_pc   = pc_arr[branch_rs_pop_index] + imm_arr[branch_rs_pop_index];
         end
       end
     endcase

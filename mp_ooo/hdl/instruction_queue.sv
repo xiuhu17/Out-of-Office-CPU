@@ -3,6 +3,7 @@ module instruction_queue #(
 ) (
     input logic clk,
     input logic rst,
+    input logic move_flush,
 
     // outputing whether the instruction queue is full and the valid/opcode information
     // we assume the instr_push and instr_pop are always correct
@@ -61,7 +62,7 @@ module instruction_queue #(
   // if full (head == tail), we do not support pop tail and push head at same cycle
   // if empty (head == tail), we also do not support push and pop for same instructions at same cycle (we want instructions stay for at least one cycle)
   always_ff @(posedge clk) begin
-    if (rst) begin
+    if (rst || move_flush) begin
       valid_head <= '0;
       valid_tail <= '0;
       ready_head <= '0;

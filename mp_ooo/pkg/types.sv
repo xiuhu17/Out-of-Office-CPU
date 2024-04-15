@@ -84,6 +84,18 @@ package rv32i_types;
     mul_signed_signed = 2'b01,
     mul_signed_unsigned = 2'b10
   } mul_type_t;
+  typedef enum bit [2:0] {
+    lb_mem  = 3'b000,
+    lh_mem  = 3'b001,
+    lw_mem  = 3'b010,
+    lbu_mem = 3'b100,
+    lhu_mem = 3'b101
+  } load_ops_t;
+  typedef enum bit [2:0] {
+    sb_mem = 3'b000,
+    sh_mem = 3'b001,
+    sw_mem = 3'b010
+  } store_ops_t;
 
   typedef struct packed {
     logic [31:0] pc;

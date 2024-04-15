@@ -3,18 +3,20 @@ module mul_rs
 #(
     parameter MUL_RS_DEPTH = 3,
     parameter ROB_DEPTH = 3,
-    parameter CDB_SIZE = 2
+    parameter CDB_SIZE = 3
 ) (
     input  logic clk,
     input  logic rst,
+    input logic move_flush,
+
     output logic mul_rs_full,
 
     input logic mul_rs_issue,
 
     // instructions issued from instruction_queue
-    input logic [6:0] opcode,
-    input logic [2:0] funct3,
-    input logic [6:0] funct7,
+    input logic [6:0] issue_opcode,
+    input logic [2:0] issue_funct3,
+    input logic [6:0] issue_funct7,
 
     // 3 sources for rs1, rs2: CDB, regfile, and ROB
     // from regfile with scoreboard
@@ -38,9 +40,9 @@ module mul_rs
     input logic [ROB_DEPTH-1:0] issue_target_rob,
 
     // output result to CDB
-    output logic mul_rs_valid,
-    output logic [31:0] mul_rs_p,
-    output logic [ROB_DEPTH-1:0] mul_rs_rob
+    output logic cdb_mul_rs_valid,
+    output logic [31:0] cdb_mul_rs_p,
+    output logic [ROB_DEPTH-1:0] cdb_mul_rs_rob
 );
 
   localparam MUL_RS_NUM_ELEM = 2 ** MUL_RS_DEPTH;
@@ -80,7 +82,7 @@ module mul_rs
 
 
   always_ff @(posedge clk) begin
-    if (rst) begin
+    if (rst || move_flush) begin
       counter <= '0;
       for (int i = 0; i < MUL_RS_NUM_ELEM; i++) begin
         mul_rs_available[i] <= '1;
@@ -101,9 +103,9 @@ module mul_rs
         for (int i = 0; i < MUL_RS_NUM_ELEM; i++) begin
           if (mul_rs_available[i]) begin
             mul_rs_available[i] <= '0;
-            opcode_arr[i] <= opcode;
-            funct3_arr[i] <= funct3;
-            funct7_arr[i] <= funct7;
+            opcode_arr[i] <= issue_opcode;
+            funct3_arr[i] <= issue_funct3;
+            funct7_arr[i] <= issue_funct7;
             rs1_ready_arr[i] <= '0;
             rs2_ready_arr[i] <= '0;
             rs1_v_arr[i] <= '0;
@@ -177,7 +179,7 @@ module mul_rs
 
   // store the stage of the multiplier
   always_ff @(posedge clk) begin
-    if (rst) begin
+    if (rst || move_flush) begin
       mul_executing <= '0;
       mul_start <= '0;
       mul_rs_idx_executing <= '0;
@@ -189,12 +191,12 @@ module mul_rs
     end else begin
       if (!mul_executing) begin
         for (int i = 0; i < MUL_RS_NUM_ELEM; i++) begin
-          // spare multiplier & valid & ready  then execute
+          // valid & ready & spare multiplier, then execute
           if (!mul_rs_available[(i+counter)&3'b111]) begin
             if (rs1_ready_arr[(i+counter)&3'b111] && rs2_ready_arr[(i+counter)&3'b111]) begin
                 mul_executing <= '1;
                 mul_start <= '1;
-                mul_rs_idx_executing <= i + counter;
+                mul_rs_idx_executing <= (3)'(i + counter) & 3'b111;
                 mul_rob_executing <= target_rob_arr[(i+counter)&3'b111];
                 mul_a_executing <= rs1_v_arr[(i+counter)&3'b111];
                 mul_b_executing <= rs2_v_arr[(i+counter)&3'b111];
@@ -204,9 +206,9 @@ module mul_rs
                   mulhsu_funct3: mul_type_executing <= mul_signed_unsigned;
                   mulhu_funct3: mul_type_executing <= mul_unsigned_unsigned;
                 endcase
-              break;
+                break;
+              end
             end
-          end
         end
       end
       if (mul_start) begin
@@ -219,17 +221,17 @@ module mul_rs
   end
 
   always_comb begin
-    mul_rs_valid = '0;
+    cdb_mul_rs_valid = '0;
     mul_rs_pop = '0;
-    mul_rs_rob = '0;
-    mul_rs_p = '0;
+    cdb_mul_rs_rob = '0;
+    cdb_mul_rs_p = '0;
     if (mul_done) begin
-      mul_rs_valid = '1;
+      cdb_mul_rs_valid = '1;
       mul_rs_pop   = '1;
-      mul_rs_rob   = mul_rob_executing;
+      cdb_mul_rs_rob   = mul_rob_executing;
       case (mul_funct3_executing)
-        mul_funct3: mul_rs_p = mul_p_executing[31:0];
-        default: mul_rs_p = mul_p_executing[63:32];
+        mul_funct3: cdb_mul_rs_p = mul_p_executing[31:0];
+        default: cdb_mul_rs_p = mul_p_executing[63:32];
       endcase
     end
   end
@@ -237,6 +239,7 @@ module mul_rs
   shift_add_multiplier multiplier (
       .clk(clk),
       .rst(rst),
+      .move_flush(move_flush),
       .start(mul_start),
       .mul_type(mul_type_executing),
       .a(mul_a_executing),

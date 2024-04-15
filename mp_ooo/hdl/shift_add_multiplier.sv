@@ -5,6 +5,8 @@ module shift_add_multiplier
 (
     input logic clk,
     input logic rst,
+    input logic move_flush,
+
     // Start must be reset after the done flag is set before another multiplication can execute
     input logic start,
 
@@ -67,7 +69,7 @@ module shift_add_multiplier
 
     always_ff @ (posedge clk)
     begin
-        if (rst)
+        if (rst || move_flush)
         begin
             curr_state <= IDLE;
             a_reg <= '0;

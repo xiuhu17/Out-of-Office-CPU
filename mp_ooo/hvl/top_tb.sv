@@ -20,10 +20,9 @@ module top_tb;
   );
 
   // Single memory port connection when caches are integrated into design (CP3 and after)
-  /*
-    banked_mem_itf bmem_itf(.*);
-    banked_memory banked_memory(.itf(bmem_itf));
-    */
+  // banked_mem_itf bmem_itf(.*);
+  // banked_memory banked_memory(.itf(bmem_itf));
+
 
   mon_itf mon_itf (.*);
   monitor monitor (.itf(mon_itf));

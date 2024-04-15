@@ -2,10 +2,11 @@ module ROB
   import rv32i_types::*;
 #(
     parameter ROB_DEPTH = 4,  // number of bits to use for depth
-    parameter CDB_SIZE  = 2
+    parameter CDB_SIZE  = 3
 ) (
     input logic clk,
     input logic rst,
+    input logic move_flush,
 
     // status signal
     output logic rob_full,
@@ -17,8 +18,8 @@ module ROB
     input logic [ROB_DEPTH-1:0] cdb_rob    [CDB_SIZE],
     input logic [         31:0] cdb_rd_v   [CDB_SIZE],
     // for branch
-    input logic                 branch_take,
-    input logic [         31:0] branch_pc,
+    input logic                 cdb_branch_take,
+    input logic [         31:0] cdb_branch_pc,
 
     // for instruction_issue write into rob
     input  logic                   rob_push,
@@ -33,12 +34,16 @@ module ROB
     output logic                   issue_rs2_rob_ready,
 
     // for rob to commit out
-    
     input logic rob_pop,
     output logic [4:0] commit_rd_s,
     output logic [31:0] commit_rd_v,
     output logic [ROB_DEPTH-1:0] commit_rob,
     output logic [6:0] commit_opcode,  // for commit.sv to determine regfile_we
+
+    // forward to fetch.sv
+    output logic flush_branch,
+    output logic [31:0] pc_branch,
+    output logic [63:0] order_branch,
 
     // for rvfi
     input  logic [63:0] rvfi_order,
@@ -109,10 +114,20 @@ module ROB
     commit_rob = tail;
     commit_rd_s = rd_s_arr[tail];
     commit_rd_v = rd_v_arr[tail];
+
+    // for flushing
+    flush_branch = '0;
+    if (commit_opcode == jal_opcode || commit_opcode == jalr_opcode || commit_opcode == br_opcode) begin 
+      if (branch_take_arr[tail]) begin 
+        flush_branch = '1;
+      end 
+    end 
+    pc_branch = rvfi_pc_next_arr[tail];
+    order_branch = rvfi_order_arr[tail] + 64'h1;
   end
 
   always_ff @(posedge clk) begin
-    if (rst) begin
+    if (rst || move_flush) begin
       head <= '0;
       tail <= '0;
       for (int i = 0; i < MAX_NUM_ELEMS; i++) begin
@@ -130,11 +145,13 @@ module ROB
         rvfi_mem_wmask_arr[i] <= '0;
         rvfi_mem_rdata_arr[i] <= '0;
         rvfi_mem_wdata_arr[i] <= '0;
+        branch_take_arr[i] <= '0;
       end
     end else begin
       if (rob_pop) begin
         valid_arr[tail] <= 1'b0;
         ready_arr[tail] <= 1'b0;
+        branch_take_arr[tail] <= '0;
         tail <= tail + 1'b1;
       end
 
@@ -142,11 +159,11 @@ module ROB
         if (cdb_valid[i]) begin
           ready_arr[cdb_rob[i]] <= '1;
           rd_v_arr[cdb_rob[i]]  <= cdb_rd_v[i];
-          if (rvfi_inst_arr[cdb_rob[i]][6:0] == br_opcode
-          || rvfi_inst_arr[cdb_rob[i]][6:0] == jal_opcode
-          || rvfi_inst_arr[cdb_rob[i]][6:0] == jalr_opcode) begin
-            branch_take_arr[cdb_rob[i]]  <= (branch_take && (rvfi_pc_next_arr[cdb_rob[i]] != branch_pc));
-            rvfi_pc_next_arr[cdb_rob[i]] <= (branch_take && (rvfi_pc_next_arr[cdb_rob[i]] != branch_pc)) ? branch_pc : rvfi_pc_next_arr[cdb_rob[i]];
+          if (rvfi_inst_arr[cdb_rob[i]][6:0] == br_opcode || rvfi_inst_arr[cdb_rob[i]][6:0] == jal_opcode || rvfi_inst_arr[cdb_rob[i]][6:0] == jalr_opcode) begin
+            if (cdb_branch_take && (rvfi_pc_next_arr[cdb_rob[i]] != cdb_branch_pc)) begin 
+              branch_take_arr[cdb_rob[i]] <= '1;
+              rvfi_pc_next_arr[cdb_rob[i]] <= cdb_branch_pc;
+            end 
           end
         end
       end
@@ -155,12 +172,14 @@ module ROB
         valid_arr[head] <= 1'b1;
         ready_arr[head] <= 1'b0;
         rd_s_arr[head] <= issue_rd_s;
-        head <= head + 1'b1;
         rvfi_order_arr[head] <= rvfi_order;
         rvfi_inst_arr[head] <= rvfi_inst;
         rvfi_rs1_s_arr[head] <= rvfi_rs1_s;
         rvfi_rs2_s_arr[head] <= rvfi_rs2_s;
         rvfi_rd_s_arr[head] <= rvfi_rd_s;
+        if (rvfi_inst[6:0] == br_opcode || rvfi_inst[6:0] == store_opcode) begin 
+          rvfi_rd_s_arr[head] <= '0;
+        end 
         rvfi_pc_arr[head] <= rvfi_pc;
         rvfi_pc_next_arr[head] <= rvfi_pc_next;
         rvfi_mem_addr_arr[head] <= '0;
@@ -168,6 +187,8 @@ module ROB
         rvfi_mem_wmask_arr[head] <= '0;
         rvfi_mem_rdata_arr[head] <= '0;
         rvfi_mem_wdata_arr[head] <= '0;
+        branch_take_arr[head] <= '0;
+        head <= head + 1'b1;
       end
     end
   end
