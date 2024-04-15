@@ -9,7 +9,7 @@
 // (
 //     input logic clk,
 //     input logic rst,
-    
+
 //     // input signal
 //     input logic store_rs_issue,
 //     input logic store_rs_pop,

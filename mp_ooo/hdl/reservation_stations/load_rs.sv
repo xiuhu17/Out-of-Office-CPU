@@ -11,7 +11,7 @@
 // (
 //     input logic clk,
 //     input logic rst,
-    
+
 //     // control signal
 //     input logic load_rs_issue,
 //     input logic load_rs_pop,
@@ -137,7 +137,7 @@
 //         transfer_r_rob = rs1_rob_arr[tail];
 //         transfer_raddr = rs1_v_arr[tail] + imm_arr[tail];
 //         transfer_rmask = '0;
-        
+
 //         case (funct3_arr[tail])
 //             lb_mem, lbu_mem: begin 
 //                 transfer_rmask = 4'b0001 << transfer_raddr[1:0];

@@ -12,96 +12,97 @@ module cpu
     input logic clk,
     input logic rst,
 
-    output logic [31:0] imem_addr,
-    output logic [ 3:0] imem_rmask,
-    input  logic [31:0] imem_rdata,
-    input  logic        imem_resp,
+    // output logic [31:0] imem_addr,
+    // output logic [ 3:0] imem_rmask,
+    // input  logic [31:0] imem_rdata,
+    // input  logic        imem_resp,
 
-    output logic [31:0] dmem_addr,
-    output logic [ 3:0] dmem_rmask,
-    output logic [ 3:0] dmem_wmask,
-    input  logic [31:0] dmem_rdata,
-    output logic [31:0] dmem_wdata,
-    input  logic        dmem_resp
+    // output logic [31:0] dmem_addr,
+    // output logic [ 3:0] dmem_rmask,
+    // output logic [ 3:0] dmem_wmask,
+    // input  logic [31:0] dmem_rdata,
+    // output logic [31:0] dmem_wdata,
+    // input  logic        dmem_resp
 
     // Single memory port connection when caches are integrated into design (CP3 and after)
-    /*
-    output  logic   [31:0]  bmem_addr,
-    output  logic           bmem_read,
-    output  logic           bmem_write,
-    input   logic   [255:0] bmem_rdata,
-    output  logic   [255:0] bmem_wdata,
-    input   logic           bmem_resp
-    */
+    output logic [31:0] bmem_addr,
+    output logic        bmem_read,
+    output logic        bmem_write,
+    output logic [63:0] bmem_wdata,
+    input  logic        bmem_ready,
+
+    input logic [31:0] bmem_raddr,
+    input logic [63:0] bmem_rdata,
+    input logic        bmem_rvalid
 );
-  // this block is for tricking the compiler
-  always_comb begin
-    dmem_addr  = '0;
-    dmem_rmask = '0;
-    dmem_wmask = dmem_resp ? 4'h1 : 4'h0;
-    dmem_wdata = dmem_rdata;
-  end
+  // instruction cache variables
+  logic [         31:0] instr_cache_addr;
+  logic [          3:0] instr_cache_rmask;
+  logic [          3:0] instr_cache_wmask;
+  logic [         31:0] instr_cache_wdata;
+  logic [         31:0] instr_cache_rdata;
+  logic                 instr_cache_resp;
 
   // fetch fsm
-  logic imem_rqst;
+  logic                 imem_rqst;
 
   // fetch variables
-  logic move_fetch;
-  logic move_flush;
-  logic [63:0] order;
-  logic [31:0] pc;
-  logic [31:0] pc_next;
+  logic                 move_fetch;
+  logic                 move_flush;
+  logic [         63:0] order;
+  logic [         31:0] pc;
+  logic [         31:0] pc_next;
 
   // instruction queue variables
-  logic instr_full;
-  logic instr_valid;
-  logic instr_ready;
-  logic instr_push;
-  logic instr_pop;
-  logic [31:0] fetch_instr;
-  logic [63:0] fetch_order;
-  logic [63:0] issue_order;
-  logic [31:0] issue_instr;
-  logic [31:0] issue_pc;
-  logic [31:0] issue_pc_next;
-  logic [2:0] issue_funct3;
-  logic [6:0] issue_funct7;
-  logic [6:0] issue_opcode;
-  logic [31:0] issue_imm;
-  logic [4:0] issue_rs1_s;
-  logic [4:0] issue_rs2_s;
-  logic [4:0] issue_rd_s;
+  logic                 instr_full;
+  logic                 instr_valid;
+  logic                 instr_ready;
+  logic                 instr_push;
+  logic                 instr_pop;
+  logic [         31:0] fetch_instr;
+  logic [         63:0] fetch_order;
+  logic [         63:0] issue_order;
+  logic [         31:0] issue_instr;
+  logic [         31:0] issue_pc;
+  logic [         31:0] issue_pc_next;
+  logic [          2:0] issue_funct3;
+  logic [          6:0] issue_funct7;
+  logic [          6:0] issue_opcode;
+  logic [         31:0] issue_imm;
+  logic [          4:0] issue_rs1_s;
+  logic [          4:0] issue_rs2_s;
+  logic [          4:0] issue_rd_s;
 
   // alu_rs variables
-  logic alu_rs_full;
-  logic alu_rs_issue;
-  logic cdb_alu_rs_valid;
-  logic [31:0] cdb_alu_rs_f;
+  logic                 alu_rs_full;
+  logic                 alu_rs_issue;
+  logic                 cdb_alu_rs_valid;
+  logic [         31:0] cdb_alu_rs_f;
   logic [ROB_DEPTH-1:0] cdb_alu_rs_rob;
 
   // mul_rs variables
-  logic mul_rs_full;
-  logic mul_rs_issue;
-  logic cdb_mul_rs_valid;
-  logic [31:0] cdb_mul_rs_p;
+  logic                 mul_rs_full;
+  logic                 mul_rs_issue;
+  logic                 cdb_mul_rs_valid;
+  logic [         31:0] cdb_mul_rs_p;
   logic [ROB_DEPTH-1:0] cdb_mul_rs_rob;
 
   // branch_rs variables
-  logic branch_rs_full;
-  logic branch_rs_issue;
-  logic     cdb_branch_rs_valid;
-  logic [31:0]    cdb_branch_rs_v;
-  logic [ROB_DEPTH-1:0]    cdb_branch_rs_rob;
-  logic cdb_branch_take;
-  logic [31:0] cdb_branch_pc;
+  logic                 branch_rs_full;
+  logic                 branch_rs_issue;
+  logic                 cdb_branch_rs_valid;
+  logic [         31:0] cdb_branch_rs_v;
+  logic [ROB_DEPTH-1:0] cdb_branch_rs_rob;
+  logic                 cdb_branch_take;
+  logic [         31:0] cdb_branch_pc;
 
   // CDB variables
-  logic exe_valid[CDB_SIZE];
-  logic [31:0] exe_alu_f[CDB_SIZE];
-  logic [ROB_DEPTH-1:0] exe_rob[CDB_SIZE];
-  logic cdb_valid[CDB_SIZE];
-  logic [31:0] cdb_rd_v[CDB_SIZE];
-  logic [ROB_DEPTH-1:0] cdb_rob[CDB_SIZE];
+  logic                 exe_valid           [CDB_SIZE];
+  logic [         31:0] exe_alu_f           [CDB_SIZE];
+  logic [ROB_DEPTH-1:0] exe_rob             [CDB_SIZE];
+  logic                 cdb_valid           [CDB_SIZE];
+  logic [         31:0] cdb_rd_v            [CDB_SIZE];
+  logic [ROB_DEPTH-1:0] cdb_rob             [CDB_SIZE];
   always_comb begin
     exe_valid[0] = cdb_alu_rs_valid;
     exe_valid[1] = cdb_mul_rs_valid;
@@ -111,7 +112,7 @@ module cpu
     exe_alu_f[2] = cdb_branch_rs_v;
     exe_rob[0]   = cdb_alu_rs_rob;
     exe_rob[1]   = cdb_mul_rs_rob;
-    exe_rob[2] = cdb_branch_rs_rob;
+    exe_rob[2]   = cdb_branch_rs_rob;
   end
 
   // ROB variables
@@ -153,26 +154,26 @@ module cpu
   logic [ROB_DEPTH-1:0] issue_rs2_regfile_rob;
 
 
-    fetch_fsm fetch_fsm(
-        .clk(clk),
-        .rst(rst),
-        .imem_resp(imem_resp),
-        .imem_rqst(imem_rqst),
-        .instr_full(instr_full),
-        .move_flush(move_flush),
-        .move_fetch(move_fetch)
-    );
+  fetch_fsm fetch_fsm (
+      .clk(clk),
+      .rst(rst),
+      .imem_resp(imem_resp),
+      .imem_rqst(imem_rqst),
+      .instr_full(instr_full),
+      .move_flush(move_flush),
+      .move_fetch(move_fetch)
+  );
 
-    flush_fsm flush_fsm(
-        .clk(clk),
-        .rst(rst),
-        .imem_resp(imem_resp),
-        .imem_rqst(imem_rqst),  
-        .rob_valid(rob_valid),
-        .rob_ready(rob_ready),
-        .flush_branch(flush_branch),
-        .move_flush(move_flush)
-    );
+  flush_fsm flush_fsm (
+      .clk(clk),
+      .rst(rst),
+      .imem_resp(imem_resp),
+      .imem_rqst(imem_rqst),
+      .rob_valid(rob_valid),
+      .rob_ready(rob_ready),
+      .flush_branch(flush_branch),
+      .move_flush(move_flush)
+  );
 
   fetch fetch (
       .clk(clk),
@@ -187,6 +188,24 @@ module cpu
       .pc(pc),
       .order(order),
       .pc_next(pc_next)
+  );
+
+  cache instruction_cache (
+      .clk(clk),
+      .rst(rst),
+      .ufp_addr(instr_cache_addr),
+      .ufp_rmask(instr_cache_rmask),
+      .ufp_wmask(instr_cache_wmask),
+      .ufp_rdata(instr_cache_rdata),
+      .ufp_wdata(instr_cache_wdata),
+      .ufp_resp(instr_cache_resp),
+      .dfp_addr(bmem_addr),
+      .dfp_read(bmem_read),
+      .dfp_write(bmem_write),
+      .dfp_wdata(bmem_wdata),
+      .dfp_ready(bmem_ready),
+      .dfp_rdata(bmem_rdata),
+      .dfp_resp(bmem_rvalid)
   );
 
   instruction_queue #(

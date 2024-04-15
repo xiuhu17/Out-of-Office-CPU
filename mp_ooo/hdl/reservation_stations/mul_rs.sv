@@ -5,8 +5,8 @@ module mul_rs
     parameter ROB_DEPTH = 3,
     parameter CDB_SIZE = 3
 ) (
-    input  logic clk,
-    input  logic rst,
+    input logic clk,
+    input logic rst,
     input logic move_flush,
 
     output logic mul_rs_full,
@@ -194,21 +194,21 @@ module mul_rs
           // valid & ready & spare multiplier, then execute
           if (!mul_rs_available[(i+counter)&3'b111]) begin
             if (rs1_ready_arr[(i+counter)&3'b111] && rs2_ready_arr[(i+counter)&3'b111]) begin
-                mul_executing <= '1;
-                mul_start <= '1;
-                mul_rs_idx_executing <= (3)'(i + counter) & 3'b111;
-                mul_rob_executing <= target_rob_arr[(i+counter)&3'b111];
-                mul_a_executing <= rs1_v_arr[(i+counter)&3'b111];
-                mul_b_executing <= rs2_v_arr[(i+counter)&3'b111];
-                mul_funct3_executing <= funct3_arr[(i+counter)&3'b111];
-                case (funct3_arr[(i+counter)&3'b111])
-                  mul_funct3, mulh_funct3: mul_type_executing <= mul_signed_signed;
-                  mulhsu_funct3: mul_type_executing <= mul_signed_unsigned;
-                  mulhu_funct3: mul_type_executing <= mul_unsigned_unsigned;
-                endcase
-                break;
-              end
+              mul_executing <= '1;
+              mul_start <= '1;
+              mul_rs_idx_executing <= (3)'(i + counter) & 3'b111;
+              mul_rob_executing <= target_rob_arr[(i+counter)&3'b111];
+              mul_a_executing <= rs1_v_arr[(i+counter)&3'b111];
+              mul_b_executing <= rs2_v_arr[(i+counter)&3'b111];
+              mul_funct3_executing <= funct3_arr[(i+counter)&3'b111];
+              case (funct3_arr[(i+counter)&3'b111])
+                mul_funct3, mulh_funct3: mul_type_executing <= mul_signed_signed;
+                mulhsu_funct3: mul_type_executing <= mul_signed_unsigned;
+                mulhu_funct3: mul_type_executing <= mul_unsigned_unsigned;
+              endcase
+              break;
             end
+          end
         end
       end
       if (mul_start) begin
@@ -227,8 +227,8 @@ module mul_rs
     cdb_mul_rs_p = '0;
     if (mul_done) begin
       cdb_mul_rs_valid = '1;
-      mul_rs_pop   = '1;
-      cdb_mul_rs_rob   = mul_rob_executing;
+      mul_rs_pop = '1;
+      cdb_mul_rs_rob = mul_rob_executing;
       case (mul_funct3_executing)
         mul_funct3: cdb_mul_rs_p = mul_p_executing[31:0];
         default: cdb_mul_rs_p = mul_p_executing[63:32];

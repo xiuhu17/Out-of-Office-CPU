@@ -228,18 +228,18 @@ module branch_rs
 
   always_comb begin
     cdb_branch_take = '0;
-    cdb_branch_pc = '0;
+    cdb_branch_pc   = '0;
     cdb_branch_rs_v = '0;
 
     case (opcode_arr[branch_rs_pop_index])
       jal_opcode: begin
         cdb_branch_take = '1;
-        cdb_branch_pc = pc_arr[branch_rs_pop_index] + imm_arr[branch_rs_pop_index];
+        cdb_branch_pc   = pc_arr[branch_rs_pop_index] + imm_arr[branch_rs_pop_index];
         cdb_branch_rs_v = pc_arr[branch_rs_pop_index] + 32'h4;
       end
       jalr_opcode: begin
         cdb_branch_take = '1;
-        cdb_branch_pc = rs1_v_arr[branch_rs_pop_index] + imm_arr[branch_rs_pop_index];
+        cdb_branch_pc   = rs1_v_arr[branch_rs_pop_index] + imm_arr[branch_rs_pop_index];
         cdb_branch_rs_v = pc_arr[branch_rs_pop_index] + 32'h4;
       end
       br_opcode: begin

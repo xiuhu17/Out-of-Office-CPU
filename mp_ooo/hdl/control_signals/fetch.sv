@@ -4,12 +4,12 @@ module fetch (
 
     input logic move_fetch,
 
-    input  logic move_flush,
-    input  logic [31:0] pc_branch,
-    input  logic [63:0] order_branch,
+    input logic move_flush,
+    input logic [31:0] pc_branch,
+    input logic [63:0] order_branch,
 
     output logic [31:0] imem_addr,
-    output logic [ 3:0] imem_rmask,
+    output logic [3:0] imem_rmask,
     output logic imem_rqst,
 
     output logic [31:0] pc,
@@ -34,19 +34,19 @@ module fetch (
     // output rmask
     if (move_fetch) begin
       imem_rmask = '1;
-      imem_rqst = '1;
+      imem_rqst  = '1;
     end else begin
       imem_rmask = '0;
-      imem_rqst = '0;
+      imem_rqst  = '0;
     end
-  end 
+  end
 
   always_ff @(posedge clk) begin
     if (rst) begin
       pc_curr <= 32'h60000000;
       order_curr <= '0;
     end else begin
-      if (move_flush) begin 
+      if (move_flush) begin
         pc_curr <= pc_branch;
         order_curr <= order_branch;
       end else if (move_fetch) begin

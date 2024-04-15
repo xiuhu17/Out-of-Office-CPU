@@ -46,7 +46,7 @@ module instruction_queue #(
 
   // sending signal
   always_comb begin
-    instr_full = valid_arr[valid_head];
+    instr_full  = valid_arr[valid_head];
     instr_valid = valid_arr[valid_tail];
     instr_ready = ready_arr[ready_tail];
   end
@@ -93,7 +93,7 @@ module instruction_queue #(
         ready_arr[ready_head] <= 1'b1;
         instr_arr[ready_head] <= imem_rdata;
         ready_head <= ready_head + 1'b1;
-      end 
+      end
     end
   end
 

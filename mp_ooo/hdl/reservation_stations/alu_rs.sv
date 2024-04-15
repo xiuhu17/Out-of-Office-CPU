@@ -5,12 +5,12 @@ module alu_rs
     parameter ROB_DEPTH = 3,
     parameter CDB_SIZE = 3
 ) (
-    input  logic clk,
-    input  logic rst,
+    input logic clk,
+    input logic rst,
     input logic move_flush,
 
     output logic alu_rs_full,
-  
+
     // assigned issue
     input logic alu_rs_issue,
 

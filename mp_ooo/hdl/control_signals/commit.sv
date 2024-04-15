@@ -6,7 +6,7 @@ module commit
     input logic [6:0] commit_opcode,
 
     input logic flush_branch,
-	  input logic move_flush,
+    input logic move_flush,
 
     output logic rob_pop,
     output logic commit_regfile_we
@@ -17,23 +17,23 @@ module commit
     rob_pop = '0;
     if (rob_valid && rob_ready) begin
       case (commit_opcode)
-        jal_opcode, jalr_opcode: begin 
-          if (flush_branch) begin 
-            if (move_flush) begin 
+        jal_opcode, jalr_opcode: begin
+          if (flush_branch) begin
+            if (move_flush) begin
               commit_regfile_we = '1;
               rob_pop = '1;
-            end 
-          end else begin 
+            end
+          end else begin
             commit_regfile_we = '1;
             rob_pop = '1;
-          end 
+          end
         end
-        br_opcode: begin 
-          if (flush_branch) begin 
-            if (move_flush) begin 
+        br_opcode: begin
+          if (flush_branch) begin
+            if (move_flush) begin
               commit_regfile_we = '0;
               rob_pop = '1;
-            end 
+            end
           end else begin
             commit_regfile_we = '0;
             rob_pop = '1;
@@ -42,8 +42,8 @@ module commit
         store_opcode: begin
           commit_regfile_we = '0;
           rob_pop = '1;
-        end 
-        default: begin 
+        end
+        default: begin
           commit_regfile_we = '1;
           rob_pop = '1;
         end
