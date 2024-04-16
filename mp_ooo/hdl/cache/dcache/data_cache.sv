@@ -1,4 +1,4 @@
-module cache
+module data_cache
   import cache_types::*;
 (
     input logic clk,
@@ -8,49 +8,26 @@ module cache
     input  logic [31:0] cpu_ufp_addr,
     input  logic [ 3:0] cpu_ufp_rmask,
     input  logic [ 3:0] cpu_ufp_wmask,
-    output logic [31:0] cpu_ufp_rdata,
     input  logic [31:0] cpu_ufp_wdata,
-    output logic        cpu_ufp_resp,
+    output logic [31:0] ufp_rdata,
+    output logic        ufp_resp,
 
-    // memory side signals, dfp -> downward facing port
-    output logic [ 31:0] dfp_addr,
-    output logic         dfp_read,
-    output logic         dfp_write,
-    output logic [255:0] dfp_wdata,
-    input  logic         dfp_ready,
+    // memory side signals, bfp -> downward facing port
+    input  logic        bfp_ready,
+    input  logic [63:0] bfp_rdata,
+    input  logic [31:0] bfp_raddr,
+    input  logic        bfp_rvalid,
 
-    input logic [255:0] dfp_rdata,
-    input logic         dfp_resp
-);
+    output logic [31:0] bfp_addr,
+    output logic        bfp_read,
+    output logic        bfp_write,
+    output logic [63:0] bfp_wdata
+);  
 
-  // mp_ooo modifications
-  logic [31:0] ufp_addr_reg;
-  logic [3:0] ufp_rmask_reg;
-  logic [3:0] ufp_wmask_reg;
-  logic [31:0] ufp_wdata_reg;
-  logic [31:0] ufp_rdata;
-  logic ufp_resp;
-
-  // 1: mask lower 4 bytes
   logic [31:0] ufp_addr;
-  assign ufp_addr = cpu_ufp_addr & 32'hfffffffc;
-
-  // 2: store request
-  logic request;
-  always_ff @(clk) begin
-    if (rst) begin
-      request <= 1'b0;
-    end else if (ufp_Read || ufp_Write) begin
-      request <= 1'b1;
-      ufp_addr_reg <= ufp_addr;
-      ufp_rmask_reg <= cpu_ufp_rmask;
-      ufp_wmask_reg <= cpu_ufp_wmask;
-      ufp_wdata_reg <= cpu_ufp_wdata;
-    end else if (cpu_ufp_resp) begin
-      request <= 1'b0;
-    end
-  end
-  // 3: resp cycle, incoming rqst
+  logic [ 3:0] ufp_rmask;
+  logic [ 3:0] ufp_wmask;
+  logic [31:0] ufp_wdata;
 
   logic [255:0] internal_data_array_read[4];
   logic [255:0] internal_data_array_write[4];
@@ -65,21 +42,20 @@ module cache
 
   logic [3:0] curr_set;
   logic [22:0] curr_tag;
-  logic ufp_Read;
-  logic ufp_Write;
+  logic ufp_read;
+  logic ufp_write;
   logic [1:0] Hit_Miss;
   logic [1:0] Sram_op;
   logic [1:0] PLRU_Way_Replace;
   logic [1:0] PLRU_Way_Visit;
-
   logic csb0;
-
+  logic [1:0] bank_shift;
 
   always_comb begin
     curr_set = ufp_addr[8:5];
     curr_tag = ufp_addr[31:9];
-    ufp_Read = '0;
-    ufp_Write = '0;
+    ufp_read = '0;
+    ufp_write = '0;
     csb0 = '1;
     if (ufp_rmask != '0) begin
       ufp_Read = '1;
@@ -132,37 +108,56 @@ module cache
       internal_valid_array_write[PLRU_Way_Visit] = 1'b1;
       internal_data_array_mask[PLRU_Way_Visit] = ufp_wmask << ufp_addr[4:0];
     end else if (Sram_op == Miss_Replace) begin
-      internal_data_array_write[PLRU_Way_Replace]  = dfp_rdata;
+      internal_data_array_write[PLRU_Way_Replace][64*bank_shift+:64]  = bfp_rdata;
       internal_tag_array_write[PLRU_Way_Replace]   = {1'b0, curr_tag};
       internal_valid_array_write[PLRU_Way_Replace] = 1'b1;
-      internal_data_array_mask[PLRU_Way_Replace]   = '1;
+      internal_data_array_mask[PLRU_Way_Replace]   = 8'b11111111 << (bank_shift * 8); 
     end
   end
 
-  // dfp:
+  // bfp:
   always_comb begin
-    dfp_addr  = '0;
-    dfp_wdata = '0;
-    if (dfp_write) begin
-      dfp_addr  = {internal_tag_array_read[PLRU_Way_Replace][22:0], curr_set, 5'b0};
-      dfp_wdata = internal_data_array_read[PLRU_Way_Replace];
-    end else if (dfp_read) begin
-      dfp_addr = {curr_tag, curr_set, 5'b0};
+    bfp_addr  = '0;
+    bfp_wdata = '0;
+    if (bfp_write) begin
+      bfp_addr  = {internal_tag_array_read[PLRU_Way_Replace][22:0], curr_set, 5'b0};
+      bfp_wdata = internal_data_array_read[PLRU_Way_Replace][64*bank_shift+:64];
+    end else if (bfp_read) begin
+      bfp_addr = {curr_tag, curr_set, 5'b0};
     end
   end
 
-  cachefsm cachefsm (
+  data_cachefsm data_cachefsm (
       .clk(clk),
       .rst(rst),
-      .ufp_Read(ufp_Read),
-      .ufp_Write(ufp_Write),
+      .ufp_read(ufp_read),
+      .ufp_write(ufp_write),
       .Hit_Miss(Hit_Miss),
-      .dfp_Resp(dfp_resp),
+      .ufp_addr(ufp_addr),
+      .bfp_ready(bfp_ready),
+      .bfp_raddr(bfp_raddr),
+      .bfp_rvalid(bfp_rvalid),
       .Sram_op(Sram_op),
-      .ufp_Resp(ufp_resp),
-      .dfp_Read(dfp_read),
-      .dfp_Write(dfp_write)
+      .ufp_resp(ufp_resp),
+      .bfp_read(bfp_read),
+      .bfp_write(bfp_write),
+      .bank_shift(bank_shift)
   );
+
+  data_serve data_serve (
+    .clk(clk),
+    .rst(rst),
+    .ufp_resp(ufp_resp),
+    .cpu_ufp_addr(cpu_ufp_addr),
+    .cpu_ufp_rmask(cpu_ufp_rmask),
+    .cpu_ufp_wmask(cpu_ufp_wmask),
+    .cpu_ufp_wdata(cpu_ufp_wdata),
+    .ufp_addr(ufp_addr),
+    .ufp_rmask(ufp_rmask),
+    .ufp_wmask(ufp_wmask),
+    .ufp_wdata(ufp_wdata)
+  );
+
 
   logic [3:0] PLRU_Way_4;
   always_comb begin
@@ -230,10 +225,10 @@ module cache
       .rst(rst),
       .ufp_Resp(ufp_resp),
       .curr_set(curr_set),
-      // .Way_A_Valid(internal_valid_array_read[Way_A]),
-      // .Way_B_Valid(internal_valid_array_read[Way_B]),
-      // .Way_C_Valid(internal_valid_array_read[Way_C]),
-      // .Way_D_Valid(internal_valid_array_read[Way_D]),
+      .Way_A_Valid(internal_valid_array_read[Way_A]),
+      .Way_B_Valid(internal_valid_array_read[Way_B]),
+      .Way_C_Valid(internal_valid_array_read[Way_C]),
+      .Way_D_Valid(internal_valid_array_read[Way_D]),
       .PLRU_Way_Visit(PLRU_Way_Visit),
       .PLRU_Way_Replace(PLRU_Way_Replace)
   );

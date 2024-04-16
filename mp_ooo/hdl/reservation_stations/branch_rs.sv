@@ -210,15 +210,15 @@ module branch_rs
     cdb_branch_rs_rob = '0;
     cdb_branch_rs_valid = '0;
     // execution logic
-    for (int i = 0; i < BRANCH_RS_NUM_ELEM; i++) begin
+    for (int unsigned i = 0; i < BRANCH_RS_NUM_ELEM; i++) begin
       // valied && ready, then execute and finish in the same cycle
-      if (!branch_rs_available[(i+counter)&3'b111]) begin
-        if (rs1_ready_arr[(i+counter)&3'b111] && rs2_ready_arr[(i+counter)&3'b111]) begin
+      if (!branch_rs_available[(BRANCH_RS_DEPTH)'(i+counter)]) begin
+        if (rs1_ready_arr[(BRANCH_RS_DEPTH)'(i + counter)] && rs2_ready_arr[(BRANCH_RS_DEPTH)'(i + counter)]) begin
           // signal pop in the next cycle
           branch_rs_pop = '1;
-          branch_rs_pop_index = (3)'(i + counter) & 3'b111;
+          branch_rs_pop_index = (BRANCH_RS_DEPTH)'(i + counter);
           // branch rob
-          cdb_branch_rs_rob = target_rob_arr[(i+counter)&3'b111];
+          cdb_branch_rs_rob = target_rob_arr[(BRANCH_RS_DEPTH)'(i+counter)];
           cdb_branch_rs_valid = '1;
           break;
         end

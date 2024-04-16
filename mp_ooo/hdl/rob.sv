@@ -53,8 +53,25 @@ module ROB
     input  logic [ 4:0] rvfi_rd_s,
     input  logic [31:0] rvfi_pc,
     input  logic [31:0] rvfi_pc_next,
+    // for load_rs
+    input  logic [31:0] rvfi_load_mem_addr,
+    input  logic [ 3:0] rvfi_load_mem_rmask,
+    input  logic [31:0] rvfi_load_mem_rdata,
+    // for store_rs
+    input  logic [31:0] rvfi_store_mem_addr,
+    input  logic [ 3:0] rvfi_store_mem_wmask,
+    input  logic [31:0] rvfi_store_mem_wdata,
+    // for rvfi to read rs1_v and rs2_v
     output logic [ 4:0] rvfi_rs1_s_tail,
-    output logic [ 4:0] rvfi_rs2_s_tail
+    output logic [ 4:0] rvfi_rs2_s_tail,
+
+    // stall everything if there's store instruction in ROB
+    output logic rob_store_in_flight,
+
+    // data memory connections for store instructions
+    output logic [31:0] dmem_addr,
+    output logic [ 3:0] dmem_wmask,
+    output logic [31:0] dmem_wdata
 );
 
   localparam MAX_NUM_ELEMS = 2 ** ROB_DEPTH;
@@ -97,6 +114,9 @@ module ROB
   logic [31:0] rvfi_mem_rdata_tail;
   logic [31:0] rvfi_mem_wdata_tail;
 
+  // for store execution state
+  logic store_start;
+
   always_comb begin
     // check if current line is empty (no instruction in the line)
     rob_full = '0;
@@ -124,6 +144,18 @@ module ROB
     end
     pc_branch = rvfi_pc_next_arr[tail];
     order_branch = rvfi_order_arr[tail] + 64'h1;
+
+    // for store instruction
+    rob_store_in_flight = '0;
+    for (int i = 0; i < MAX_NUM_ELEMS; i++) begin
+      if (valid_arr[i] && (rvfi_inst_arr[i][6:0] == store_opcode)) begin
+        rob_store_in_flight = '1;
+      end
+    end
+    // make store request
+    dmem_addr  = rvfi_mem_addr_tail & 32'hfffffffc;
+    dmem_wmask = rvfi_mem_wmask_tail & {4{~store_start}};
+    dmem_wdata = rvfi_mem_wdata_tail;
   end
 
   always_ff @(posedge clk) begin
@@ -152,7 +184,10 @@ module ROB
         valid_arr[tail] <= 1'b0;
         ready_arr[tail] <= 1'b0;
         branch_take_arr[tail] <= '0;
+        rvfi_mem_wmask_arr[tail] <= '0;
+        rvfi_mem_rmask_arr[tail] <= '0;
         tail <= tail + 1'b1;
+        store_start <= 1'b0;
       end
 
       for (int i = 0; i < CDB_SIZE; ++i) begin
@@ -164,6 +199,20 @@ module ROB
               branch_take_arr[cdb_rob[i]]  <= '1;
               rvfi_pc_next_arr[cdb_rob[i]] <= cdb_branch_pc;
             end
+          end
+          if (rvfi_inst_arr[cdb_rob[i]][6:0] == load_opcode) begin
+            rvfi_mem_addr_arr[cdb_rob[i]]  <= rvfi_load_mem_addr;
+            rvfi_mem_rmask_arr[cdb_rob[i]] <= rvfi_load_mem_rmask;
+            rvfi_mem_rdata_arr[cdb_rob[i]] <= rvfi_load_mem_rdata;
+            rvfi_mem_wmask_arr[cdb_rob[i]] <= '0;
+            rvfi_mem_wdata_arr[cdb_rob[i]] <= '0;
+          end
+          if (rvfi_inst_arr[cdb_rob[i]][6:0] == store_opcode) begin
+            rvfi_mem_addr_arr[cdb_rob[i]]  <= rvfi_store_mem_addr;
+            rvfi_mem_rmask_arr[cdb_rob[i]] <= '0;
+            rvfi_mem_rdata_arr[cdb_rob[i]] <= '0;
+            rvfi_mem_wmask_arr[cdb_rob[i]] <= rvfi_store_mem_wmask;
+            rvfi_mem_wdata_arr[cdb_rob[i]] <= rvfi_store_mem_wdata;
           end
         end
       end
@@ -189,6 +238,10 @@ module ROB
         rvfi_mem_wdata_arr[head] <= '0;
         branch_take_arr[head] <= '0;
         head <= head + 1'b1;
+      end
+
+      if (!store_start && rvfi_inst_tail[6:0] == store_opcode && rob_ready) begin
+        store_start <= 1'b1;
       end
     end
   end

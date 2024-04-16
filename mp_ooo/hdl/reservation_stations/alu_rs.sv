@@ -218,16 +218,16 @@ module alu_rs
     cdb_alu_rs_valid = '0;
     cdb_alu_rs_rob = '0;
     // execution logic
-    for (int i = 0; i < ALU_RS_NUM_ELEM; i++) begin
+    for (int unsigned i = 0; i < ALU_RS_NUM_ELEM; i++) begin
       // valied && ready, then execute and finish in the same cycle
-      if (!alu_rs_available[(i+counter)&3'b111]) begin
-        if (rs1_ready_arr[(i+counter)&3'b111] && rs2_ready_arr[(i+counter)&3'b111]) begin
+      if (!alu_rs_available[(ALU_RS_DEPTH)'(i+counter)]) begin
+        if (rs1_ready_arr[(ALU_RS_DEPTH)'(i+counter)] && rs2_ready_arr[(ALU_RS_DEPTH)'(i+counter)]) begin
           // signal pop in the next cycle
           alu_rs_pop = '1;
-          alu_rs_pop_index = (3)'(i + counter) & 3'b111;
+          alu_rs_pop_index = (ALU_RS_DEPTH)'(i + counter);
           // signal for cdb
           cdb_alu_rs_valid = '1;
-          cdb_alu_rs_rob = target_rob_arr[(i+counter)&3'b111];
+          cdb_alu_rs_rob = target_rob_arr[(ALU_RS_DEPTH)'(i+counter)];
           break;
         end
       end

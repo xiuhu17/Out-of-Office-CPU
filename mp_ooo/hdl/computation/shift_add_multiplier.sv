@@ -1,5 +1,5 @@
 module shift_add_multiplier #(
-    parameter int OPERAND_WIDTH = 32
+    parameter int unsigned OPERAND_WIDTH = 32
 ) (
     input logic clk,
     input logic rst,
@@ -34,7 +34,7 @@ module shift_add_multiplier #(
     DONE
   }
       curr_state, next_state;
-  localparam int OP_WIDTH_LOG = $clog2(OPERAND_WIDTH);
+  localparam int unsigned OP_WIDTH_LOG = $clog2(OPERAND_WIDTH);
   logic [ OP_WIDTH_LOG-1:0] counter;
   logic [OPERAND_WIDTH-1:0] b_reg;
   logic [2*OPERAND_WIDTH-1:0]
