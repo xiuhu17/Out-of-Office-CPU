@@ -1,0 +1,7 @@
+1.
+    reformat load/store 
+
+2.
+    improve cache with original performance but still avoid comb_loop
+        (issued caused by sending imem_rqst when imem_resp == 1)
+        

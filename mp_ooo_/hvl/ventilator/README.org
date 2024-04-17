@@ -1,0 +1,94 @@
+#+title: Ventilator
+#+subtitle: A Verilator Testing Setup
+
+#+begin_quote
+NOTE: THIS TESTING SETUP IS ONLY FOR PERSONAL USE. PASSING OR FAILING A TEST ON VERILATOR HOLDS NO WEIGHT ON YOUR GRADE.
+#+end_quote
+
+* Why use this?
+One of the biggest gripes we tend to have with VCS is its runtime - VCS does a lot of event management under the hood, and as a result takes a very long time to simulate big programs like Coremark. However in ECE 411, when we want to see how good our architectural changes are in terms of IPC, this can be prohibitive in testing.
+
+Enter Verilator! By simulating your design on /only/ clock edges, it manages to cut down simulation time significantly - like "running Coremark in 3 seconds" significantly.
+
+There are tradeoffs to consider here - Verilator only supports dual-state simulation (0s and 1s), and it doesn't support a lot of advanced SystemVerilog constructs that VCS might. As a result, if your SV does not meet lint standards (which is likely will not initially), you will have to go back and fix your HDL to meet Verilator standards. However in return, you receive much faster simulation times when testing extra credit or performing design space explorations.
+
+Additionally, since Verilator is open source, */you are able to run Verilator on your local machines/*. There are some files that you will need to generate on EWS to do so, and we will discuss this in the "work from home" section, but this can be a game-changer for students with bad internet connections or trying to work from home.
+
+* Requirements
+You will need to install the =verilator= program on your system. If you choose to generate waveforms, then you will need to install the =gtkwave= program. If you are following this guide on EWS, then these programs may not be available yet - as such, you will need to follow this guide on your home computer. If you are on Windows, then it is advised to use WSL to follow along.
+
+* Initial Setup
+Unfortunately, there is some conflict between the LRM support that Verilator and VCS support - as a result, you will need to restructure your =hvl= directory so that Verilator does not detect any VCS-only files.
+
+With the exception of the below listed files, please move every other file in the =hvl= directory into a subdirectory called =vcs= - this will not affect how your normal VCS tests run, but will make sure that Verilator doesn't freak about simulation constructs.
+
+#+begin_src 
+mon_itf.sv
+rvfimon.v
+rvfi_reference.json
+rvfi_reference.svh (may not exist, that is ok)
+#+end_src
+
+You will now need to create =synth/clock_period.txt= if you have not already - please enter your target clock period (in picoseconds). Here is my clock_period.txt file for reference.
+
+#+begin_src 
+ ρ risc-vi > cat synth/clock_period.txt 
+1250
+ ρ risc-vi >
+#+end_src
+
+Finally, change the module header in =rvfimon.v= to the following. This is done to avoid a filename issue.
+
+#+begin_src verilog
+/* verilator lint_off DECLFILENAME */
+module riscv_formal_monitor_rv32imc (
+/* verilator lint_on DECLFILENAME */
+#+end_src
+
+You will want to do something similar in =pkg/types.sv=.
+
+Verilator can be rather pedantic when it comes to SystemVerilog style due to how it works internally - as a result, there is a high chance that you will run into many errors and/or warnings when first running Verilator. If you are relatively confident in your code style, you may add some of the following flags to the =verilator= run in =ventilator.sh=.
+
+#+begin_src 
+-Wno-fatal                 // Disable fatal exit on warnings
+-Wno-lint                  // Disable all lint warnings
+-Wno-style                 // Disable all style warnings
+#+end_src
+
+However these flags have been known to cause compilation and runtime errors with Verilator, which could otherwise be avoided by correcting warnings.
+
+** Superscalar
+The tooling given to you has superscalar support! In the =verilator_tb.sv= file, there is a parameter called =SUPERSCALAR= - this refers to whether your processor will attempt to commit multiple ROB entries at once using a multi-channel RVFI. For now, ensure that this parameter is set to 0. In the near future, when =rvfimon.v= is made multichannel, this section will be updated with superscalar instructions. Note that the =ventilator_monitor.sv= does not have multichannel support either.
+
+* Usage
+You will first need to ensure that the =sram/output= directory contains the necessary verilog files for the simulation model. If you are working on a local machine, this can be done by going through the make process on EWS and then copying the =output= directory locally.
+
+Along a similar vein, you will need a =.lst= file for the code you would like to run. This can be obtained by using the =bin/generate_memory_file.sh= script - this is also best done on EWS, since the RISC-V tools are readily available there. Once this has been done, copy your memory file locally.
+
+At this point, you should have all the tools necessary to run Verilator! You can now go into the main directory of your repository and run the following.
+
+#+begin_src sh
+./ventilator.sh "<path to lst file>"
+#+end_src
+
+This will run your program in Verilator with no traces produced. Since Verilator generates VCD traces, its traces are very large. Coremark alone can generate up to 15GB of traces for a basic superscalar pipeline. However, if you look at the =sim= directory, you should see a file called =progress.ansi= formatted as follows:
+
+#+begin_src 
+COMMIT     1000 -- CYCLES:     3113 -- IPC 1000: 0.321234 -- CUM IPC: 0.321234
+COMMIT     2000 -- CYCLES:     7715 -- IPC 1000: 0.217297 -- CUM IPC: 0.259235
+COMMIT     3000 -- CYCLES:    10750 -- IPC 1000: 0.329489 -- CUM IPC: 0.279070
+...
+#+end_src
+
+This file tells you on what cycle certain commits completed, what the IPC was for the last 1000 commits, and what the current cumulative IPC of your program is. We recommend using this file in conjuction with other logging mechanisms to determine a "region of interest", and dump traces for those cycles specifically. For example, let's say that I'm curious to see what's going on in my pipeline for the second 1000 commits - we can see that the cycle range for that is 3113 to 7715. I can dump traces for these commits specifically by running the following:
+
+#+begin_src sh
+./ventilator.sh "<path to lst file>" 3113 7715
+#+end_src
+
+You will now see a VCD file in the =sim= directory. This can be opened with =gtkwave= or any other digital file viewer.
+
+* Final Comments
+Verilator is a great tool to use for additional benchmarking and some basic at-home debug, but it can by no means be used as a singular or exhaustive simulation tool.
+
+Furthermore, note that the memory model provided in =top_tb.cpp= is a replica of the original DRAM model you were given - not the competition model that supports multiple outstanding memory requests. You may need to modify this model to replicate the behavior of competition memory once you update your processor. Furthermore, since this is a single-threaded approximation of VCS's simulation models, you may notice minor differences in total simulation time between a Verilator run and a VCS run.
