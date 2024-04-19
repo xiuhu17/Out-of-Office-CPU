@@ -1,0 +1,79 @@
+module load_buffer
+import rv32i_types::*;
+#(
+    parameter STORE_BUF_DEPTH = 3,
+    parameter ROB_DEPTH = 3,
+    parameter STORE_BUF_SIZE = 4
+) 
+(   
+    input logic clk,
+    input logic rst,
+
+    input logic dmem_resp,
+    
+    input logic load_rs_valid,
+    input logic load_rs_ready,
+    input logic [63:0] load_rs_order,
+
+    input logic store_rs_valid,
+    input logic store_rs_ready,
+    input logic [63:0] store_rs_order,
+
+    input logic [31:0] load_rs_raddr,
+    input logic [3:0] load_rs_rmask,
+
+    input logic store_buf_valid[STORE_BUF_SIZE],
+    input logic [31:0] store_buf_waddr[STORE_BUF_SIZE],
+    input logic [3:0] store_buf_wmask[STORE_BUF_SIZE],
+    input logic [31:0] store_buf_wdata[STORE_BUF_SIZE],
+
+    input logic [ROB_DEPTH-1:0] transfer_r_rob,
+
+    output logic cdb_load_rs_valid,
+    output logic [31:0] cdb_load_rs_v,
+    output logic [ROB_DEPTH-1:0] cdb_load_rs_rob
+);
+
+    // three conditions
+    // fully forwarding || half forwarding and reading dmem || read dmem 
+
+    // stay inside store_queue, load_rs until dmem_resp
+
+    // load need to write to CDB ---> other rs, rob
+    // load can executed out of order
+
+    // same thing for store buffer,
+    // until write into memory, then we could pop from store buffer
+
+    // we need to be notified whether the cache is executing
+    // also need an arbiter if two mem op are available in the same time
+
+
+    // we need to change the cache design
+    //      manually mask the lower 40
+    //      support non continuous request, that is, add register to store the request
+
+
+    // when compared address for forwarding, we need to mask the lower 40s
+    //      also pay attention to the mask 
+
+
+    // pay attention when write to dmem (commit) and read from dmem same time
+
+    // pay attention when store_pop and issue_store_rs_tail happens at the same time
+
+
+    // resp and rqst ame cycle, cache support
+
+
+    // when branch occurs, only move_fetch == 1, then rob pop
+
+    // arbiter for instr_cache and data_cache
+    // arbiter for load & store inside data_cache
+module arbiter();
+
+
+    endmodule
+
+
+

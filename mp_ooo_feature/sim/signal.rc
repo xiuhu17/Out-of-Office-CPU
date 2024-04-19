@@ -1,0 +1,250 @@
+Magic 271485
+Revision Verdi_R-2020.12-SP1-1
+
+; Window Layout <x> <y> <width> <height> <signalwidth> <valuewidth>
+viewPort 0 25 1914 1131 322 137
+
+; File list:
+; openDirFile [-d delimiter] [-s time_offset] [-rf auto_bus_rule_file] path_name file_name
+openDirFile -d / "" "/home/zijunz6/411/mp_ooo/sim/sim/dump.fsdb"
+
+; file time scale:
+; fileTimeScale ### s|ms|us|ns|ps
+
+; signal spacing:
+signalSpacing 5
+
+; windowTimeUnit is used for zoom, cursor & marker
+; waveform viewport range
+zoom 476.610588 588.180396
+cursor 565.000000
+marker 0.000000
+
+; user define markers
+; userMarker time_pos marker_name color linestyle
+; visible top row signal index
+top 3
+; marker line index
+markerPos 118
+
+; event list
+; addEvent event_name event_expression
+; curEvent event_name
+
+
+
+COMPLEX_EVENT_BEGIN
+
+
+COMPLEX_EVENT_END
+
+
+
+; toolbar current search type
+; curSTATUS search_type
+curSTATUS ByChange
+
+
+addGroup "Top-level"
+activeDirFile "" "/home/zijunz6/411/mp_ooo/sim/sim/dump.fsdb"
+addSignal -h 15 /top_tb/dut/clk
+addSignal -h 15 -holdScope rst
+addSignal -h 15 -holdScope imem_addr[31:0]
+addSignal -h 15 -holdScope imem_rdata[31:0]
+addSignal -h 15 -holdScope imem_resp
+addSignal -h 15 -holdScope imem_rmask[3:0]
+addSignal -h 15 -holdScope dmem_addr[31:0]
+addSignal -h 15 -holdScope dmem_rmask[3:0]
+addSignal -h 15 -holdScope dmem_wmask[3:0]
+addSignal -h 15 -holdScope dmem_rdata[31:0]
+addSignal -h 15 -holdScope dmem_wdata[31:0]
+addSignal -h 15 -holdScope dmem_resp
+addGroup "Fetch" -e FALSE
+addSignal -h 15 /top_tb/dut/instruction_queue/instr_full
+addSignal -h 15 -holdScope instr_arr[0:15]
+addSignal -h 15 -holdScope valid_arr[0:15]
+addGroup "Instruction Queue" -e FALSE
+addSignal -h 15 /top_tb/dut/instruction_queue/instr_pop
+addSignal -h 15 -holdScope instr_arr[0:15]
+addSignal -h 15 -holdScope issue_funct3[2:0]
+addSignal -h 15 -holdScope issue_funct7[6:0]
+addSignal -h 15 -holdScope issue_imm[31:0]
+addSignal -h 15 -holdScope issue_instr[31:0]
+addSignal -h 15 -holdScope issue_opcode[6:0]
+addSignal -h 15 -holdScope issue_order[63:0]
+addSignal -h 15 -holdScope issue_pc[31:0]
+addSignal -h 15 -holdScope issue_pc_next[31:0]
+addSignal -h 15 -holdScope issue_rd_s[4:0]
+addSignal -h 15 -holdScope issue_rs1_s[4:0]
+addSignal -h 15 -holdScope issue_rs2_s[4:0]
+addGroup "Issue"
+addSignal -h 15 /top_tb/dut/issue/issue_valid
+addSignal -h 15 -holdScope alu_rs_issue
+addSignal -h 15 -holdScope branch_rs_issue
+addSignal -h 15 -holdScope mul_rs_issue
+addSignal -h 15 -holdScope load_rs_issue
+addSignal -h 15 -holdScope store_rs_issue
+addGroup "ALU_RS" -e FALSE
+addSignal -h 15 /top_tb/dut/alu_rs/opcode_arr[0:7]
+addSignal -h 15 -holdScope funct3_arr[0:7]
+addSignal -h 15 -holdScope funct7_arr[0:7]
+addSignal -h 15 -holdScope rs1_ready_arr[0:7]
+addSignal -h 15 -holdScope rs1_rob_arr[0:7]
+addSignal -h 15 -holdScope rs1_v_arr[0:7]
+addSignal -h 15 -holdScope rs2_ready_arr[0:7]
+addSignal -h 15 -holdScope rs2_rob_arr[0:7]
+addSignal -h 15 -holdScope rs2_v_arr[0:7]
+addSignal -h 15 -holdScope target_rob_arr[0:7]
+addSignal -h 15 -holdScope exe_a[31:0]
+addSignal -h 15 -holdScope exe_b[31:0]
+addSignal -h 15 -holdScope exe_alu_op[2:0]
+addSignal -h 15 -holdScope exe_alu_f[31:0]
+addSignal -h 15 -holdScope exe_cmp_f
+addSignal -h 15 -holdScope exe_alu_valid
+addSignal -h 15 -holdScope exe_cmp_valid
+addGroup "CDB" -e FALSE
+addSignal -expanded -h 15 /top_tb/dut/CDB/cdb_rd_v[0:4]
+addSignal -h 15 -holdScope cdb_rd_v[0][31:0]
+addSignal -h 15 -holdScope cdb_rd_v[1][31:0]
+addSignal -h 15 -holdScope cdb_rd_v[2][31:0]
+addSignal -h 15 -holdScope cdb_rd_v[3][31:0]
+addSignal -h 15 -holdScope cdb_rd_v[4][31:0]
+addSignal -expanded -h 15 -holdScope cdb_rob[0:4]
+addSignal -h 15 -holdScope cdb_rob[0][3:0]
+addSignal -h 15 -holdScope cdb_rob[1][3:0]
+addSignal -h 15 -holdScope cdb_rob[2][3:0]
+addSignal -h 15 -holdScope cdb_rob[3][3:0]
+addSignal -h 15 -holdScope cdb_rob[4][3:0]
+addSignal -expanded -h 15 -holdScope cdb_valid[0:4]
+addSignal -h 15 -holdScope cdb_valid[0]
+addSignal -h 15 -holdScope cdb_valid[1]
+addSignal -h 15 -holdScope cdb_valid[2]
+addSignal -h 15 -holdScope cdb_valid[3]
+addSignal -h 15 -holdScope cdb_valid[4]
+addGroup "ROB"
+addSignal -h 15 /top_tb/dut/ROB/tail[3:0]
+addSignal -h 15 -holdScope head[3:0]
+addSignal -h 15 -holdScope valid_arr[0:15]
+addSignal -h 15 -holdScope rd_s_arr[0:15]
+addSignal -h 15 -holdScope rd_v_arr[0:15]
+addSignal -h 15 -holdScope ready_arr[0:15]
+addSignal -h 15 -holdScope rvfi_mem_addr_arr[0:15]
+addSignal -h 15 -holdScope rvfi_mem_rdata_arr[0:15]
+addSignal -h 15 -holdScope rvfi_mem_rmask_arr[0:15]
+addSignal -h 15 -holdScope rvfi_mem_wdata_arr[0:15]
+addSignal -h 15 -holdScope rvfi_mem_wmask_arr[0:15]
+addGroup "RVFI"
+addSignal -h 15 /top_tb/dut/ROB/rob_pop
+addSignal -h 15 -holdScope rvfi_inst_tail[31:0]
+addSignal -h 15 -holdScope rvfi_order_tail[63:0]
+addSignal -h 15 -holdScope rvfi_pc_tail[31:0]
+addSignal -h 15 -holdScope rvfi_pc_next_tail[31:0]
+addSignal -h 15 -holdScope rvfi_rs1_s_tail[4:0]
+addSignal -h 15 -holdScope rvfi_rs2_s_tail[4:0]
+addSignal -h 15 -holdScope rvfi_rd_s_tail[4:0]
+addSignal -h 15 /top_tb/dut/regfile_scoreboard/rvfi_rs1_v_tail[31:0]
+addSignal -h 15 -holdScope rvfi_rs2_v_tail[31:0]
+addSignal -h 15 /top_tb/dut/ROB/rvfi_rd_v_tail[31:0]
+addSignal -h 15 -holdScope rvfi_mem_addr_tail[31:0]
+addSignal -h 15 -holdScope rvfi_mem_rdata_tail[31:0]
+addSignal -h 15 -holdScope rvfi_mem_rmask_tail[3:0]
+addSignal -h 15 -holdScope rvfi_mem_wdata_tail[31:0]
+addSignal -h 15 -holdScope rvfi_mem_wmask_tail[3:0]
+addGroup "regfile_scoreboard" -e FALSE
+addSignal -h 15 /top_tb/dut/regfile_scoreboard/register_arr[0:31]
+addSignal -h 15 -holdScope scoreboard_arr[0:31]
+addSignal -h 15 -holdScope scoreboard_valid_arr[0:31]
+addGroup "branch"
+addGroup "branch timing" -e FALSE
+addSignal -h 15 /top_tb/dut/flush_fsm/curr_state
+addGroup "RVFI_DMEM" -e FALSE
+addSignal -h 15 /top_tb/dut/ROB/rvfi_mem_addr_tail[31:0]
+addSignal -h 15 -holdScope rvfi_mem_rdata_tail[31:0]
+addSignal -h 15 -holdScope rvfi_mem_rmask_tail[3:0]
+addSignal -h 15 -holdScope rvfi_mem_wdata_tail[31:0]
+addSignal -h 15 -holdScope rvfi_mem_wmask_tail[3:0]
+addGroup "Load_RS"
+addSignal -h 15 /top_tb/dut/load_rs/load_rs_pop
+addSignal -h 15 -holdScope load_funct3_executing[2:0]
+addSignal -h 15 -holdScope dmem_addr[31:0]
+addSignal -h 15 -holdScope dmem_rmask[3:0]
+addSignal -h 15 -holdScope dmem_rdata[31:0]
+addSignal -h 15 -holdScope dmem_resp
+addSignal -h 15 -holdScope load_executing
+addSignal -h 15 -holdScope load_start
+addGroup "Data_Cache_Arbiter" -e FALSE
+addSignal -h 15 /top_tb/dut/data_cache_arbiter/data_cache_store_rs_wmask[3:0]
+addSignal -h 15 -holdScope data_cache_load_rs_rmask[3:0]
+addSignal -h 15 -holdScope data_cache_addr[31:0]
+addSignal -h 15 -holdScope data_cache_rmask[3:0]
+addSignal -h 15 -holdScope data_cache_wdata[31:0]
+addSignal -h 15 -holdScope data_cache_wmask[3:0]
+addGroup "Store_RS"
+addSignal -h 15 /top_tb/dut/store_rs/store_rs_pop
+addSignal -h 15 -holdScope store_rs_pop_index[2:0]
+addSignal -h 15 -holdScope store_rs_available[0:7]
+addSignal -expanded -h 15 -holdScope target_rob_arr[0:7]
+addSignal -h 15 -holdScope target_rob_arr[0][3:0]
+addSignal -h 15 -holdScope target_rob_arr[1][3:0]
+addSignal -h 15 -holdScope target_rob_arr[2][3:0]
+addSignal -h 15 -holdScope target_rob_arr[3][3:0]
+addSignal -h 15 -holdScope target_rob_arr[4][3:0]
+addSignal -h 15 -holdScope target_rob_arr[5][3:0]
+addSignal -h 15 -holdScope target_rob_arr[6][3:0]
+addSignal -h 15 -holdScope target_rob_arr[7][3:0]
+addSignal -h 15 -holdScope rs1_ready_arr[0:7]
+addSignal -h 15 -holdScope rs2_ready_arr[0:7]
+addSignal -h 15 -holdScope rvfi_store_mem_addr[31:0]
+addSignal -h 15 -holdScope rvfi_store_mem_wdata[31:0]
+addSignal -h 15 -holdScope rvfi_store_mem_wmask[3:0]
+addGroup "G16"
+
+; getSignalForm Scope Hierarchy Status
+; active file of getSignalForm
+activeDirFile "" "/home/zijunz6/411/mp_ooo/sim/sim/dump.fsdb"
+
+GETSIGNALFORM_SCOPE_HIERARCHY_BEGIN
+getSignalForm close
+
+"/cache_types"
+"/rv32i_types"
+"/top_tb"
+"/top_tb/dut"
+"/top_tb/dut/CDB"
+"/top_tb/dut/ROB"
+"/top_tb/dut/alu_rs"
+"/top_tb/dut/fetch"
+"/top_tb/dut/instruction_queue"
+"/top_tb/dut/load_rs"
+"/top_tb/dut/regfile_scoreboard"
+"/top_tb/dut/store_rs"
+
+SCOPE_LIST_BEGIN
+"/cache_types"
+"/rv32i_types"
+"/top_tb"
+"/top_tb/bmem_itf"
+"/top_tb/dut"
+"/top_tb/dut/instruction_queue"
+"/top_tb/dut/instruction_queue/unnamed$$_0"
+"/top_tb/dut/mul_rs"
+"/top_tb/dut/regfile_scoreboard"
+"/top_tb/mem"
+"/top_tb/dut/CDB"
+"/top_tb/dut/ROB"
+"/top_tb/dut/fetch"
+"/top_tb/dut/fetch_fsm"
+"/top_tb/dut/flush_fsm"
+"/top_tb/dut/alu_rs"
+"/top_tb/dut/commit"
+"/top_tb/dut/issue"
+"/top_tb/dut/CDB/unnamed$$_0"
+"/top_tb/dut/load_rs"
+"/top_tb/dut/data_cache_arbiter"
+"/top_tb/dut/store_rs"
+"/top_tb/dut/load_rs/unnamed$$_0"
+SCOPE_LIST_END
+
+GETSIGNALFORM_SCOPE_HIERARCHY_END
+
+
