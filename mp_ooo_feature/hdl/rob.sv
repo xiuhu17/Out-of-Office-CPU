@@ -63,7 +63,18 @@ module ROB
     input  logic [31:0] rvfi_store_mem_wdata,
     // for rvfi to read rs1_v and rs2_v
     output logic [ 4:0] rvfi_rs1_s_tail,
-    output logic [ 4:0] rvfi_rs2_s_tail
+    output logic [ 4:0] rvfi_rs2_s_tail,
+
+    // stall everything if there's store instruction in ROB
+    output logic rob_store_in_flight,
+
+    // data memory connections for store instructions
+    output logic [31:0] dmem_addr,
+    output logic [ 3:0] dmem_wmask,
+    output logic [31:0] dmem_wdata,
+
+    // output status of store execution
+    output logic store_executing
 );
 
   localparam MAX_NUM_ELEMS = 2 ** ROB_DEPTH;

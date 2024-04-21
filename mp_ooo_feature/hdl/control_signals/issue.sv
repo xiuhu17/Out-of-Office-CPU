@@ -12,6 +12,9 @@ module issue
     input logic alu_rs_full,
     input logic mul_rs_full,
     input logic branch_rs_full,
+    input logic load_rs_full,
+    input logic store_rs_full,
+    input logic rob_store_in_flight,
     // rob is available
     input logic rob_full,
     // output signals
@@ -21,6 +24,8 @@ module issue
     output logic alu_rs_issue,
     output logic mul_rs_issue,
     output logic branch_rs_issue,
+    output logic load_rs_issue,
+    output logic store_rs_issue,
     // ROB
     output logic rob_push,
     // scoreboard
@@ -32,6 +37,8 @@ module issue
     alu_rs_issue = '0;
     mul_rs_issue = '0;
     branch_rs_issue = '0;
+    load_rs_issue = '0;
+    store_rs_issue = '0;
     rob_push = '0;
     issue_valid = '0;
     if (!rob_full) begin
@@ -66,6 +73,30 @@ module issue
             instr_pop = '1;
             // issue to the branch reservation station
             branch_rs_issue = '1;
+            // update ROB
+            rob_push = '1;
+            // update scoreboard
+            issue_valid = '1;
+          end
+        end
+        if (!load_rs_full && !rob_store_in_flight) begin
+          if (opcode == load_opcode) begin
+            // pop from instruction queue
+            instr_pop = '1;
+            // issue to the load reservation station
+            load_rs_issue = '1;
+            // update ROB
+            rob_push = '1;
+            // update scoreboard
+            issue_valid = '1;
+          end
+        end
+        if (!store_rs_full) begin
+          if (opcode == store_opcode) begin
+            // pop from instruction queue
+            instr_pop = '1;
+            // issue to the store reservation station
+            store_rs_issue = '1;
             // update ROB
             rob_push = '1;
             // update scoreboard

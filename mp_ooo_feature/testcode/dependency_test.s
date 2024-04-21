@@ -40,8 +40,69 @@ add x6, x9, x10
 # WAR
 mul x11, x12, x13
 add x12, x1, x2
-
-
+mul x11, x12, x13
+mul x11, x12, x13
+beq x11, x11, tmp0
+mul x11, x12, x13 
+mul x11, x12, x13
+mul x11, x12, x13
+tmp0:
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+bne x11, x11, tmp1
+mul x11, x12, x13 
+mul x11, x12, x13
+mul x11, x12, x13
+tmp1:
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
+mul x11, x12, x13
 
 halt:                 
     slti x0, x0, -256

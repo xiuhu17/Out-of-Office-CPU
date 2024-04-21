@@ -236,7 +236,7 @@ module mul_rs
     end
   end
 
-  shift_add_multiplier multiplier (
+  dadda_multiplier32 multiplier (
       .clk(clk),
       .rst(rst),
       .move_flush(move_flush),

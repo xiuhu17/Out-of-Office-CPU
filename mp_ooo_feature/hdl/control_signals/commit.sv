@@ -42,6 +42,12 @@ module commit
             rob_pop = '1;
           end
         end
+        store_opcode: begin
+          commit_regfile_we = '0;
+          if (store_executing && dmem_resp) begin
+            rob_pop = '1;
+          end
+        end
         default: begin
           commit_regfile_we = '1;
           rob_pop = '1;
