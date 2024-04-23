@@ -1,6 +1,6 @@
 // DO NOT EDIT -- auto-generated from riscv-formal/monitor/generate.py
 //
-// Command line options: -i rv32imc -r 2 -a -c 8
+// Command line options: -i rv32imc -r 16 -a -c 8
 
 module riscv_formal_monitor_rv32imc (
   input clock,
@@ -3001,8 +3001,8 @@ module riscv_formal_monitor_rv32imc_rob (
     output reg [176:0] o7_data,
   output reg [15:0] errcode
 );
-  reg [240:0] buffer [0:1];
-  reg [1:0] valid;
+  reg [240:0] buffer [0:15];
+  reg [15:0] valid;
   reg [63:0] cursor;
   reg continue_flag;
 
@@ -3022,137 +3022,137 @@ module riscv_formal_monitor_rv32imc_rob (
       cursor = 0;
     end else begin
       if (i0_valid) begin
-        if (valid[i0_order[0:0]])
+        if (valid[i0_order[3:0]])
           errcode <= 60000 + i0_order[7:0];
-        buffer[i0_order[0:0]] <= {i0_data, i0_order};
-        valid[i0_order[0:0]] <= 1;
+        buffer[i0_order[3:0]] <= {i0_data, i0_order};
+        valid[i0_order[3:0]] <= 1;
       end
       if (i1_valid) begin
-        if (valid[i1_order[0:0]])
+        if (valid[i1_order[3:0]])
           errcode <= 60000 + i1_order[7:0];
-        buffer[i1_order[0:0]] <= {i1_data, i1_order};
-        valid[i1_order[0:0]] <= 1;
+        buffer[i1_order[3:0]] <= {i1_data, i1_order};
+        valid[i1_order[3:0]] <= 1;
       end
       if (i2_valid) begin
-        if (valid[i2_order[0:0]])
+        if (valid[i2_order[3:0]])
           errcode <= 60000 + i2_order[7:0];
-        buffer[i2_order[0:0]] <= {i2_data, i2_order};
-        valid[i2_order[0:0]] <= 1;
+        buffer[i2_order[3:0]] <= {i2_data, i2_order};
+        valid[i2_order[3:0]] <= 1;
       end
       if (i3_valid) begin
-        if (valid[i3_order[0:0]])
+        if (valid[i3_order[3:0]])
           errcode <= 60000 + i3_order[7:0];
-        buffer[i3_order[0:0]] <= {i3_data, i3_order};
-        valid[i3_order[0:0]] <= 1;
+        buffer[i3_order[3:0]] <= {i3_data, i3_order};
+        valid[i3_order[3:0]] <= 1;
       end
       if (i4_valid) begin
-        if (valid[i4_order[0:0]])
+        if (valid[i4_order[3:0]])
           errcode <= 60000 + i4_order[7:0];
-        buffer[i4_order[0:0]] <= {i4_data, i4_order};
-        valid[i4_order[0:0]] <= 1;
+        buffer[i4_order[3:0]] <= {i4_data, i4_order};
+        valid[i4_order[3:0]] <= 1;
       end
       if (i5_valid) begin
-        if (valid[i5_order[0:0]])
+        if (valid[i5_order[3:0]])
           errcode <= 60000 + i5_order[7:0];
-        buffer[i5_order[0:0]] <= {i5_data, i5_order};
-        valid[i5_order[0:0]] <= 1;
+        buffer[i5_order[3:0]] <= {i5_data, i5_order};
+        valid[i5_order[3:0]] <= 1;
       end
       if (i6_valid) begin
-        if (valid[i6_order[0:0]])
+        if (valid[i6_order[3:0]])
           errcode <= 60000 + i6_order[7:0];
-        buffer[i6_order[0:0]] <= {i6_data, i6_order};
-        valid[i6_order[0:0]] <= 1;
+        buffer[i6_order[3:0]] <= {i6_data, i6_order};
+        valid[i6_order[3:0]] <= 1;
       end
       if (i7_valid) begin
-        if (valid[i7_order[0:0]])
+        if (valid[i7_order[3:0]])
           errcode <= 60000 + i7_order[7:0];
-        buffer[i7_order[0:0]] <= {i7_data, i7_order};
-        valid[i7_order[0:0]] <= 1;
+        buffer[i7_order[3:0]] <= {i7_data, i7_order};
+        valid[i7_order[3:0]] <= 1;
       end
-      if (continue_flag && valid[cursor[0:0]]) begin
-        if (buffer[cursor[0:0]][63:0] != cursor)
+      if (continue_flag && valid[cursor[3:0]]) begin
+        if (buffer[cursor[3:0]][63:0] != cursor)
           errcode <= 61000 + cursor[7:0];
         o0_valid <= 1;
-        o0_order <= buffer[cursor[0:0]][63:0];
-        o0_data <= buffer[cursor[0:0]][240:64];
-        valid[cursor[0:0]] <= 0;
+        o0_order <= buffer[cursor[3:0]][63:0];
+        o0_data <= buffer[cursor[3:0]][240:64];
+        valid[cursor[3:0]] <= 0;
         cursor = cursor + 1;
       end else begin
         continue_flag = 0;
       end
-      if (continue_flag && valid[cursor[0:0]]) begin
-        if (buffer[cursor[0:0]][63:0] != cursor)
+      if (continue_flag && valid[cursor[3:0]]) begin
+        if (buffer[cursor[3:0]][63:0] != cursor)
           errcode <= 61000 + cursor[7:0];
         o1_valid <= 1;
-        o1_order <= buffer[cursor[0:0]][63:0];
-        o1_data <= buffer[cursor[0:0]][240:64];
-        valid[cursor[0:0]] <= 0;
+        o1_order <= buffer[cursor[3:0]][63:0];
+        o1_data <= buffer[cursor[3:0]][240:64];
+        valid[cursor[3:0]] <= 0;
         cursor = cursor + 1;
       end else begin
         continue_flag = 0;
       end
-      if (continue_flag && valid[cursor[0:0]]) begin
-        if (buffer[cursor[0:0]][63:0] != cursor)
+      if (continue_flag && valid[cursor[3:0]]) begin
+        if (buffer[cursor[3:0]][63:0] != cursor)
           errcode <= 61000 + cursor[7:0];
         o2_valid <= 1;
-        o2_order <= buffer[cursor[0:0]][63:0];
-        o2_data <= buffer[cursor[0:0]][240:64];
-        valid[cursor[0:0]] <= 0;
+        o2_order <= buffer[cursor[3:0]][63:0];
+        o2_data <= buffer[cursor[3:0]][240:64];
+        valid[cursor[3:0]] <= 0;
         cursor = cursor + 1;
       end else begin
         continue_flag = 0;
       end
-      if (continue_flag && valid[cursor[0:0]]) begin
-        if (buffer[cursor[0:0]][63:0] != cursor)
+      if (continue_flag && valid[cursor[3:0]]) begin
+        if (buffer[cursor[3:0]][63:0] != cursor)
           errcode <= 61000 + cursor[7:0];
         o3_valid <= 1;
-        o3_order <= buffer[cursor[0:0]][63:0];
-        o3_data <= buffer[cursor[0:0]][240:64];
-        valid[cursor[0:0]] <= 0;
+        o3_order <= buffer[cursor[3:0]][63:0];
+        o3_data <= buffer[cursor[3:0]][240:64];
+        valid[cursor[3:0]] <= 0;
         cursor = cursor + 1;
       end else begin
         continue_flag = 0;
       end
-      if (continue_flag && valid[cursor[0:0]]) begin
-        if (buffer[cursor[0:0]][63:0] != cursor)
+      if (continue_flag && valid[cursor[3:0]]) begin
+        if (buffer[cursor[3:0]][63:0] != cursor)
           errcode <= 61000 + cursor[7:0];
         o4_valid <= 1;
-        o4_order <= buffer[cursor[0:0]][63:0];
-        o4_data <= buffer[cursor[0:0]][240:64];
-        valid[cursor[0:0]] <= 0;
+        o4_order <= buffer[cursor[3:0]][63:0];
+        o4_data <= buffer[cursor[3:0]][240:64];
+        valid[cursor[3:0]] <= 0;
         cursor = cursor + 1;
       end else begin
         continue_flag = 0;
       end
-      if (continue_flag && valid[cursor[0:0]]) begin
-        if (buffer[cursor[0:0]][63:0] != cursor)
+      if (continue_flag && valid[cursor[3:0]]) begin
+        if (buffer[cursor[3:0]][63:0] != cursor)
           errcode <= 61000 + cursor[7:0];
         o5_valid <= 1;
-        o5_order <= buffer[cursor[0:0]][63:0];
-        o5_data <= buffer[cursor[0:0]][240:64];
-        valid[cursor[0:0]] <= 0;
+        o5_order <= buffer[cursor[3:0]][63:0];
+        o5_data <= buffer[cursor[3:0]][240:64];
+        valid[cursor[3:0]] <= 0;
         cursor = cursor + 1;
       end else begin
         continue_flag = 0;
       end
-      if (continue_flag && valid[cursor[0:0]]) begin
-        if (buffer[cursor[0:0]][63:0] != cursor)
+      if (continue_flag && valid[cursor[3:0]]) begin
+        if (buffer[cursor[3:0]][63:0] != cursor)
           errcode <= 61000 + cursor[7:0];
         o6_valid <= 1;
-        o6_order <= buffer[cursor[0:0]][63:0];
-        o6_data <= buffer[cursor[0:0]][240:64];
-        valid[cursor[0:0]] <= 0;
+        o6_order <= buffer[cursor[3:0]][63:0];
+        o6_data <= buffer[cursor[3:0]][240:64];
+        valid[cursor[3:0]] <= 0;
         cursor = cursor + 1;
       end else begin
         continue_flag = 0;
       end
-      if (continue_flag && valid[cursor[0:0]]) begin
-        if (buffer[cursor[0:0]][63:0] != cursor)
+      if (continue_flag && valid[cursor[3:0]]) begin
+        if (buffer[cursor[3:0]][63:0] != cursor)
           errcode <= 61000 + cursor[7:0];
         o7_valid <= 1;
-        o7_order <= buffer[cursor[0:0]][63:0];
-        o7_data <= buffer[cursor[0:0]][240:64];
-        valid[cursor[0:0]] <= 0;
+        o7_order <= buffer[cursor[3:0]][63:0];
+        o7_data <= buffer[cursor[3:0]][240:64];
+        valid[cursor[3:0]] <= 0;
         cursor = cursor + 1;
       end else begin
         continue_flag = 0;
@@ -8052,6 +8052,7 @@ module riscv_formal_monitor_rv32imc_insn_div (
       end
     end
   end
+
   assign spec_valid = rvfi_valid && !insn_padding && insn_funct7 == 7'b 0000001 && insn_funct3 == 3'b 100 && insn_opcode == 7'b 0110011;
   assign spec_rs1_addr = insn_rs1;
   assign spec_rs2_addr = insn_rs2;

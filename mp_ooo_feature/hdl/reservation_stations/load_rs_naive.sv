@@ -265,7 +265,7 @@ module load_rs_naive
     rvfi_load_mem_rmask = dmem_rmask;
     rvfi_load_mem_rdata = dmem_rdata;
     dmem_addr = rvfi_load_mem_addr & 32'hfffffffc;
-    dmem_rmask = dmem_rmask & {4{load_start}};  // mask rmask after first request
+    dmem_rmask = dmem_rmask & {4{load_start}} & {4{~move_flush}};  // mask rmask after first request
   end
 
 endmodule

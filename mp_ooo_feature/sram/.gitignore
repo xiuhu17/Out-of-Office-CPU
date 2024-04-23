@@ -1,2 +1,4 @@
 config/__pycache__
-output
+output/*/*
+!output/*/*.v
+!output/*/*.db

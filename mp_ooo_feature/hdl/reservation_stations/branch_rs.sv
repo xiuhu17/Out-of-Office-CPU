@@ -49,7 +49,7 @@ module branch_rs
 
     // output target branch_pc
     output logic cdb_branch_take,
-    output logic [31:0] cdb_branch_pc
+    output logic [31:0] cdb_branch_target_pc
 );
 
   localparam BRANCH_RS_NUM_ELEM = 2 ** BRANCH_RS_DEPTH;
@@ -228,25 +228,28 @@ module branch_rs
 
   always_comb begin
     cdb_branch_take = '0;
-    cdb_branch_pc   = '0;
+    cdb_branch_target_pc = '0;
     cdb_branch_rs_v = '0;
 
     case (opcode_arr[branch_rs_pop_index])
       jal_opcode: begin
         cdb_branch_take = '1;
-        cdb_branch_pc   = pc_arr[branch_rs_pop_index] + imm_arr[branch_rs_pop_index];
+        cdb_branch_target_pc = pc_arr[branch_rs_pop_index] + imm_arr[branch_rs_pop_index];
         cdb_branch_rs_v = pc_arr[branch_rs_pop_index] + 32'h4;
       end
       jalr_opcode: begin
         cdb_branch_take = '1;
-        cdb_branch_pc   = rs1_v_arr[branch_rs_pop_index] + imm_arr[branch_rs_pop_index];
+        cdb_branch_target_pc = rs1_v_arr[branch_rs_pop_index] + imm_arr[branch_rs_pop_index];
         cdb_branch_rs_v = pc_arr[branch_rs_pop_index] + 32'h4;
       end
       br_opcode: begin
         if (br_en) begin
           cdb_branch_take = '1;
-          cdb_branch_pc   = pc_arr[branch_rs_pop_index] + imm_arr[branch_rs_pop_index];
-        end
+          cdb_branch_target_pc = pc_arr[branch_rs_pop_index] + imm_arr[branch_rs_pop_index];
+        end else begin 
+          cdb_branch_take = '0;
+          cdb_branch_target_pc = pc_arr[branch_rs_pop_index] + 32'h4;
+        end 
       end
     endcase
   end

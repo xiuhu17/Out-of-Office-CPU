@@ -221,4 +221,12 @@ You are free to use this feature or not at your discretion. It may help performa
   <p align="center">Mixed Reads and Writes to the Same Destination</p>
 </p>
 
+## Competition Parameters
+For our competition autograder to correctly synthesize and run your processor, we need to know certian things about your cpu. Inside `options.json` there are a few parameters that you will need to set:
+- `clock` - Clock period of your processor in picoseconds (ps). Make sure your processor can synthesize at this frequency, otherwise the autograder wont run your code!
+- `m_ext` - Denotes whether your processor should run code compiled for the RISC-V M (multiply/divide) extension. Value: true/false.
+- `c_ext` - Denotes whether your processor should run code compiled for the RISC-V C (compressed) extension. Value: true/false.
+- `f_ext` - Denotes whether your processor should run code compiled for the RISC-V F (floating point) extension. Value: true/false.
+- `bmem_0_on_x` - Specifies the value banked memory should return when loading from an uninitialized address. Possibly necessary for various speculative memory execution schemes. `false`: return `X`. `true`: return `0`.
+
 Good Luck! :)

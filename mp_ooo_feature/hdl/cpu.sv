@@ -8,7 +8,11 @@ module cpu
     parameter LOAD_RS_DEPTH = 3,
     parameter STORE_RS_DEPTH = 3,
     parameter ROB_DEPTH = 4,
-    parameter CDB_SIZE = 5
+    parameter CDB_SIZE = 5,
+    parameter BTB_DEPTH = 3,
+    parameter GHR_DEPTH = 30,
+    parameter PHT_DEPTH = 10,
+    parameter BIMODAL_DEPTH = 2
 ) (
     // Explicit dual port connections when caches are not integrated into design yet (Before CP3)
     input logic clk,
@@ -67,6 +71,7 @@ module cpu
 
   // fetch fsm
   logic                 imem_rqst;
+  logic                 dmem_rqst;
 
   // fetch variables
   logic                 move_fetch;
@@ -74,6 +79,9 @@ module cpu
   logic [         63:0] order;
   logic [         31:0] pc;
   logic [         31:0] pc_next;
+
+  // btb variables
+  logic                 gshare_take;
 
   // instruction queue variables
   logic                 instr_full;
@@ -116,7 +124,7 @@ module cpu
   logic [         31:0] cdb_branch_rs_v;
   logic [ROB_DEPTH-1:0] cdb_branch_rs_rob;
   logic                 cdb_branch_take;
-  logic [         31:0] cdb_branch_pc;
+  logic [         31:0] cdb_branch_target_pc;
 
   // load_rs variales
   logic                 load_rs_full;
@@ -180,6 +188,7 @@ module cpu
   logic [31:0] commit_rd_v;
   logic [ROB_DEPTH-1:0] commit_rob;
   logic [6:0] commit_opcode;
+  logic [31:0] commit_pc;
   logic [31:0] rvfi_load_mem_addr;
   logic [3:0] rvfi_load_mem_rmask;
   logic [31:0] rvfi_load_mem_rdata;
@@ -189,8 +198,9 @@ module cpu
   logic [4:0] rvfi_rs1_s_tail;
   logic [4:0] rvfi_rs2_s_tail;
   logic flush_branch;
-  logic [31:0] pc_branch;
-  logic [63:0] order_branch;
+  logic take_branch;
+  logic [31:0] pc_branch_target;
+  logic [63:0] order_branch_target;
   logic rob_store_in_flight;
   logic store_executing;
 
@@ -222,10 +232,44 @@ module cpu
       .rst(rst),
       .imem_resp(instr_cache_resp),
       .imem_rqst(imem_rqst),
+      .dmem_resp(data_cache_resp),
+      .dmem_rqst(dmem_rqst),
       .rob_valid(rob_valid),
       .rob_ready(rob_ready),
       .flush_branch(flush_branch),
       .move_flush(move_flush)
+  );
+
+
+  btb #(
+      .BTB_DEPTH(BTB_DEPTH)
+  ) btb (
+      .clk(clk),
+      .rst(rst),
+      .rob_pop(rob_pop),
+      .take_branch(take_branch),
+      .commit_opcode(commit_opcode),
+      .commit_pc(commit_pc),
+      .commit_pc_next(pc_branch_target),
+      .gshare_take(gshare_take),
+      .fetch_pc(pc),
+      .fetch_pc_next(pc_next)
+  );
+
+  gshare #(
+      .GHR_DEPTH(GHR_DEPTH),
+      .PHT_DEPTH(PHT_DEPTH),
+      .BIMODAL_DEPTH(BIMODAL_DEPTH)
+  ) gshare (
+      .clk(clk),
+      .rst(rst),
+      .rob_pop(rob_pop),
+      .flush_branch(flush_branch),
+      .take_branch(take_branch),
+      .commit_opcode(commit_opcode),
+      .commit_pc(commit_pc),
+      .fetch_pc(pc),
+      .gshare_take(gshare_take)
   );
 
   fetch fetch (
@@ -233,8 +277,8 @@ module cpu
       .rst(rst),
       .move_fetch(move_fetch),
       .move_flush(move_flush),
-      .pc_branch(pc_branch),
-      .order_branch(order_branch),
+      .pc_branch_target(pc_branch_target),
+      .order_branch_target(order_branch_target),
       .imem_addr(instr_cache_addr),
       .imem_rmask(instr_cache_rmask),
       .imem_rqst(imem_rqst),
@@ -309,7 +353,8 @@ module cpu
       .data_cache_addr(data_cache_addr),
       .data_cache_rmask(data_cache_rmask),
       .data_cache_wmask(data_cache_wmask),
-      .data_cache_wdata(data_cache_wdata)
+      .data_cache_wdata(data_cache_wdata),
+      .dmem_rqst(dmem_rqst)
   );
 
   instruction_queue #(
@@ -327,6 +372,7 @@ module cpu
       .imem_rdata(instr_cache_rdata),
       .fetch_order(order),
       .fetch_pc(pc),
+      .fetch_pc_next(pc_next),
       .issue_order(issue_order),
       .issue_instr(issue_instr),
       .issue_pc(issue_pc),
@@ -462,7 +508,7 @@ module cpu
       .cdb_branch_rs_v(cdb_branch_rs_v),
       .cdb_branch_rs_rob(cdb_branch_rs_rob),
       .cdb_branch_take(cdb_branch_take),
-      .cdb_branch_pc(cdb_branch_pc)
+      .cdb_branch_target_pc(cdb_branch_target_pc)
   );
 
   load_rs_naive #(
@@ -560,7 +606,7 @@ module cpu
       .cdb_rob(cdb_rob),
       .cdb_rd_v(cdb_rd_v),
       .cdb_branch_take(cdb_branch_take),
-      .cdb_branch_pc(cdb_branch_pc),
+      .cdb_branch_target_pc(cdb_branch_target_pc),
       .rob_push(rob_push),
       .issue_rd_s(issue_rd_s),
       .issue_rob(issue_rob),
@@ -575,9 +621,11 @@ module cpu
       .commit_rd_v(commit_rd_v),
       .commit_rob(commit_rob),
       .commit_opcode(commit_opcode),
+      .commit_pc(commit_pc),
       .flush_branch(flush_branch),
-      .pc_branch(pc_branch),
-      .order_branch(order_branch),
+      .take_branch(take_branch),
+      .pc_branch_target(pc_branch_target),
+      .order_branch_target(order_branch_target),
       .rvfi_order(issue_order),
       .rvfi_inst(issue_instr),
       .rvfi_rs1_s(issue_rs1_s),

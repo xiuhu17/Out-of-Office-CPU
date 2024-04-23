@@ -14,12 +14,12 @@ module ROB
     output logic rob_ready,
 
     // for cdb write into rob
-    input logic                 cdb_valid      [CDB_SIZE],
-    input logic [ROB_DEPTH-1:0] cdb_rob        [CDB_SIZE],
-    input logic [         31:0] cdb_rd_v       [CDB_SIZE],
+    input logic                 cdb_valid           [CDB_SIZE],
+    input logic [ROB_DEPTH-1:0] cdb_rob             [CDB_SIZE],
+    input logic [         31:0] cdb_rd_v            [CDB_SIZE],
     // for branch
     input logic                 cdb_branch_take,
-    input logic [         31:0] cdb_branch_pc,
+    input logic [         31:0] cdb_branch_target_pc,
 
     // for instruction_issue write into rob
     input  logic                   rob_push,
@@ -39,11 +39,13 @@ module ROB
     output logic [31:0] commit_rd_v,
     output logic [ROB_DEPTH-1:0] commit_rob,
     output logic [6:0] commit_opcode,  // for commit.sv to determine regfile_we
+    output logic [31:0] commit_pc,
 
     // forward to fetch.sv
     output logic flush_branch,
-    output logic [31:0] pc_branch,
-    output logic [63:0] order_branch,
+    output logic take_branch,
+    output logic [31:0] pc_branch_target,
+    output logic [63:0] order_branch_target,
 
     // for rvfi
     input  logic [63:0] rvfi_order,
@@ -90,6 +92,7 @@ module ROB
   logic [31:0] rd_v_arr[MAX_NUM_ELEMS];
 
   // for branch take/not take
+  logic branch_flush_arr[MAX_NUM_ELEMS];
   logic branch_take_arr[MAX_NUM_ELEMS];
 
   // for rvfi
@@ -135,19 +138,24 @@ module ROB
 
     // for committing
     commit_opcode = rvfi_inst_arr[tail][6:0];
+    commit_pc = rvfi_pc_arr[tail];
     commit_rob = tail;
     commit_rd_s = rd_s_arr[tail];
     commit_rd_v = rd_v_arr[tail];
 
     // for flushing
     flush_branch = '0;
+    take_branch = '0;
     if (commit_opcode == jal_opcode || commit_opcode == jalr_opcode || commit_opcode == br_opcode) begin
-      if (branch_take_arr[tail]) begin
+      if (branch_flush_arr[tail]) begin
         flush_branch = '1;
       end
+      if (branch_take_arr[tail]) begin
+        take_branch = '1;
+      end
     end
-    pc_branch = rvfi_pc_next_arr[tail];
-    order_branch = rvfi_order_arr[tail] + 64'h1;
+    pc_branch_target = rvfi_pc_next_arr[tail];
+    order_branch_target = rvfi_order_arr[tail] + 64'h1;
 
     // for store instruction
     rob_store_in_flight = '0;
@@ -158,7 +166,7 @@ module ROB
     end
     // make store request
     dmem_addr = rvfi_mem_addr_tail & 32'hfffffffc;
-    dmem_wmask = rvfi_mem_wmask_tail & {4{store_start}};
+    dmem_wmask = rvfi_mem_wmask_tail & {4{store_start}} & {4{~move_flush}};
     dmem_wdata = rvfi_mem_wdata_tail;
 
     // store execution state
@@ -185,12 +193,14 @@ module ROB
         rvfi_mem_wmask_arr[i] <= '0;
         rvfi_mem_rdata_arr[i] <= '0;
         rvfi_mem_wdata_arr[i] <= '0;
+        branch_flush_arr[i] <= '0;
         branch_take_arr[i] <= '0;
       end
     end else begin
       if (rob_pop) begin
         valid_arr[tail] <= 1'b0;
         ready_arr[tail] <= 1'b0;
+        branch_flush_arr[tail] <= '0;
         branch_take_arr[tail] <= '0;
         rvfi_mem_wmask_arr[tail] <= '0;
         rvfi_mem_rmask_arr[tail] <= '0;
@@ -204,9 +214,12 @@ module ROB
           ready_arr[cdb_rob[i]] <= '1;
           rd_v_arr[cdb_rob[i]]  <= cdb_rd_v[i];
           if (rvfi_inst_arr[cdb_rob[i]][6:0] == br_opcode || rvfi_inst_arr[cdb_rob[i]][6:0] == jal_opcode || rvfi_inst_arr[cdb_rob[i]][6:0] == jalr_opcode) begin
-            if (cdb_branch_take && (rvfi_pc_next_arr[cdb_rob[i]] != cdb_branch_pc)) begin
-              branch_take_arr[cdb_rob[i]]  <= '1;
-              rvfi_pc_next_arr[cdb_rob[i]] <= cdb_branch_pc;
+            if ((rvfi_pc_next_arr[cdb_rob[i]] != cdb_branch_target_pc)) begin
+              branch_flush_arr[cdb_rob[i]] <= '1;
+              rvfi_pc_next_arr[cdb_rob[i]] <= cdb_branch_target_pc;
+            end
+            if (cdb_branch_take) begin
+              branch_take_arr[cdb_rob[i]] <= '1;
             end
           end
           if (rvfi_inst_arr[cdb_rob[i]][6:0] == load_opcode) begin
@@ -245,6 +258,7 @@ module ROB
         rvfi_mem_wmask_arr[head] <= '0;
         rvfi_mem_rdata_arr[head] <= '0;
         rvfi_mem_wdata_arr[head] <= '0;
+        branch_flush_arr[head] <= '0;
         branch_take_arr[head] <= '0;
         head <= head + 1'b1;
       end

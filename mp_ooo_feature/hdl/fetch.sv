@@ -5,8 +5,8 @@ module fetch (
     input logic move_fetch,
 
     input logic move_flush,
-    input logic [31:0] pc_branch,
-    input logic [63:0] order_branch,
+    input logic [31:0] pc_branch_target,
+    input logic [63:0] order_branch_target,
 
     output logic [31:0] imem_addr,
     output logic [3:0] imem_rmask,
@@ -14,7 +14,7 @@ module fetch (
 
     output logic [31:0] pc,
     output logic [63:0] order,
-    output logic [31:0] pc_next
+    input logic [31:0] pc_next
 );
   // registers
   logic [31:0] pc_curr;
@@ -25,7 +25,6 @@ module fetch (
   always_comb begin
     pc = pc_curr;
     order = order_curr;
-    pc_next = pc + 32'h4;
     order_next = order + 64'h1;
     imem_addr = pc;
   end
@@ -47,8 +46,8 @@ module fetch (
       order_curr <= '0;
     end else begin
       if (move_flush) begin
-        pc_curr <= pc_branch;
-        order_curr <= order_branch;
+        pc_curr <= pc_branch_target;
+        order_curr <= order_branch_target;
       end else if (move_fetch) begin
         pc_curr <= pc_next;
         order_curr <= order_next;

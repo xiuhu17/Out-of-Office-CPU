@@ -6,7 +6,7 @@
 
 module banked_memory
 #(
-    parameter     MEMFILE                       = "memory.lst",
+    parameter     MEMFILE                       = "memory_32.lst",
     parameter int DRAM_TIMMING_CL               = 20,   // In ns, aka tCAS, column access time
     parameter int DRAM_TIMMING_tRCD             = 20,   // in ns, active to r/w delay
     parameter int DRAM_TIMMING_tRP              = 20,   // in ns, precharge time

@@ -3,19 +3,11 @@
 # Settings
 # Available options are rv32i, rv32ic, rv32im, rv32imc
 ARCH=rv32im
-# Bytes per memory address. Note that you may need to change this as your memory model evolves throughout the MP
-# or you use memories from past MPs for testing purposes.
-#   Magic Memory = 32 bits per address -> 4 byte ADDRESSABILITY
-#   Burst Memory = 64 bits per address -> 8 byte ADDRESSABILITY
-#   Simple Memory = 256 bits per address -> 32 byte ADDRESSABILITY
-#   Banked Memory = 256 bits per address -> 32 byte ADDRESSABILITY
-ADDRESSABILITY=32
 
 # some other settings
 SH_LOCATION=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 WORK_DIR=$SH_LOCATION/../sim/bin
 TARGET_DIR=$SH_LOCATION/../sim/sim
-TARGET_FILE=$TARGET_DIR/memory.lst
 ASSEMBLER=riscv32-unknown-elf-gcc
 OBJCOPY=riscv32-unknown-elf-objcopy
 OBJDUMP=riscv32-unknown-elf-objdump
@@ -84,28 +76,28 @@ function log2 {
 
 function egenerate {
     # Fail if the target directory doesn't exist
-    if [[ ! -d "$(dirname "$TARGET_FILE")" ]]; then
-        echo -e "${RED}[ERROR]${NC} Directory $(dirname "$TARGET_FILE") does not exist. >&2"
+    if [[ ! -d "$(dirname "$1")" ]]; then
+        echo -e "${RED}[ERROR]${NC} Directory $(dirname "$1") does not exist. >&2"
         exit 4
     fi
 
-    if [ -e "$TARGET_FILE" ]; then
-        echo -e "${ORG}[WARN]${NC}  Target file $TARGET_FILE exists. Overwriting."
-        rm "$TARGET_FILE"
+    if [ -e "$1" ]; then
+        echo -e "${ORG}[WARN]${NC}  Target file $1 exists. Overwriting."
+        rm "$1"
     fi
 
     # Write memory to file
-    z=$( log2 $ADDRESSABILITY )
+    z=$( log2 $2 )
     result=$(( MEM_LST_START_ADDR >> $z ))
     mem_start=$(printf "@%08x\n" $result)
 
     {
         echo $mem_start
-        hexdump -ve $ADDRESSABILITY'/1 "%02X " "\n"' "$BIN_FILE" \
+        hexdump -ve $2'/1 "%02X " "\n"' "$BIN_FILE" \
             | awk '{for (i = NF; i > 0; i--) printf "%s", $i; print ""}'
-    } > "$TARGET_FILE"
+    } > "$1"
 
-    echo -e "[INFO]  Wrote memory contents to $TARGET_FILE"
+    echo -e "[INFO]  Wrote memory contents to $1"
 }
 
 # Testing if assembly file
@@ -124,4 +116,7 @@ fi
 
 edisassembly
 eobjcopy
-egenerate
+
+for addressability in 1 4 8 32; do
+    egenerate $TARGET_DIR/memory_$addressability.lst $addressability
+done

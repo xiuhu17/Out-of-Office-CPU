@@ -9,27 +9,19 @@ SECTIONS
 
   . = _text_start;
 
-  .text.swinit1 : 
-  { 
+  .text.swinit1 :
+  {
     . = ALIGN(4);
     *(.text.swinit1)
   }
 
   . = .;
 
-  .text.swfin : 
-  { 
-    . = ALIGN(4);
-    *(.text.swfin)
-  }
-
-  . = .;
-
-  .text : 
+  .text :
   {
     . = ALIGN(4);
     _text_vma_start = .;
-    
+
     *(.text)
     *(.text*)
 
@@ -39,9 +31,17 @@ SECTIONS
 
   . = .;
 
-  .data : 
+  .text.swfin :
   {
     . = ALIGN(4);
+    *(.text.swfin)
+  }
+
+  . = .;
+
+  .data :
+  {
+    . = ALIGN(256);
     _data_vma_start = .;
 
     *(.*data*)
@@ -52,7 +52,7 @@ SECTIONS
 
   . = .;
 
-  .bss : 
+  .bss :
   {
     . = ALIGN(4);
     _bss_vma_start = .;
@@ -65,7 +65,7 @@ SECTIONS
 
   . = .;
 
-  .tohost : 
+  .tohost :
   {
     . = ALIGN(8);
     *(.tohost)
@@ -73,7 +73,7 @@ SECTIONS
 
   . = .;
 
-  .fromhost : 
+  .fromhost :
   {
     . = ALIGN(8);
     *(.fromhost)

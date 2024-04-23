@@ -1,5 +1,8 @@
 OBJECTS = $(notdir $(basename $(wildcard $(PWD)/config/*.py)))
 
+SHELL=/bin/bash -o pipefail
+.SHELLFLAGS += -e
+
 export PYTHONDONTWRITEBYTECODE=1
 export PYTHONUNBUFFERED=1
 

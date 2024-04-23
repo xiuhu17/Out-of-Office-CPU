@@ -3,15 +3,13 @@
 
 import subprocess
 import math
+import os
 
 FAIL = '\033[91m'
 ENDC = '\033[0m'
 
 # get from synthesis
 AREA = 1
-
-# TBD
-POWER = 1
 
 # add more performance counters here!
 perf_counters = [
@@ -31,6 +29,7 @@ perf_counters = [
     # leave these for benchmarking
     'Segment IPC',
     'Segment Time',
+    'Power',
     'Test Weight',
     'Weighted Benchmark Score', 
 ]
@@ -71,6 +70,17 @@ def run_program(prog):
     
     return True, perf_count_info
 
+def run_power(prog):
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir("../synth")
+    result = subprocess.run(['make', 
+                             'power'], stdout=subprocess.PIPE)
+    
+    power_result = subprocess.run(['python3', 
+                             'get_power.py'], stdout=subprocess.PIPE)
+    os.chdir("../sim")
+    return float(power_result.stdout.decode())
+
 def to_markdown(bench_info, full_score, filepath):
     with open(filepath, "w") as f:
         f.write(f'## Benchmark results:\n')
@@ -97,13 +107,16 @@ def main():
         print(f'Processing {benchmark}')
         prog = f'../testcode/competition_suite/{benchmark}'
         sim_passed, info = run_program(prog)
+        print(f'Running power on {benchmark}')
+        power = run_power(prog)
         if sim_passed:
-            test_score = weight * math.sqrt(AREA) * POWER * (float(info['Segment Time']))**2
+            test_score = weight * math.sqrt(AREA) * power * (float(info['Segment Time']))**2
         else:
             print(f"{FAIL}Sim failed on program {prog}, please investigate{ENDC}")
             test_score = 1e50
         info['Weighted Benchmark Score'] = test_score
         info['Test Weight'] = weight
+        info['Power'] = power
         all_bench_info[benchmark] = info
         total_score += test_score
     to_markdown(all_bench_info, total_score, 'benchmark_results.md')

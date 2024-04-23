@@ -18,6 +18,7 @@ module instruction_queue #(
     input logic [31:0] imem_rdata,
     input logic [63:0] fetch_order,
     input logic [31:0] fetch_pc,
+    input logic [31:0] fetch_pc_next,
 
     output logic [63:0] issue_order,
     output logic [31:0] issue_instr,
@@ -36,6 +37,7 @@ module instruction_queue #(
   logic [31:0] instr_arr[MAX_NUM_ELEMS];
   logic [63:0] order_arr[MAX_NUM_ELEMS];
   logic [31:0] pc_arr[MAX_NUM_ELEMS];
+  logic [31:0] pc_next_arr[MAX_NUM_ELEMS];
 
   logic [INSTR_DEPTH-1:0] valid_head;
   logic [INSTR_DEPTH-1:0] valid_tail;
@@ -56,7 +58,7 @@ module instruction_queue #(
     issue_instr = instr_arr[ready_tail];
     issue_order = order_arr[ready_tail];
     issue_pc = pc_arr[ready_tail];
-    issue_pc_next = issue_pc + 32'h4;
+    issue_pc_next = pc_next_arr[ready_tail];
   end
 
   // if full (head == tail), we do not support pop tail and push head at same cycle
@@ -84,6 +86,7 @@ module instruction_queue #(
       if (move_fetch) begin
         valid_arr[valid_head] <= 1'b1;
         pc_arr[valid_head] <= fetch_pc;
+        pc_next_arr[valid_head] <= fetch_pc_next;
         order_arr[valid_head] <= fetch_order;
         valid_head <= valid_head + 1'b1;
       end
