@@ -54,17 +54,11 @@ import rv32i_types::*;
         DMEM_R_STALL: begin
           if (dmem_resp) begin
             internal_load_rs_idx_executing <= '0;
-            if (!dmem_w_rqst && dmem_r_rqst) begin
-              internal_load_rs_idx_executing <= load_rs_idx_rqst;
-            end
           end
         end
         DMEM_W_STALL: begin
           if (dmem_resp) begin
             internal_load_rs_idx_executing <= '0;
-            if (!dmem_w_rqst && dmem_r_rqst) begin
-              internal_load_rs_idx_executing <= load_rs_idx_rqst;
-            end
           end
         end
       endcase
@@ -91,24 +85,12 @@ import rv32i_types::*;
       end
       DMEM_R_STALL: begin
         if (dmem_resp) begin
-          if (dmem_w_rqst) begin
-            next_state = DMEM_W_STALL;
-          end else if (dmem_r_rqst) begin
-            next_state = DMEM_R_STALL;
-          end else begin
             next_state = Start;
-          end
         end
       end
       DMEM_W_STALL: begin
         if (dmem_resp) begin
-          if (dmem_w_rqst) begin
-            next_state = DMEM_W_STALL;
-          end else if (dmem_r_rqst) begin
-            next_state = DMEM_R_STALL;
-          end else begin
             next_state = Start;
-          end
         end
       end
     endcase
@@ -127,25 +109,11 @@ import rv32i_types::*;
         if (dmem_resp) begin
           load_rs_pop = '1;
           load_rs_idx_executing = internal_load_rs_idx_executing;
-          if (!move_flush) begin
-            if (dmem_w_rqst) begin
-              arbiter_store_rs = '1;
-            end else if (dmem_r_rqst) begin
-              arbiter_load_rs = '1;
-            end
-          end
         end
       end
       DMEM_W_STALL: begin
         if (dmem_resp) begin
           store_rs_pop = '1;
-          if (!move_flush) begin
-            if (dmem_w_rqst) begin
-              arbiter_store_rs = '1;
-            end else if (dmem_r_rqst) begin
-              arbiter_load_rs = '1;
-            end
-          end
         end
       end
     endcase

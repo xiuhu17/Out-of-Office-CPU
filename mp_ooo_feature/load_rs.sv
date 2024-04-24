@@ -69,7 +69,6 @@ import rv32i_types::*;
     // valid, ready, status
     logic load_rs_available[LOAD_RS_NUM_ELEM];
     logic rs1_ready_arr[LOAD_RS_NUM_ELEM];
-    logic solved_store_arr[LOAD_RS_NUM_ELEM];
     logic could_load_arr[LOAD_RS_NUM_ELEM];
 
     //
@@ -95,7 +94,6 @@ import rv32i_types::*;
                 imm_arr[i] <= '0;
                 store_rs_head_arr[i] <= '0;
                 store_rs_count_arr[i] <= '0;
-                solved_store_arr[i] <= '0;
                 could_load_arr[i] <= '0;
                 rs1_ready_arr[i] <= '0;
                 rs1_v_arr[i] <= '0;
@@ -111,7 +109,6 @@ import rv32i_types::*;
                         imm_arr[i] <= issue_imm;
                         store_rs_head_arr[i] <= issue_store_rs_head;
                         store_rs_count_arr[i] <= issue_store_rs_count;
-                        solved_store_arr[i] <= '0;
                         could_load_arr[i] <= '0;
                         rs1_ready_arr[i] <= '0;
                         rs1_v_arr[i] <= '0;
@@ -146,26 +143,17 @@ import rv32i_types::*;
                     if (store_rs_pop && store_rs_count_arr[i] != '0) begin
                         store_rs_count_arr[i] <= store_rs_count_arr[i] - (STORE_RS_DEPTH+1)'h1;
                     end
-                    // update solved information
-                    if (!solved_store_arr[i]) begin 
-                        for (int unsigned j = 0; j < STORE_RS_NUM_ELEM + 32'h1; j ++) begin 
-                            if (store_rs_count_arr[i] == (STORE_RS_DEPTH+1)'j) begin
-                                solved_store_arr[i] <= '1;
-                                break;
-                            end 
-                            if (forward_wready[(store_rs_head_arr[i] - (STORE_RS_DEPTH)'j)] == '0) begin 
-                                break;
-                            end
-                        end
-                    end
                     // when could load
                     if (!could_load_arr[i]) begin
-                        if (rs1_ready_arr[i] && solved_store_arr[i]) begin
+                        if (rs1_ready_arr[i]) begin
                             for (int unsigned j = 0; j < STORE_RS_NUM_ELEM + 32'h1; j ++) begin 
                                 if (store_rs_count_arr[i] == (STORE_RS_DEPTH+1)'j) begin
                                     could_load_arr[i] <= '1;
                                     break;
                                 end 
+                                if (forward_wready[(store_rs_head_arr[i] - (STORE_RS_DEPTH)'j)] == '0) begin
+                                    break;
+                                end
                                 if ((forward_waddr[(store_rs_head_arr[i] - (STORE_RS_DEPTH)'j)] & 32'hfffffffc) == ((rs1_v_arr[i] + imm_arr[i]) & 32'hfffffffc)) begin
                                     break;
                                 end
@@ -178,7 +166,6 @@ import rv32i_types::*;
             if (load_rs_pop) begin
                 load_rs_available[load_rs_idx_executing] <= '1;
                 rs1_ready_arr[load_rs_idx_executing] <= '0;
-                solved_store_arr[load_rs_idx_executing] <= '0;
                 could_load_arr[load_rs_idx_executing] <= '0;
                 counter <= load_rs_idx_executing + 1'b1;
             end

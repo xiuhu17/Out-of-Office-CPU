@@ -22,11 +22,11 @@ module data_cache_arbiter (
     dmem_wdata = '0;
     if (arbiter_store_rs) begin
       dmem_wmask = arbiter_store_rs_wmask;
-      dmem_addr = arbiter_store_rs_addr;
+      dmem_addr = arbiter_store_rs_addr & 32'hfffffffc;
       dmem_wdata = arbiter_store_rs_wdata;
     end else if (arbiter_load_rs) begin
       dmem_rmask = arbiter_load_rs_rmask;
-      dmem_addr = arbiter_load_rs_addr;
+      dmem_addr = arbiter_load_rs_addr & 32'hfffffffc;
     end
   end
 endmodule
