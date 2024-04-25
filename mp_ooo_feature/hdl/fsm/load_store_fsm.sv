@@ -52,8 +52,10 @@ module load_store_fsm
     end else begin
       case (curr_state)
         Start: begin
-          if (!dmem_w_rqst && dmem_r_rqst) begin
-            internal_load_rs_idx_executing <= load_rs_idx_rqst;
+          if (!(flush_branch && rob_valid && rob_ready)) begin
+            if (!dmem_w_rqst && dmem_r_rqst) begin
+              internal_load_rs_idx_executing <= load_rs_idx_rqst;
+            end
           end
         end
         DMEM_R_STALL: begin
@@ -64,9 +66,6 @@ module load_store_fsm
         DMEM_W_STALL: begin
           if (dmem_resp) begin
             internal_load_rs_idx_executing <= '0;
-            if (dmem_r_rqst) begin
-              internal_load_rs_idx_executing <= load_rs_idx_rqst;
-            end
           end
         end
       endcase
@@ -84,28 +83,22 @@ module load_store_fsm
 
     case (curr_state)
       Start: begin
-        if (!(flush_branch && rob_valid && rob_ready) && dmem_w_rqst) begin
-          next_state = DMEM_W_STALL;
-        end else if (!(flush_branch && rob_valid && rob_ready) && dmem_r_rqst) begin
-          next_state = DMEM_R_STALL;
-        end else begin
-          next_state = Start;
+        if (!(flush_branch && rob_valid && rob_ready)) begin
+          if (dmem_w_rqst) begin
+            next_state = DMEM_W_STALL;
+          end else if (dmem_r_rqst) begin
+            next_state = DMEM_R_STALL;
+          end
         end
       end
       DMEM_R_STALL: begin
         if (dmem_resp) begin
           next_state = Start;
-          if (!(flush_branch && rob_valid && rob_ready) && dmem_w_rqst) begin
-            next_state = DMEM_W_STALL;
-          end
         end
       end
       DMEM_W_STALL: begin
         if (dmem_resp) begin
           next_state = Start;
-          if (!(flush_branch && rob_valid && rob_ready) && dmem_r_rqst) begin
-            next_state = DMEM_R_STALL;
-          end
         end
       end
     endcase
@@ -126,19 +119,11 @@ module load_store_fsm
         if (dmem_resp) begin
           load_rs_pop = '1;
           load_rs_idx_executing = internal_load_rs_idx_executing;
-          if (!(flush_branch && rob_valid && rob_ready) && dmem_w_rqst) begin
-            dmem_rqst = '1;
-            arbiter_store_rs = '1;
-          end
         end
       end
       DMEM_W_STALL: begin
         if (dmem_resp) begin
           store_rs_pop = '1;
-          if (!(flush_branch && rob_valid && rob_ready) && dmem_r_rqst) begin
-            dmem_rqst = '1;
-            arbiter_load_rs = '1;
-          end
         end
       end
     endcase

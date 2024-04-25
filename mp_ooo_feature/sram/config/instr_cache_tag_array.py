@@ -23,7 +23,7 @@ load_scales = [0.5, 1, 4]
 slew_scales = [0.5, 1]
 
 output_name = "instr_cache_tag_array"
-output_path = "output/{}".format(output_name)
+output_path = f"output/{output_name}"
 
 print_banner = False
 num_threads = 4

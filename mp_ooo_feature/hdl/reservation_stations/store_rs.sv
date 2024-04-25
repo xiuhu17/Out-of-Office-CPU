@@ -142,34 +142,34 @@ import rv32i_types::*;
 
                 head <= head + 1'b1;
             end 
-        end 
 
-        for (int i = 0; i < STORE_RS_NUM_ELEM; i++) begin 
-            if (valid_arr[i]) begin 
-                for (int j = 0; j < CDB_SIZE; j++) begin 
-                    if (cdb_valid[j] && (rs1_ready_arr[i] == '0) && (rs1_rob_arr[i] == cdb_rob[j])) begin
-                        rs1_ready_arr[i] <= '1;
-                        rs1_v_arr[i] <= cdb_rd_v[j];
+            for (int i = 0; i < STORE_RS_NUM_ELEM; i++) begin 
+                if (valid_arr[i]) begin 
+                    for (int j = 0; j < CDB_SIZE; j++) begin 
+                        if (cdb_valid[j] && (rs1_ready_arr[i] == '0) && (rs1_rob_arr[i] == cdb_rob[j])) begin
+                            rs1_ready_arr[i] <= '1;
+                            rs1_v_arr[i] <= cdb_rd_v[j];
+                        end 
+                        if (cdb_valid[j] && (rs2_ready_arr[i] == '0) && (rs2_rob_arr[i] == cdb_rob[j])) begin
+                            rs2_ready_arr[i] <= '1;
+                            rs2_v_arr[i] <= cdb_rd_v[j];
+                        end
                     end 
-                    if (cdb_valid[j] && (rs2_ready_arr[i] == '0) && (rs2_rob_arr[i] == cdb_rob[j])) begin
-                        rs2_ready_arr[i] <= '1;
-                        rs2_v_arr[i] <= cdb_rd_v[j];
-                    end
                 end 
+            end
+
+            if (store_rs_pop) begin 
+                valid_arr[tail] <= '0;
+                rs1_ready_arr[tail] <= '0;
+                rs2_ready_arr[tail] <= '0;
+                tail <= tail + 1'b1;
             end 
-        end
 
-        if (store_rs_pop) begin 
-            valid_arr[tail] <= '0;
-            rs1_ready_arr[tail] <= '0;
-            rs2_ready_arr[tail] <= '0;
-            tail <= tail + 1'b1;
-        end 
-
-        if (store_rs_issue && !store_rs_pop) begin
-            count <= count + 1'b1;
-        end else if (!store_rs_issue && store_rs_pop) begin
-            count <= count - 1'b1;
+            if (store_rs_issue && !store_rs_pop) begin
+                count <= count + 1'b1;
+            end else if (!store_rs_issue && store_rs_pop) begin
+                count <= count - 1'b1;
+            end 
         end 
     end 
 

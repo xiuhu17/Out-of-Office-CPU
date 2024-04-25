@@ -1,4 +1,4 @@
 #/bin/bash
 
-make spike ELF=./bin/graph.elf
+make spike ELF=./bin/coremark.elf
 cmp ./sim/commit.log ./sim/spike.log
