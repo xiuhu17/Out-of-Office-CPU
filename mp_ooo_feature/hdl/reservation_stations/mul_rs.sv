@@ -14,7 +14,6 @@ module mul_rs
     input logic mul_rs_issue,
 
     // instructions issued from instruction_queue
-    input logic [6:0] issue_opcode,
     input logic [2:0] issue_funct3,
     input logic [6:0] issue_funct7,
 
@@ -49,7 +48,6 @@ module mul_rs
   // internal registers
   logic mul_rs_available[MUL_RS_NUM_ELEM];
   // instruction information
-  logic [6:0] opcode_arr[MUL_RS_NUM_ELEM];
   logic [2:0] funct3_arr[MUL_RS_NUM_ELEM];
   logic [6:0] funct7_arr[MUL_RS_NUM_ELEM];
   // rs1_ready and rs2_ready determine if the value will be from ROB
@@ -86,7 +84,6 @@ module mul_rs
       counter <= '0;
       for (int i = 0; i < MUL_RS_NUM_ELEM; i++) begin
         mul_rs_available[i] <= '1;
-        opcode_arr[i] <= '0;
         funct3_arr[i] <= '0;
         funct7_arr[i] <= '0;
         rs1_ready_arr[i] <= '0;
@@ -103,7 +100,6 @@ module mul_rs
         for (int i = 0; i < MUL_RS_NUM_ELEM; i++) begin
           if (mul_rs_available[i]) begin
             mul_rs_available[i] <= '0;
-            opcode_arr[i] <= issue_opcode;
             funct3_arr[i] <= issue_funct3;
             funct7_arr[i] <= issue_funct7;
             rs1_ready_arr[i] <= '0;

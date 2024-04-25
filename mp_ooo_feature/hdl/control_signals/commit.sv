@@ -8,9 +8,6 @@ module commit
     input logic flush_branch,
     input logic move_flush,
 
-    input logic store_executing,
-    input logic dmem_resp,
-
     output logic rob_pop,
     output logic commit_regfile_we
 );
@@ -44,9 +41,7 @@ module commit
         end
         store_opcode: begin
           commit_regfile_we = '0;
-          if (store_executing && dmem_resp) begin
-            rob_pop = '1;
-          end
+          rob_pop = '1;
         end
         default: begin
           commit_regfile_we = '1;

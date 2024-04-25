@@ -8,6 +8,10 @@ module fetch_fsm (
     input logic instr_full,
     input logic move_flush,
 
+    input logic rob_ready,
+    input logic rob_valid,
+    input logic flush_branch,
+
     output logic move_fetch
 );
 
@@ -48,14 +52,14 @@ module fetch_fsm (
 
     case (curr_state)
       Start:
-      if (instr_full || move_flush) begin
+      if (instr_full || (flush_branch && rob_valid && rob_ready)) begin
         move_fetch = '0;
       end else begin
         move_fetch = '1;
       end
       IMEM_STALL:
       if (imem_resp) begin
-        if (instr_full || move_flush) begin
+        if (instr_full || (flush_branch && rob_valid && rob_ready)) begin
           move_fetch = '0;
         end else begin
           move_fetch = '1;

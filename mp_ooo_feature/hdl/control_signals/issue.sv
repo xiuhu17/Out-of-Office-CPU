@@ -14,7 +14,6 @@ module issue
     input logic branch_rs_full,
     input logic load_rs_full,
     input logic store_rs_full,
-    input logic rob_store_in_flight,
     // rob is available
     input logic rob_full,
     // output signals
@@ -79,7 +78,7 @@ module issue
             issue_valid = '1;
           end
         end
-        if (!load_rs_full && !rob_store_in_flight) begin
+        if (!load_rs_full) begin
           if (opcode == load_opcode) begin
             // pop from instruction queue
             instr_pop = '1;

@@ -2,17 +2,20 @@ module cpu
   import rv32i_types::*;
 #(
     parameter INSTR_DEPTH = 4,
-    parameter ALU_RS_DEPTH = 3,
+    parameter ALU_RS_DEPTH = 4,
     parameter MUL_RS_DEPTH = 3,
     parameter BRANCH_RS_DEPTH = 3,
     parameter LOAD_RS_DEPTH = 3,
     parameter STORE_RS_DEPTH = 3,
     parameter ROB_DEPTH = 4,
-    parameter CDB_SIZE = 5,
+    parameter CDB_SIZE = 4,
     parameter BTB_DEPTH = 3,
     parameter GHR_DEPTH = 30,
     parameter PHT_DEPTH = 10,
-    parameter BIMODAL_DEPTH = 2
+    parameter BIMODAL_DEPTH = 2,
+    parameter STORE_RS_NUM_ELEM = 2 ** STORE_RS_DEPTH,
+    parameter LOAD_RS_NUM_ELEM = 2 ** LOAD_RS_DEPTH,
+    parameter STORE_RS_NUM_ELEM_1 = STORE_RS_NUM_ELEM + 1
 ) (
     // Explicit dual port connections when caches are not integrated into design yet (Before CP3)
     input logic clk,
@@ -43,132 +46,145 @@ module cpu
 );
 
   // instruction cache variables
-  logic [         31:0] instr_cache_addr;
-  logic [          3:0] instr_cache_rmask;
-  logic [          3:0] instr_cache_wmask;
-  logic [         31:0] instr_cache_wdata;
-  logic [         31:0] instr_cache_rdata;
-  logic                 instr_cache_resp;
-  logic                 instr_cache_read_stage;
-  logic [         31:0] instr_cache_bmem_addr;
-  logic                 instr_cache_bmem_read;
-  logic                 instr_cache_bmem_ready;
+  logic [              31:0] instr_cache_addr;
+  logic [               3:0] instr_cache_rmask;
+  logic [               3:0] instr_cache_wmask;
+  logic [              31:0] instr_cache_wdata;
+  logic [              31:0] instr_cache_rdata;
+  logic                      instr_cache_resp;
+  logic                      instr_cache_read_stage;
+  logic [              31:0] instr_cache_bmem_addr;
+  logic                      instr_cache_bmem_read;
+  logic                      instr_cache_bmem_ready;
 
   // data cache variables
-  logic [         31:0] data_cache_addr;
-  logic [          3:0] data_cache_rmask;
-  logic [          3:0] data_cache_wmask;
-  logic [         31:0] data_cache_wdata;
-  logic [         31:0] data_cache_rdata;
-  logic                 data_cache_resp;
-  logic                 data_cache_read_stage;
-  logic                 data_cache_write_stage;
-  logic [         31:0] data_cache_bmem_addr;
-  logic                 data_cache_bmem_read;
-  logic                 data_cache_bmem_write;
-  logic [         63:0] data_cache_bmem_wdata;
-  logic                 data_cache_bmem_ready;
+  logic [              31:0] data_cache_addr;
+  logic [               3:0] data_cache_rmask;
+  logic [               3:0] data_cache_wmask;
+  logic [              31:0] data_cache_wdata;
+  logic [              31:0] data_cache_rdata;
+  logic                      data_cache_resp;
+  logic                      data_cache_read_stage;
+  logic                      data_cache_write_stage;
+  logic [              31:0] data_cache_bmem_addr;
+  logic                      data_cache_bmem_read;
+  logic                      data_cache_bmem_write;
+  logic [              63:0] data_cache_bmem_wdata;
+  logic                      data_cache_bmem_ready;
 
   // fetch fsm
-  logic                 imem_rqst;
-  logic                 dmem_rqst;
+  logic                      imem_rqst;
+  logic                      dmem_rqst;
 
   // fetch variables
-  logic                 move_fetch;
-  logic                 move_flush;
-  logic [         63:0] order;
-  logic [         31:0] pc;
-  logic [         31:0] pc_next;
+  logic                      move_fetch;
+  logic                      move_flush;
+  logic [              63:0] order;
+  logic [              31:0] pc;
+  logic [              31:0] pc_next;
 
   // btb variables
-  logic                 gshare_take;
+  logic                      gshare_take;
 
   // instruction queue variables
-  logic                 instr_full;
-  logic                 instr_valid;
-  logic                 instr_ready;
-  logic                 instr_push;
-  logic                 instr_pop;
-  logic [         31:0] fetch_instr;
-  logic [         63:0] fetch_order;
-  logic [         63:0] issue_order;
-  logic [         31:0] issue_instr;
-  logic [         31:0] issue_pc;
-  logic [         31:0] issue_pc_next;
-  logic [          2:0] issue_funct3;
-  logic [          6:0] issue_funct7;
-  logic [          6:0] issue_opcode;
-  logic [         31:0] issue_imm;
-  logic [          4:0] issue_rs1_s;
-  logic [          4:0] issue_rs2_s;
-  logic [          4:0] issue_rd_s;
+  logic                      instr_full;
+  logic                      instr_valid;
+  logic                      instr_ready;
+  logic                      instr_push;
+  logic                      instr_pop;
+  logic [              31:0] fetch_instr;
+  logic [              63:0] fetch_order;
+  logic [              63:0] issue_order;
+  logic [              31:0] issue_instr;
+  logic [              31:0] issue_pc;
+  logic [              31:0] issue_pc_next;
+  logic [               2:0] issue_funct3;
+  logic [               6:0] issue_funct7;
+  logic [               6:0] issue_opcode;
+  logic [              31:0] issue_imm;
+  logic [               4:0] issue_rs1_s;
+  logic [               4:0] issue_rs2_s;
+  logic [               4:0] issue_rd_s;
 
   // alu_rs variables
-  logic                 alu_rs_full;
-  logic                 alu_rs_issue;
-  logic                 cdb_alu_rs_valid;
-  logic [         31:0] cdb_alu_rs_f;
-  logic [ROB_DEPTH-1:0] cdb_alu_rs_rob;
+  logic                      alu_rs_full;
+  logic                      alu_rs_issue;
+  logic                      cdb_alu_rs_valid;
+  logic [              31:0] cdb_alu_rs_f;
+  logic [     ROB_DEPTH-1:0] cdb_alu_rs_rob;
 
   // mul_rs variables
-  logic                 mul_rs_full;
-  logic                 mul_rs_issue;
-  logic                 cdb_mul_rs_valid;
-  logic [         31:0] cdb_mul_rs_p;
-  logic [ROB_DEPTH-1:0] cdb_mul_rs_rob;
+  logic                      mul_rs_full;
+  logic                      mul_rs_issue;
+  logic                      cdb_mul_rs_valid;
+  logic [              31:0] cdb_mul_rs_p;
+  logic [     ROB_DEPTH-1:0] cdb_mul_rs_rob;
 
   // branch_rs variables
-  logic                 branch_rs_full;
-  logic                 branch_rs_issue;
-  logic                 cdb_branch_rs_valid;
-  logic [         31:0] cdb_branch_rs_v;
-  logic [ROB_DEPTH-1:0] cdb_branch_rs_rob;
-  logic                 cdb_branch_take;
-  logic [         31:0] cdb_branch_target_pc;
+  logic                      branch_rs_full;
+  logic                      branch_rs_issue;
+  logic                      cdb_branch_rs_valid;
+  logic [              31:0] cdb_branch_rs_v;
+  logic [     ROB_DEPTH-1:0] cdb_branch_rs_rob;
+  logic                      cdb_branch_take;
+  logic [              31:0] cdb_branch_target_pc;
+
+  // load_store_fsm
+  logic                      arbiter_load_rs;
+  logic                      arbiter_store_rs;
+  logic                      dmem_r_rqst;
+  logic                      dmem_w_rqst;
 
   // load_rs variales
-  logic                 load_rs_full;
-  logic                 load_rs_issue;
-  logic                 cdb_load_rs_valid;
-  logic [         31:0] cdb_load_rs_v;
-  logic [ROB_DEPTH-1:0] cdb_load_rs_rob;
-  logic [         31:0] data_cache_load_rs_addr;
-  logic [          3:0] data_cache_load_rs_rmask;
+  logic                      load_rs_full;
+  logic                      load_rs_issue;
+  logic                      load_rs_pop;
+  logic                      cdb_load_rs_valid;
+  logic [              31:0] cdb_load_rs_v;
+  logic [     ROB_DEPTH-1:0] cdb_load_rs_rob;
+  logic [               3:0] arbiter_load_rs_rmask;
+  logic [              31:0] arbiter_load_rs_addr;
+  logic [ LOAD_RS_DEPTH-1:0] load_rs_idx_rqst;
+  logic [ LOAD_RS_DEPTH-1:0] load_rs_idx_executing;
+  logic [               3:0] cdb_load_rs_rmask;
+  logic [              31:0] cdb_load_rs_addr;
+  logic [              31:0] cdb_load_rs_rdata;
 
   // store_rs variables
-  logic                 store_rs_full;
-  logic                 store_rs_issue;
-  logic                 cdb_store_rs_valid;
-  logic [         31:0] cdb_store_rs_v;
-  logic [ROB_DEPTH-1:0] cdb_store_rs_rob;
-  logic [         31:0] data_cache_store_rs_addr;
-  logic [          3:0] data_cache_store_rs_wmask;
-  logic [         31:0] data_cache_store_rs_wdata;
+  logic                      store_rs_full;
+  logic                      store_rs_issue;
+  logic                      store_rs_pop;
+  logic                      cdb_store_rs_valid;
+  logic [     ROB_DEPTH-1:0] cdb_store_rs_rob;
+  logic [               3:0] cdb_arbiter_store_rs_wmask;
+  logic [              31:0] cdb_arbiter_store_rs_addr;
+  logic [              31:0] cdb_arbiter_store_rs_wdata;
+  logic [  STORE_RS_DEPTH:0] issue_store_rs_count;
+  logic [STORE_RS_DEPTH-1:0] issue_store_rs_head;
+  logic                      forward_wready             [STORE_RS_NUM_ELEM];
+  logic [              31:0] forward_waddr              [STORE_RS_NUM_ELEM];
 
   // CDB variables
-  logic                 exe_valid                 [CDB_SIZE];
-  logic [         31:0] exe_alu_f                 [CDB_SIZE];
-  logic [ROB_DEPTH-1:0] exe_rob                   [CDB_SIZE];
-  logic                 cdb_valid                 [CDB_SIZE];
-  logic [         31:0] cdb_rd_v                  [CDB_SIZE];
-  logic [ROB_DEPTH-1:0] cdb_rob                   [CDB_SIZE];
+  logic                      exe_valid                  [         CDB_SIZE];
+  logic [              31:0] exe_alu_f                  [         CDB_SIZE];
+  logic [     ROB_DEPTH-1:0] exe_rob                    [         CDB_SIZE];
+  logic                      cdb_valid                  [         CDB_SIZE];
+  logic [              31:0] cdb_rd_v                   [         CDB_SIZE];
+  logic [     ROB_DEPTH-1:0] cdb_rob                    [         CDB_SIZE];
 
   always_comb begin
     exe_valid[0] = cdb_alu_rs_valid;
     exe_valid[1] = cdb_mul_rs_valid;
     exe_valid[2] = cdb_branch_rs_valid;
     exe_valid[3] = cdb_load_rs_valid;
-    exe_valid[4] = cdb_store_rs_valid;
     exe_alu_f[0] = cdb_alu_rs_f;
     exe_alu_f[1] = cdb_mul_rs_p;
     exe_alu_f[2] = cdb_branch_rs_v;
     exe_alu_f[3] = cdb_load_rs_v;
-    exe_alu_f[4] = cdb_store_rs_v;
     exe_rob[0]   = cdb_alu_rs_rob;
     exe_rob[1]   = cdb_mul_rs_rob;
     exe_rob[2]   = cdb_branch_rs_rob;
     exe_rob[3]   = cdb_load_rs_rob;
-    exe_rob[4]   = cdb_store_rs_rob;
   end
 
   // ROB variables
@@ -177,6 +193,7 @@ module cpu
   logic rob_ready;
   logic rob_push;
   logic [ROB_DEPTH-1:0] issue_rob;
+  logic [ROB_DEPTH-1:0] rob_tail;
   logic [ROB_DEPTH - 1:0] issue_rs1_rob;
   logic [ROB_DEPTH - 1:0] issue_rs2_rob;
   logic [31:0] issue_rs1_rob_v;
@@ -189,12 +206,6 @@ module cpu
   logic [ROB_DEPTH-1:0] commit_rob;
   logic [6:0] commit_opcode;
   logic [31:0] commit_pc;
-  logic [31:0] rvfi_load_mem_addr;
-  logic [3:0] rvfi_load_mem_rmask;
-  logic [31:0] rvfi_load_mem_rdata;
-  logic [31:0] rvfi_store_mem_addr;
-  logic [3:0] rvfi_store_mem_wmask;
-  logic [31:0] rvfi_store_mem_wdata;
   logic [4:0] rvfi_rs1_s_tail;
   logic [4:0] rvfi_rs2_s_tail;
   logic flush_branch;
@@ -224,6 +235,9 @@ module cpu
       .imem_rqst(imem_rqst),
       .instr_full(instr_full),
       .move_flush(move_flush),
+      .rob_ready(rob_ready),
+      .rob_valid(rob_valid),
+      .flush_branch(flush_branch),
       .move_fetch(move_fetch)
   );
 
@@ -345,16 +359,17 @@ module cpu
   );
 
   data_cache_arbiter data_cache_arbiter (
-      .data_cache_load_rs_addr(data_cache_load_rs_addr),
-      .data_cache_load_rs_rmask(data_cache_load_rs_rmask),
-      .data_cache_store_rs_addr(data_cache_store_rs_addr),
-      .data_cache_store_rs_wmask(data_cache_store_rs_wmask),
-      .data_cache_store_rs_wdata(data_cache_store_rs_wdata),
-      .data_cache_addr(data_cache_addr),
-      .data_cache_rmask(data_cache_rmask),
-      .data_cache_wmask(data_cache_wmask),
-      .data_cache_wdata(data_cache_wdata),
-      .dmem_rqst(dmem_rqst)
+      .arbiter_load_rs(arbiter_load_rs),
+      .arbiter_store_rs(arbiter_store_rs),
+      .arbiter_load_rs_rmask(arbiter_load_rs_rmask),
+      .arbiter_load_rs_addr(arbiter_load_rs_addr),
+      .cdb_arbiter_store_rs_wmask(cdb_arbiter_store_rs_wmask),
+      .cdb_arbiter_store_rs_addr(cdb_arbiter_store_rs_addr),
+      .cdb_arbiter_store_rs_wdata(cdb_arbiter_store_rs_wdata),
+      .dmem_rmask(data_cache_rmask),
+      .dmem_wmask(data_cache_wmask),
+      .dmem_addr(data_cache_addr),
+      .dmem_wdata(data_cache_wdata)
   );
 
   instruction_queue #(
@@ -398,7 +413,6 @@ module cpu
       .branch_rs_full(branch_rs_full),
       .load_rs_full(load_rs_full),
       .store_rs_full(store_rs_full),
-      .rob_store_in_flight(rob_store_in_flight),
       .rob_full(rob_full),
       .instr_pop(instr_pop),
       .alu_rs_issue(alu_rs_issue),
@@ -454,7 +468,6 @@ module cpu
       .move_flush(move_flush),
       .mul_rs_full(mul_rs_full),
       .mul_rs_issue(mul_rs_issue),
-      .issue_opcode(issue_opcode),
       .issue_funct3(issue_funct3),
       .issue_funct7(issue_funct7),
       .issue_rs1_regfile_ready(issue_rs1_regfile_ready),
@@ -511,8 +524,31 @@ module cpu
       .cdb_branch_target_pc(cdb_branch_target_pc)
   );
 
-  load_rs_naive #(
+  load_store_fsm #(
+      .LOAD_RS_DEPTH (LOAD_RS_DEPTH),
+      .STORE_RS_DEPTH(STORE_RS_DEPTH)
+  ) load_store_fsm (
+      .clk(clk),
+      .rst(rst),
+      .move_flush(move_flush),
+      .rob_ready(rob_ready),
+      .rob_valid(rob_valid),
+      .flush_branch(flush_branch),
+      .dmem_resp(data_cache_resp),
+      .dmem_r_rqst(dmem_r_rqst),
+      .dmem_w_rqst(dmem_w_rqst),
+      .load_rs_idx_rqst(load_rs_idx_rqst),
+      .arbiter_load_rs(arbiter_load_rs),
+      .arbiter_store_rs(arbiter_store_rs),
+      .load_rs_idx_executing(load_rs_idx_executing),
+      .load_rs_pop(load_rs_pop),
+      .store_rs_pop(store_rs_pop),
+      .dmem_rqst(dmem_rqst)
+  );
+
+  load_rs #(
       .LOAD_RS_DEPTH(LOAD_RS_DEPTH),
+      .STORE_RS_DEPTH(STORE_RS_DEPTH),
       .ROB_DEPTH(ROB_DEPTH),
       .CDB_SIZE(CDB_SIZE)
   ) load_rs (
@@ -521,7 +557,12 @@ module cpu
       .move_flush(move_flush),
       .load_rs_full(load_rs_full),
       .load_rs_issue(load_rs_issue),
-      .issue_opcode(issue_opcode),
+      .store_rs_pop(store_rs_pop),
+      .dmem_r_rqst(dmem_r_rqst),
+      .load_rs_idx_rqst(load_rs_idx_rqst),
+      .load_rs_pop(load_rs_pop),
+      .load_rs_idx_executing(load_rs_idx_executing),
+      .dmem_rdata(data_cache_rdata),
       .issue_funct3(issue_funct3),
       .issue_imm(issue_imm),
       .issue_target_rob(issue_rob),
@@ -530,22 +571,24 @@ module cpu
       .issue_rs1_regfile_rob(issue_rs1_regfile_rob),
       .issue_rs1_rob_v(issue_rs1_rob_v),
       .issue_rs1_rob_ready(issue_rs1_rob_ready),
+      .issue_store_rs_head(issue_store_rs_head),
+      .issue_store_rs_count(issue_store_rs_count),
       .cdb_valid(cdb_valid),
       .cdb_rob(cdb_rob),
       .cdb_rd_v(cdb_rd_v),
-      .dmem_addr(data_cache_load_rs_addr),
-      .dmem_rmask(data_cache_load_rs_rmask),
-      .dmem_rdata(data_cache_rdata),
-      .dmem_resp(data_cache_resp),
+      .forward_wready(forward_wready),
+      .forward_waddr(forward_waddr),
       .cdb_load_rs_valid(cdb_load_rs_valid),
       .cdb_load_rs_v(cdb_load_rs_v),
       .cdb_load_rs_rob(cdb_load_rs_rob),
-      .rvfi_load_mem_addr(rvfi_load_mem_addr),
-      .rvfi_load_mem_rmask(rvfi_load_mem_rmask),
-      .rvfi_load_mem_rdata(rvfi_load_mem_rdata)
+      .cdb_load_rs_rmask(cdb_load_rs_rmask),
+      .cdb_load_rs_addr(cdb_load_rs_addr),
+      .cdb_load_rs_rdata(cdb_load_rs_rdata),
+      .arbiter_load_rs_rmask(arbiter_load_rs_rmask),
+      .arbiter_load_rs_addr(arbiter_load_rs_addr)
   );
 
-  store_rs_naive #(
+  store_rs #(
       .STORE_RS_DEPTH(STORE_RS_DEPTH),
       .ROB_DEPTH(ROB_DEPTH),
       .CDB_SIZE(CDB_SIZE)
@@ -553,9 +596,11 @@ module cpu
       .clk(clk),
       .rst(rst),
       .move_flush(move_flush),
-      .store_rs_full(store_rs_full),
       .store_rs_issue(store_rs_issue),
-      .issue_opcode(issue_opcode),
+      .store_rs_full(store_rs_full),
+      .rob_tail(rob_tail),
+      .dmem_w_rqst(dmem_w_rqst),
+      .store_rs_pop(store_rs_pop),
       .issue_funct3(issue_funct3),
       .issue_imm(issue_imm),
       .issue_target_rob(issue_rob),
@@ -569,15 +614,18 @@ module cpu
       .issue_rs2_rob_ready(issue_rs2_rob_ready),
       .issue_rs1_rob_v(issue_rs1_rob_v),
       .issue_rs2_rob_v(issue_rs2_rob_v),
+      .issue_store_rs_count(issue_store_rs_count),
+      .issue_store_rs_head(issue_store_rs_head),
       .cdb_valid(cdb_valid),
       .cdb_rob(cdb_rob),
       .cdb_rd_v(cdb_rd_v),
+      .forward_wready(forward_wready),
+      .forward_waddr(forward_waddr),
       .cdb_store_rs_valid(cdb_store_rs_valid),
-      .cdb_store_rs_v(cdb_store_rs_v),
       .cdb_store_rs_rob(cdb_store_rs_rob),
-      .rvfi_store_mem_addr(rvfi_store_mem_addr),
-      .rvfi_store_mem_wmask(rvfi_store_mem_wmask),
-      .rvfi_store_mem_wdata(rvfi_store_mem_wdata)
+      .cdb_arbiter_store_rs_wmask(cdb_arbiter_store_rs_wmask),
+      .cdb_arbiter_store_rs_addr(cdb_arbiter_store_rs_addr),
+      .cdb_arbiter_store_rs_wdata(cdb_arbiter_store_rs_wdata)
   );
 
   CDB #(
@@ -607,6 +655,15 @@ module cpu
       .cdb_rd_v(cdb_rd_v),
       .cdb_branch_take(cdb_branch_take),
       .cdb_branch_target_pc(cdb_branch_target_pc),
+      .cdb_load_rs_rmask(cdb_load_rs_rmask),
+      .cdb_load_rs_addr(cdb_load_rs_addr),
+      .cdb_load_rs_rdata(cdb_load_rs_rdata),
+      .rob_tail(rob_tail),
+      .cdb_store_rs_valid(cdb_store_rs_valid),
+      .cdb_store_rs_rob(cdb_store_rs_rob),
+      .cdb_arbiter_store_rs_wmask(cdb_arbiter_store_rs_wmask),
+      .cdb_arbiter_store_rs_addr(cdb_arbiter_store_rs_addr),
+      .cdb_arbiter_store_rs_wdata(cdb_arbiter_store_rs_wdata),
       .rob_push(rob_push),
       .issue_rd_s(issue_rd_s),
       .issue_rob(issue_rob),
@@ -633,19 +690,8 @@ module cpu
       .rvfi_rd_s(issue_rd_s),
       .rvfi_pc(issue_pc),
       .rvfi_pc_next(issue_pc_next),
-      .rvfi_load_mem_addr(rvfi_load_mem_addr),
-      .rvfi_load_mem_rmask(rvfi_load_mem_rmask),
-      .rvfi_load_mem_rdata(rvfi_load_mem_rdata),
-      .rvfi_store_mem_addr(rvfi_store_mem_addr),
-      .rvfi_store_mem_wmask(rvfi_store_mem_wmask),
-      .rvfi_store_mem_wdata(rvfi_store_mem_wdata),
       .rvfi_rs1_s_tail(rvfi_rs1_s_tail),
-      .rvfi_rs2_s_tail(rvfi_rs2_s_tail),
-      .rob_store_in_flight(rob_store_in_flight),
-      .dmem_addr(data_cache_store_rs_addr),
-      .dmem_wmask(data_cache_store_rs_wmask),
-      .dmem_wdata(data_cache_store_rs_wdata),
-      .store_executing(store_executing)
+      .rvfi_rs2_s_tail(rvfi_rs2_s_tail)
   );
 
   regfile_scoreboard #(
@@ -680,8 +726,6 @@ module cpu
       .commit_opcode(commit_opcode),
       .flush_branch(flush_branch),
       .move_flush(move_flush),
-      .store_executing(store_executing),
-      .dmem_resp(data_cache_resp),
       .rob_pop(rob_pop),
       .commit_regfile_we(commit_regfile_we)
   );

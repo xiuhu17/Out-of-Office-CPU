@@ -110,7 +110,6 @@ module flush_fsm (
       end else begin
         move_flush = '0;
       end
-      // TODO:
       IMEM_STALL:
       if (imem_resp) begin
         if (rob_valid && rob_ready && flush_branch) begin
