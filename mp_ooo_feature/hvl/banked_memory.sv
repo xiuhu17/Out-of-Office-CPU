@@ -4,9 +4,10 @@
 //   No refresh support
 //   No auto precharge / Open page only
 
+import "DPI-C" function string getenv(input string env_name);
+
 module banked_memory
 #(
-    parameter     MEMFILE                       = "memory_32.lst",
     parameter int DRAM_TIMMING_CL               = 20,   // In ns, aka tCAS, column access time
     parameter int DRAM_TIMMING_tRCD             = 20,   // in ns, active to r/w delay
     parameter int DRAM_TIMMING_tRP              = 20,   // in ns, precharge time
@@ -19,14 +20,16 @@ module banked_memory
     parameter int DRAM_PARAM_CA_WIDTH           = 3,    // in bits // artificially nerfed
     parameter int DRAM_PARAM_BUS_WIDTH          = 64,   // in bits
     parameter int DRAM_PARAM_BURST_LEN          = 4,    // in bursts
-    parameter int DRAM_PARAM_QUEUE_SIZE         = 16,   // in requests
-    parameter bit DRAM_RETURN_0_ON_X            = 0     // return 0 instead of x on rdata
+    parameter int DRAM_PARAM_QUEUE_SIZE         = 16    // in requests
 )(
     banked_mem_itf.mem itf
 );
 
     timeunit 1ns;
     timeprecision 1ns;
+
+    int     DRAM_RETURN_0_ON_X;
+    initial DRAM_RETURN_0_ON_X = getenv("ECE411_BRAM_0_ON_X").atoi(); // return 0 instead of x on rdata
 
     localparam int DRAM_PARAM_NUM_BANKS         = 2**DRAM_PARAM_BA_WIDTH;
     localparam int DRAM_PARAM_ACCESS_WIDTH      = DRAM_PARAM_BUS_WIDTH * DRAM_PARAM_BURST_LEN;
@@ -80,8 +83,10 @@ module banked_memory
     initial itf.rvalid = 1'b0;
 
     task automatic reset();
+        automatic string memfile = {getenv("ECE411_MEMLST"), "_32.lst"};
         internal_memory_array.delete();
-        $readmemh(MEMFILE, internal_memory_array);
+        $readmemh(memfile, internal_memory_array);
+        $display("using memory file %s", memfile);
         tRRD_counter = 0;
         for (int i = 0; i < DRAM_PARAM_NUM_BANKS; i++) begin
             active_row[i] = -1;

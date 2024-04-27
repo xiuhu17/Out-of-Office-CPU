@@ -13,6 +13,8 @@ with open("reports/power2.rpt") as f:
                 dynamic_power = float(match.group(1))/1000
             elif match.group(2) == "mW":
                 dynamic_power = float(match.group(1))
+            elif match.group(2) == "W":
+                dynamic_power = float(match.group(1))*1000
             else:
                 raise AssertionError
         for match in re.finditer(leakage_power_re, l):
@@ -22,6 +24,8 @@ with open("reports/power2.rpt") as f:
                 leakage_power = float(match.group(1))/1000
             elif match.group(2) == "mW":
                 leakage_power = float(match.group(1))
+            elif match.group(2) == "W":
+                dynamic_power = float(match.group(1))*1000
             else:
                 raise AssertionError
 

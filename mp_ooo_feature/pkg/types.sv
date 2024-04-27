@@ -76,7 +76,11 @@ package rv32i_types;
     mul_funct3 = 3'b000,
     mulh_funct3 = 3'b001,
     mulhsu_funct3 = 3'b010,
-    mulhu_funct3 = 3'b011
+    mulhu_funct3 = 3'b011,
+    div_funct3 = 3'b100,
+    udiv_funct3 = 3'b101,
+    rem_funct3 = 3'b110,
+    urem_funct3 = 3'b111
   } mul_funct3_t;
 
   typedef enum bit [1:0] {
@@ -84,6 +88,7 @@ package rv32i_types;
     mul_signed_signed = 2'b01,
     mul_signed_unsigned = 2'b10
   } mul_type_t;
+  
   typedef enum bit [2:0] {
     lb_mem  = 3'b000,
     lh_mem  = 3'b001,

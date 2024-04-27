@@ -18,9 +18,13 @@ module ROB
     input logic [ROB_DEPTH-1:0] cdb_rob             [CDB_SIZE],
     input logic [         31:0] cdb_rd_v            [CDB_SIZE],
     // for branch
+    input logic                 cdb_branch_rs_valid,
+    input logic [ROB_DEPTH-1:0] cdb_branch_rs_rob,
     input logic                 cdb_branch_take,
     input logic [         31:0] cdb_branch_target_pc,
     // for load
+    input logic                 cdb_load_rs_valid,
+    input logic [ROB_DEPTH-1:0] cdb_load_rs_rob,
     input logic [3:0] cdb_load_rs_rmask,
     input logic [31:0] cdb_load_rs_addr,
     input logic [31:0] cdb_load_rs_rdata,
@@ -188,33 +192,31 @@ module ROB
         if (cdb_valid[i]) begin
           ready_arr[cdb_rob[i]] <= '1;
           rd_v_arr[cdb_rob[i]]  <= cdb_rd_v[i];
-          if (rvfi_inst_arr[cdb_rob[i]][6:0] == br_opcode || rvfi_inst_arr[cdb_rob[i]][6:0] == jal_opcode || rvfi_inst_arr[cdb_rob[i]][6:0] == jalr_opcode) begin
-            if ((rvfi_pc_next_arr[cdb_rob[i]] != cdb_branch_target_pc)) begin
-              branch_flush_arr[cdb_rob[i]] <= '1;
-              rvfi_pc_next_arr[cdb_rob[i]] <= cdb_branch_target_pc;
-            end
-            if (cdb_branch_take) begin
-              branch_take_arr[cdb_rob[i]] <= '1;
-            end
-          end
-          if (rvfi_inst_arr[cdb_rob[i]][6:0] == load_opcode) begin
-            rvfi_mem_wmask_arr[cdb_rob[i]] <= '0;
-            rvfi_mem_wdata_arr[cdb_rob[i]] <= '0;
-            rvfi_mem_rmask_arr[cdb_rob[i]] <= cdb_load_rs_rmask;
-            rvfi_mem_addr_arr[cdb_rob[i]] <= cdb_load_rs_addr;
-            rvfi_mem_rdata_arr[cdb_rob[i]] <= cdb_load_rs_rdata;
-          end
         end
       end
+      if (cdb_branch_rs_valid) begin
+        if ((rvfi_pc_next_arr[cdb_branch_rs_rob] != cdb_branch_target_pc)) begin
+          branch_flush_arr[cdb_branch_rs_rob] <= '1;
+          rvfi_pc_next_arr[cdb_branch_rs_rob] <= cdb_branch_target_pc;
+        end
+        if (cdb_branch_take) begin
+          branch_take_arr[cdb_branch_rs_rob] <= '1;
+        end
+      end
+      if (cdb_load_rs_valid) begin
+        rvfi_mem_wmask_arr[cdb_load_rs_rob] <= '0;
+        rvfi_mem_wdata_arr[cdb_load_rs_rob] <= '0;
+        rvfi_mem_rmask_arr[cdb_load_rs_rob] <= cdb_load_rs_rmask;
+        rvfi_mem_addr_arr[cdb_load_rs_rob] <= cdb_load_rs_addr;
+        rvfi_mem_rdata_arr[cdb_load_rs_rob] <= cdb_load_rs_rdata;
+      end
       if (cdb_store_rs_valid) begin
-         if (rvfi_inst_arr[cdb_store_rs_rob][6:0] == store_opcode) begin
-            ready_arr[cdb_store_rs_rob] <= '1;
-            rvfi_mem_rmask_arr[cdb_store_rs_rob] <= '0;
-            rvfi_mem_rdata_arr[cdb_store_rs_rob] <= '0;
-            rvfi_mem_wmask_arr[cdb_store_rs_rob] <= cdb_arbiter_store_rs_wmask;
-            rvfi_mem_addr_arr[cdb_store_rs_rob] <= cdb_arbiter_store_rs_addr;
-            rvfi_mem_wdata_arr[cdb_store_rs_rob] <= cdb_arbiter_store_rs_wdata;
-          end
+        ready_arr[cdb_store_rs_rob] <= '1;
+        rvfi_mem_rmask_arr[cdb_store_rs_rob] <= '0;
+        rvfi_mem_rdata_arr[cdb_store_rs_rob] <= '0;
+        rvfi_mem_wmask_arr[cdb_store_rs_rob] <= cdb_arbiter_store_rs_wmask;
+        rvfi_mem_addr_arr[cdb_store_rs_rob] <= cdb_arbiter_store_rs_addr;
+        rvfi_mem_wdata_arr[cdb_store_rs_rob] <= cdb_arbiter_store_rs_wdata;
       end
 
       if (rob_push) begin

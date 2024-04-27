@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import string
 
 required_list = [
@@ -145,26 +146,26 @@ allowed_char = set(string.ascii_lowercase + string.ascii_uppercase + string.digi
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 os.chdir("../hvl")
 
-if os.path.isfile("rvfi_reference.svh"):  
+if os.path.isfile("rvfi_reference.svh"):
     os.remove("rvfi_reference.svh")
 
 with open("rvfi_reference.json") as f:
     j = json.load(f)
 
 if not all([x in j for x in required_list]):
-    print("incomplete list in rvfi_reference.json")
+    print("incomplete list in rvfi_reference.json", file=sys.stderr)
     exit(1)
 
 if not all([x in required_list for x in j]):
-    print("spurious item in rvfi_reference.json")
+    print("spurious item in rvfi_reference.json", file=sys.stderr)
     exit(1)
 
 if not all([set(j[x]) <= allowed_char for x in j]):
-    print("illegal character in rvfi_reference.json")
+    print("illegal character in rvfi_reference.json", file=sys.stderr)
     exit(1)
 
 with open("rvfi_reference.svh", 'w') as f:
     f.write("always_comb begin\n")
     for x in j:
-        f.write(f"    mon_itf.{x} = {j[x]};\n") 
+        f.write(f"    mon_itf.{x} = {j[x]};\n")
     f.write("end\n")

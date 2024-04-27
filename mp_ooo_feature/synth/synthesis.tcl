@@ -1,10 +1,14 @@
 # You requested %d cores. However, load on host %s is %0.2y
 suppress_message UIO-231
 
+if {[getenv ECE411_MIN_POWER] eq "1"} {
+   set power_enable_minpower true
+}
 set hdlin_ff_always_sync_set_reset true
 set hdlin_ff_always_async_set_reset true
 set hdlin_infer_multibit default_all
 set hdlin_check_no_latch true
+set hdlin_while_loop_iterations 2000000000
 set_host_options -max_cores 4
 set_app_var report_default_significant_digits 6
 set design_toplevel cpu
@@ -51,12 +55,27 @@ suppress_message VO-2
 suppress_message VO-4
 # Verilog writer has added %d nets to module %s using %s as prefix.
 suppress_message VO-11
-# In  the  design  %s,  net '%s' is connecting multiple ports.
+# In the design %s,net '%s' is connecting multiple ports.
 suppress_message UCN-1
 # The replacement character (%c) is conflicting with the allowed or restricted character.
 suppress_message UCN-4
 # Design '%s' was renamed to '%s' to avoid a conflict with another design that has the same name but different parameters.
 suppress_message LINK-17
+
+# There are buffer or inverter cells in the clock tree. The clock tree has to be recreated after retiming.
+suppress_message RTDC-47
+# The design contains the following cellswhich have no influence on the design's function but cannot be removed (e.g. becauseadont_touchattributehas been setset on them). Retiming will ignore these cells in order toachieve good results: %s
+suppress_message RTDC-60
+# The following cells only drive asynchronous pins of sequential cells which have no timing  constraint.  Therefore  retiming will not optimize delay through them
+suppress_message RTDC-115
+# Unable  to  maintain nets '%s' and '%s' as separate entities.
+suppress_message OPT-153
+# The unannotated net '%s' is driven by a primary input port.
+suppress_message PWR-429
+# The unannotated net '%s' is driven by a black box output.
+suppress_message PWR-416
+# %s SV Assertions are ignored for synthesis since %s is not set to true.
+suppress_message ELAB-33
 
 # %s DEFAULT branch of CASE statement cannot be reached.
 suppress_message ELAB-311
@@ -104,7 +123,7 @@ set_wire_load_model -name "5K_hvratio_1_1"
 set_wire_load_mode enclosed
 
 set clk_name $design_clock_pin
-set clk_period [expr [getenv CLOCK_PERIOD_PS] / 1000.0]
+set clk_period [expr [getenv ECE411_CLOCK_PERIOD_PS] / 1000.0]
 create_clock -period $clk_period -name my_clk $clk_name
 set_fix_hold [get_clocks my_clk]
 
@@ -116,8 +135,7 @@ set_fanout_load 8 [all_outputs]
 
 link
 
-compile_ultra -gate_clock -retime
-# compile
+eval [getenv ECE411_COMPILE_CMD]
 
 current_design $design_toplevel
 

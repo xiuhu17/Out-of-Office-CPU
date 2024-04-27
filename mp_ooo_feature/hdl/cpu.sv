@@ -2,16 +2,16 @@ module cpu
   import rv32i_types::*;
 #(
     parameter INSTR_DEPTH = 4,
-    parameter ALU_RS_DEPTH = 4,
-    parameter MUL_RS_DEPTH = 3,
-    parameter BRANCH_RS_DEPTH = 3,
-    parameter LOAD_RS_DEPTH = 3,
-    parameter STORE_RS_DEPTH = 3,
-    parameter ROB_DEPTH = 4,
+    parameter ALU_RS_DEPTH = 2,
+    parameter MULDIV_RS_DEPTH = 2,
+    parameter BRANCH_RS_DEPTH = 2,
+    parameter LOAD_RS_DEPTH = 2,
+    parameter STORE_RS_DEPTH = 2,
+    parameter ROB_DEPTH = 3,
     parameter CDB_SIZE = 4,
-    parameter BTB_DEPTH = 3,
+    parameter BTB_DEPTH = 2,
     parameter GHR_DEPTH = 30,
-    parameter PHT_DEPTH = 10,
+    parameter PHT_DEPTH = 6,
     parameter BIMODAL_DEPTH = 2,
     parameter STORE_RS_NUM_ELEM = 2 ** STORE_RS_DEPTH,
     parameter LOAD_RS_NUM_ELEM = 2 ** LOAD_RS_DEPTH,
@@ -113,12 +113,12 @@ module cpu
   logic [              31:0] cdb_alu_rs_f;
   logic [     ROB_DEPTH-1:0] cdb_alu_rs_rob;
 
-  // mul_rs variables
-  logic                      mul_rs_full;
-  logic                      mul_rs_issue;
-  logic                      cdb_mul_rs_valid;
-  logic [              31:0] cdb_mul_rs_p;
-  logic [     ROB_DEPTH-1:0] cdb_mul_rs_rob;
+  // muldiv_rs variables
+  logic                      muldiv_rs_full;
+  logic                      muldiv_rs_issue;
+  logic                      cdb_muldiv_rs_valid;
+  logic [              31:0] cdb_muldiv_rs_p;
+  logic [     ROB_DEPTH-1:0] cdb_muldiv_rs_rob;
 
   // branch_rs variables
   logic                      branch_rs_full;
@@ -174,15 +174,15 @@ module cpu
 
   always_comb begin
     exe_valid[0] = cdb_alu_rs_valid;
-    exe_valid[1] = cdb_mul_rs_valid;
+    exe_valid[1] = cdb_muldiv_rs_valid;
     exe_valid[2] = cdb_branch_rs_valid;
     exe_valid[3] = cdb_load_rs_valid;
     exe_alu_f[0] = cdb_alu_rs_f;
-    exe_alu_f[1] = cdb_mul_rs_p;
+    exe_alu_f[1] = cdb_muldiv_rs_p;
     exe_alu_f[2] = cdb_branch_rs_v;
     exe_alu_f[3] = cdb_load_rs_v;
     exe_rob[0]   = cdb_alu_rs_rob;
-    exe_rob[1]   = cdb_mul_rs_rob;
+    exe_rob[1]   = cdb_muldiv_rs_rob;
     exe_rob[2]   = cdb_branch_rs_rob;
     exe_rob[3]   = cdb_load_rs_rob;
   end
@@ -409,14 +409,14 @@ module cpu
       .opcode(issue_opcode),
       .funct7(issue_funct7),
       .alu_rs_full(alu_rs_full),
-      .mul_rs_full(mul_rs_full),
+      .muldiv_rs_full(muldiv_rs_full),
       .branch_rs_full(branch_rs_full),
       .load_rs_full(load_rs_full),
       .store_rs_full(store_rs_full),
       .rob_full(rob_full),
       .instr_pop(instr_pop),
       .alu_rs_issue(alu_rs_issue),
-      .mul_rs_issue(mul_rs_issue),
+      .muldiv_rs_issue(muldiv_rs_issue),
       .branch_rs_issue(branch_rs_issue),
       .load_rs_issue(load_rs_issue),
       .store_rs_issue(store_rs_issue),
@@ -458,18 +458,17 @@ module cpu
       .cdb_alu_rs_rob(cdb_alu_rs_rob)
   );
 
-  mul_rs #(
-      .MUL_RS_DEPTH(MUL_RS_DEPTH),
+  muldiv_rs #(
+      .MULDIV_RS_DEPTH(MULDIV_RS_DEPTH),
       .ROB_DEPTH(ROB_DEPTH),
       .CDB_SIZE(CDB_SIZE)
-  ) mul_rs (
+  ) muldiv_rs (
       .clk(clk),
       .rst(rst),
       .move_flush(move_flush),
-      .mul_rs_full(mul_rs_full),
-      .mul_rs_issue(mul_rs_issue),
+      .muldiv_rs_full(muldiv_rs_full),
+      .muldiv_rs_issue(muldiv_rs_issue),
       .issue_funct3(issue_funct3),
-      .issue_funct7(issue_funct7),
       .issue_rs1_regfile_ready(issue_rs1_regfile_ready),
       .issue_rs2_regfile_ready(issue_rs2_regfile_ready),
       .issue_rs1_regfile_v(issue_rs1_regfile_v),
@@ -484,9 +483,9 @@ module cpu
       .cdb_rob(cdb_rob),
       .cdb_rd_v(cdb_rd_v),
       .issue_target_rob(issue_rob),
-      .cdb_mul_rs_valid(cdb_mul_rs_valid),
-      .cdb_mul_rs_p(cdb_mul_rs_p),
-      .cdb_mul_rs_rob(cdb_mul_rs_rob)
+      .cdb_muldiv_rs_valid(cdb_muldiv_rs_valid),
+      .cdb_muldiv_rs_p(cdb_muldiv_rs_p),
+      .cdb_muldiv_rs_rob(cdb_muldiv_rs_rob)
   );
 
   branch_rs #(
@@ -653,8 +652,12 @@ module cpu
       .cdb_valid(cdb_valid),
       .cdb_rob(cdb_rob),
       .cdb_rd_v(cdb_rd_v),
+      .cdb_branch_rs_valid(cdb_branch_rs_valid),
+      .cdb_branch_rs_rob(cdb_branch_rs_rob),
       .cdb_branch_take(cdb_branch_take),
       .cdb_branch_target_pc(cdb_branch_target_pc),
+      .cdb_load_rs_valid(cdb_load_rs_valid),
+      .cdb_load_rs_rob(cdb_load_rs_rob),
       .cdb_load_rs_rmask(cdb_load_rs_rmask),
       .cdb_load_rs_addr(cdb_load_rs_addr),
       .cdb_load_rs_rdata(cdb_load_rs_rdata),

@@ -1,5 +1,3 @@
-export CLOCK_PERIOD_PS = $(shell python3 ../synth/get_clock.py)
-
 SHELL=/bin/bash -o pipefail
 .SHELLFLAGS += -e
 
@@ -19,6 +17,12 @@ synth: clean
 
 outputs/synth.ddc:
 	mkdir -p reports outputs
+	python3 get_clock.py
+	python3 get_min_power.py
+	python3 get_compile_cmd.py
+	export ECE411_CLOCK_PERIOD_PS=$(shell python3 get_clock.py) ;\
+	export ECE411_MIN_POWER=$(shell python3 get_min_power.py) ;\
+	export ECE411_COMPILE_CMD="$(shell python3 get_compile_cmd.py)" ;\
 	dc_shell -f synthesis.tcl |& tee reports/synthesis.log
 	rm -f  *.log
 	rm -f  default.svf

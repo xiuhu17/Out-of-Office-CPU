@@ -5,7 +5,7 @@ module top_tb;
     timeunit 1ps;
     timeprecision 1ps;
 
-    int clock_half_period_ps = getenv("CLOCK_PERIOD_PS").atoi() / 2;
+    int clock_half_period_ps = getenv("ECE411_CLOCK_PERIOD_PS").atoi() / 2;
 
     bit clk;
     always #(clock_half_period_ps) clk = ~clk;

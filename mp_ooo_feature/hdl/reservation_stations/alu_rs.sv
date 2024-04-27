@@ -79,6 +79,7 @@ module alu_rs
   logic [ALU_RS_DEPTH-1:0] alu_rs_pop_index;
 
   // alu and cmp operands
+  logic alu_rs_executing;
   logic                    exe_alu_valid;
   logic                    exe_cmp_valid;
   logic [             2:0] exe_alu_op;
@@ -212,23 +213,46 @@ module alu_rs
   end
 
   // for selecting reservation waking up
-  always_comb begin
-    alu_rs_pop = '0;
-    alu_rs_pop_index = '0;
-    cdb_alu_rs_valid = '0;
-    cdb_alu_rs_rob = '0;
-    // execution logic
-    for (int unsigned i = 0; i < ALU_RS_NUM_ELEM; i++) begin
-      // valied && ready, then execute and finish in the same cycle
-      if (!alu_rs_available[(ALU_RS_DEPTH)'(i+counter)]) begin
-        if (rs1_ready_arr[(ALU_RS_DEPTH)'(i+counter)] && rs2_ready_arr[(ALU_RS_DEPTH)'(i+counter)]) begin
-          // signal pop in the next cycle
-          alu_rs_pop = '1;
-          alu_rs_pop_index = (ALU_RS_DEPTH)'(i + counter);
-          // signal for cdb
-          cdb_alu_rs_valid = '1;
-          cdb_alu_rs_rob = target_rob_arr[(ALU_RS_DEPTH)'(i+counter)];
-          break;
+  always_ff @(posedge clk) begin
+    if (rst || move_flush) begin
+      alu_rs_pop <= '0;
+      alu_rs_pop_index <= '0;
+      cdb_alu_rs_valid <= '0;
+      cdb_alu_rs_rob <= '0;
+      alu_rs_executing <= '0;
+    end else begin 
+        alu_rs_pop <= '0;
+        alu_rs_pop_index <= '0;
+        cdb_alu_rs_valid <= '0;
+        cdb_alu_rs_rob <= '0;
+        alu_rs_executing <= '0;
+        // two cases alu_rs_executing or not
+        for (int unsigned i = 0; i < ALU_RS_NUM_ELEM; i++) begin
+        // valied && ready, then execute and finish in the same cycle
+        if (!alu_rs_available[(ALU_RS_DEPTH)'(i+counter)]) begin
+          if (rs1_ready_arr[(ALU_RS_DEPTH)'(i+counter)] && rs2_ready_arr[(ALU_RS_DEPTH)'(i+counter)]) begin
+            if (alu_rs_executing) begin
+              if (alu_rs_pop_index != (ALU_RS_DEPTH)'(i+counter)) begin
+                // signal pop in the next cycle
+                alu_rs_pop <= '1;
+                alu_rs_pop_index <= (ALU_RS_DEPTH)'(i + counter);
+                // signal for cdb
+                cdb_alu_rs_valid <= '1;
+                cdb_alu_rs_rob <= target_rob_arr[(ALU_RS_DEPTH)'(i+counter)];
+                alu_rs_executing <= '1;
+                break;
+              end
+            end else begin
+              // signal pop in the next cycle
+                alu_rs_pop <= '1;
+                alu_rs_pop_index <= (ALU_RS_DEPTH)'(i + counter);
+                // signal for cdb
+                cdb_alu_rs_valid <= '1;
+                cdb_alu_rs_rob <= target_rob_arr[(ALU_RS_DEPTH)'(i+counter)];
+                alu_rs_executing <= '1;
+                break;
+            end
+          end
         end
       end
     end

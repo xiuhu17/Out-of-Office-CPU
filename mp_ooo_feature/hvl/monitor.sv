@@ -154,9 +154,13 @@ module monitor (
         end
     end
 
+    function bit is_halt(input logic [31:0] pc_rdata, pc_wdata, inst);
+        is_halt = (pc_rdata == pc_wdata) || (inst === 32'h00000063) || (inst === 32'h0000006f) || (inst === 32'hF0002013);
+    endfunction
+
     always @(posedge itf.clk iff !itf.rst) begin
         for (int unsigned channel=0; channel < 8; ++channel) begin
-            if (itf.valid[channel] && ((itf.pc_rdata[channel] == itf.pc_wdata[channel]) || (itf.inst[channel] == 32'h00000063) || (itf.inst[channel] == 32'h0000006f) || (itf.inst[channel] == 32'hF0002013))) begin
+            if (itf.valid[channel] && is_halt(itf.pc_rdata[channel], itf.pc_wdata[channel], itf.inst[channel])) begin
                 itf.halt[channel] <= 1'b1;
             end
         end
@@ -324,6 +328,9 @@ module monitor (
                     endcase
                 end
                 $fwrite(spike_fd, "\n");
+                if (is_halt(itf.pc_rdata[channel], itf.pc_wdata[channel], itf.inst[channel])) begin
+                    break;
+                end
             end
         end
     end

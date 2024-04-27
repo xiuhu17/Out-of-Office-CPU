@@ -10,7 +10,7 @@ module issue
     input logic [6:0] funct7,
     // reservation station variables
     input logic alu_rs_full,
-    input logic mul_rs_full,
+    input logic muldiv_rs_full,
     input logic branch_rs_full,
     input logic load_rs_full,
     input logic store_rs_full,
@@ -21,7 +21,7 @@ module issue
     output logic instr_pop,
     // reservation stations
     output logic alu_rs_issue,
-    output logic mul_rs_issue,
+    output logic muldiv_rs_issue,
     output logic branch_rs_issue,
     output logic load_rs_issue,
     output logic store_rs_issue,
@@ -34,7 +34,7 @@ module issue
   always_comb begin
     instr_pop = '0;
     alu_rs_issue = '0;
-    mul_rs_issue = '0;
+    muldiv_rs_issue = '0;
     branch_rs_issue = '0;
     load_rs_issue = '0;
     store_rs_issue = '0;
@@ -54,12 +54,12 @@ module issue
             issue_valid = '1;
           end
         end
-        if (!mul_rs_full) begin
+        if (!muldiv_rs_full) begin
           if (opcode == reg_opcode && funct7 == multiply_funct7) begin
             // pop from instruction queue
             instr_pop = '1;
             // issue to the mul reservation station
-            mul_rs_issue = '1;
+            muldiv_rs_issue = '1;
             // update ROB
             rob_push = '1;
             // update scoreboard

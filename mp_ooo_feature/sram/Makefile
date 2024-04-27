@@ -12,7 +12,9 @@ export OPENRAM_TECH=$(OPENRAM)/technology
 export PYTHONPATH=$(OPENRAM_HOME)
 
 .PHONY: all
-all: $(OBJECTS)
+all:
+	python3 $(PWD)/test_sram_sus.py
+	$(MAKE) $(OBJECTS)
 
 %:
 	source $(CONDA_HOME)/bin/activate ;\
