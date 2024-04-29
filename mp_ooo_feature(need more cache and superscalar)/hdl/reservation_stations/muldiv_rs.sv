@@ -95,6 +95,21 @@
 //   logic [31:0] udiv_q_store; 
 //   logic [31:0] udiv_r_store; 
 
+//   // signed
+//   logic sdiv_rs_pop;
+//   logic sdiv_executing;
+//   logic sdiv_ready;
+//   logic sdiv_start;
+//   logic sdiv_done;
+//   logic [MULDIV_RS_DEPTH-1:0] sdiv_rs_idx_executing;
+//   logic [ROB_DEPTH-1:0] sdiv_rob_executing;
+//   logic [31:0] sdiv_a_executing;
+//   logic [31:0] sdiv_b_executing;
+//   logic [2:0]  sdiv_funct3_executing;
+//   logic [31:0] sdiv_q_executing; 
+//   logic [31:0] sdiv_r_executing; 
+//   logic [31:0] sdiv_q_store; 
+//   logic [31:0] sdiv_r_store; 
 
 //   always_ff @(posedge clk) begin
 //     if (rst || move_flush) begin
@@ -181,6 +196,13 @@
 //         rs2_ready_arr[udiv_rs_idx_executing] <= '0;
 //         counter <= udiv_rs_idx_executing + 1'b1;
 //       end
+//       // remove once the result is computed and put on the CDB
+//       if (sdiv_rs_pop) begin
+//         muldiv_rs_available[sdiv_rs_idx_executing] <= '1;
+//         rs1_ready_arr[sdiv_rs_idx_executing] <= '0;
+//         rs2_ready_arr[sdiv_rs_idx_executing] <= '0;
+//         counter <= sdiv_rs_idx_executing + 1'b1;
+//       end
 //     end
 //   end
 
@@ -204,6 +226,9 @@
 //       udiv_exectuing <= '0;
 //       udiv_ready <= '0;
 //       udiv_start <= '0;
+//       sdiv_executing <= '0;
+//       sdiv_ready <= '0;
+//       sdiv_start <= '0;
 //     end else begin
 //         for (int unsigned i = 0; i < MULDIV_RS_NUM_ELEM; i++) begin
 //           // valid & ready & spare muldivtiplier, then execute
@@ -261,6 +286,18 @@
 //                     udiv_b_executing <= rs2_v_arr[(MULDIV_RS_DEPTH)'(i+counter)];
 //                   end
 //                 end
+//                 div_funct3, rem_funct3: begin
+//                   if (!sdiv_executing) begin 
+//                     sdiv_executing <= '1;
+//                     sdiv_start <= '1;
+//                     sdiv_ready <= '0;
+//                     sdiv_funct3_executing <= funct3_arr[(MULDIV_RS_DEPTH)'(i+counter)];
+//                     sdiv_rs_idx_executing <= (MULDIV_RS_DEPTH)'(i + counter);
+//                     sdiv_rob_executing <= target_rob_arr[(MULDIV_RS_DEPTH)'(i+counter)];
+//                     sdiv_a_executing <= rs1_v_arr[(MULDIV_RS_DEPTH)'(i+counter)];
+//                     sdiv_b_executing <= rs2_v_arr[(MULDIV_RS_DEPTH)'(i+counter)];
+//                   end
+//                 end
 //               endcase
 //             end
 //           end
@@ -271,6 +308,9 @@
 //       if (udiv_start) begin
 //         udiv_start <= '0;
 //       end
+//       if (sdiv_start) begin
+//         sdiv_start <= '0;
+//       end
 //       if (mul_rs_pop) begin 
 //         mul_executing <= '0;
 //         mul_ready <= '0;
@@ -278,6 +318,10 @@
 //       if (udiv_rs_pop) begin 
 //         udiv_exectuing <= '0;
 //         udiv_ready <= '0;
+//       end
+//       if (sdiv_rs_pop) begin 
+//         sdiv_executing <= '0;
+//         sdiv_ready <= '0;
 //       end
 //       if (mul_executing && mul_done) begin
 //         mul_ready <= '1;
@@ -288,6 +332,11 @@
 //         udiv_q_store <= udiv_q_executing;
 //         udiv_r_store <= udiv_r_executing;
 //       end
+//       if (sdiv_executing && sdiv_done && !sdiv_start) begin
+//         sdiv_ready <= '1;
+//         sdiv_q_store <= sdiv_q_executing;
+//         sdiv_r_store <= sdiv_r_executing;
+//       end
 //     end
 //   end
 
@@ -297,6 +346,7 @@
 //     cdb_muldiv_rs_p = '0;
 //     mul_rs_pop = '0;
 //     udiv_rs_pop = '0;
+//     sdiv_rs_pop = '0;
 //     if (mul_ready) begin 
 //       mul_rs_pop = '1;
 //       cdb_muldiv_rs_valid = '1;
@@ -313,7 +363,15 @@
 //         udiv_funct3: cdb_muldiv_rs_p = udiv_q_store;
 //         urem_funct3: cdb_muldiv_rs_p = udiv_r_store;
 //       endcase
-//     end 
+//     end else if (sdiv_ready) begin 
+//       sdiv_rs_pop = '1;
+//       cdb_muldiv_rs_valid = '1;
+//       cdb_muldiv_rs_rob = sdiv_rob_executing;
+//       case (sdiv_funct3_executing)
+//         div_funct3: cdb_muldiv_rs_p = sdiv_q_store;
+//         rem_funct3: cdb_muldiv_rs_p = sdiv_r_store;
+//       endcase
+//     end
 //   end
 
 //   dadda_multiplier32 dadda_multiplier32 (
@@ -341,6 +399,18 @@
 //     .remainder(udiv_r_executing)
 //   );
 
+//     DW_div_seq #(32, 32, 1, 16, 0, 0, 1, 0) 
+//       sdiv (
+//       .clk(clk),
+//       .rst_n(~(rst || move_flush)),
+//       .hold('0),
+//       .start(sdiv_start),
+//       .a(sdiv_a_executing),
+//       .b(sdiv_b_executing),
+//       .complete(sdiv_done),
+//       .quotient(sdiv_q_executing),
+//       .remainder(sdiv_r_executing)
+//     );
 // endmodule
 
 module muldiv_rs
@@ -427,6 +497,14 @@ module muldiv_rs
   logic udiv_done;
   logic [31:0] udiv_q_executing; 
   logic [31:0] udiv_r_executing; 
+
+
+  // signed
+  logic sdiv_executing;
+  logic sdiv_start;
+  logic sdiv_done;
+  logic [31:0] sdiv_q_executing; 
+  logic [31:0] sdiv_r_executing; 
 
   always_ff @(posedge clk) begin
     if (rst || move_flush) begin
@@ -531,10 +609,12 @@ module muldiv_rs
       mul_start <= '0;
       mul_type_executing <= '0;
       udiv_start <= '0;
+      sdiv_start <= '0;
       mul_executing <= '0;
       udiv_exectuing <= '0;
+      sdiv_executing <= '0;
     end else begin
-      if (!(mul_executing || udiv_exectuing)) begin
+      if (!(mul_executing || udiv_exectuing || sdiv_executing)) begin
         for (int unsigned i = 0; i < MULDIV_RS_NUM_ELEM; i++) begin
           // valid & ready & spare muldivtiplier, then execute
           if (!muldiv_rs_available[(MULDIV_RS_DEPTH)'(i+counter)]) begin
@@ -550,23 +630,33 @@ module muldiv_rs
                   mul_start <= '1;
                   mul_type_executing <= mul_signed_signed;
                   udiv_start <= '0;
+                  sdiv_start <= '0;
                 end
                 mulhsu_funct3: begin
                   mul_executing <= '1;
                   mul_start <= '1;
                   mul_type_executing <= mul_signed_unsigned;
                   udiv_start <= '0;
+                  sdiv_start <= '0;
                 end
                 mulhu_funct3: begin
                   mul_executing <= '1;
                   mul_start <= '1;
                   mul_type_executing <= mul_unsigned_unsigned;
                   udiv_start <= '0;
+                  sdiv_start <= '0;
                 end
                 udiv_funct3, urem_funct3: begin
                   udiv_exectuing <= '1;
                   mul_start <= '0;
                   udiv_start <= '1;
+                  sdiv_start <= '0;
+                end
+                div_funct3, rem_funct3: begin
+                  sdiv_executing <= '1;
+                  mul_start <= '0;
+                  udiv_start <= '0;
+                  sdiv_start <= '1;
                 end
               endcase
               break;
@@ -580,11 +670,17 @@ module muldiv_rs
       if (udiv_start) begin
         udiv_start <= '0;
       end
+      if (sdiv_start) begin
+        sdiv_start <= '0;
+      end
       if (mul_executing && mul_done) begin
         mul_executing <= '0;
       end
       if (udiv_exectuing && udiv_done && !udiv_start) begin
         udiv_exectuing <= '0;
+      end
+      if (sdiv_executing && sdiv_done && !sdiv_start) begin
+        sdiv_executing <= '0;
       end
     end
   end
@@ -594,7 +690,7 @@ module muldiv_rs
     muldiv_rs_pop = '0;
     cdb_muldiv_rs_rob = '0;
     cdb_muldiv_rs_p = '0;
-    if ((mul_executing && mul_done) || (udiv_exectuing && udiv_done && !udiv_start)) begin
+    if ((mul_executing && mul_done) || (udiv_exectuing && udiv_done && !udiv_start) || (sdiv_executing && sdiv_done && !sdiv_start)) begin
       cdb_muldiv_rs_valid = '1;
       muldiv_rs_pop = '1;
       cdb_muldiv_rs_rob = muldiv_rob_executing;
@@ -604,6 +700,8 @@ module muldiv_rs
         mulh_funct3, mulhsu_funct3, mulhu_funct3: cdb_muldiv_rs_p = mul_p_executing[63:32];
         udiv_funct3: cdb_muldiv_rs_p = udiv_q_executing;
         urem_funct3: cdb_muldiv_rs_p = udiv_r_executing;
+        div_funct3: cdb_muldiv_rs_p = sdiv_q_executing;
+        rem_funct3: cdb_muldiv_rs_p = sdiv_r_executing;
       endcase
     end
   end
@@ -632,5 +730,18 @@ module muldiv_rs
     .quotient(udiv_q_executing),
     .remainder(udiv_r_executing)
   );
+
+    DW_div_seq #(32, 32, 1, 16, 0, 0, 1, 0) 
+      sdiv (
+      .clk(clk),
+      .rst_n(~(rst || move_flush)),
+      .hold('0),
+      .start(sdiv_start),
+      .a(a_executing),
+      .b(b_executing),
+      .complete(sdiv_done),
+      .quotient(sdiv_q_executing),
+      .remainder(sdiv_r_executing)
+    );
 
 endmodule
