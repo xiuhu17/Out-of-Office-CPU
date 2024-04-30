@@ -1,4 +1,0 @@
-config/__pycache__
-output/*/*
-!output/*/*.v
-!output/*/*.db
