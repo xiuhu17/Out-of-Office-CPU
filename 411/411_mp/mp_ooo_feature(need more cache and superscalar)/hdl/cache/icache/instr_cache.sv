@@ -57,6 +57,7 @@ module instr_cache
       ufp_read = '1;
       csb0 = '0;
     end
+    // for read-pnly pipelined cache purpose
     if (ufp_resp) begin 
       if (cpu_ufp_rmask != '0) begin
         csb0 = '0;
