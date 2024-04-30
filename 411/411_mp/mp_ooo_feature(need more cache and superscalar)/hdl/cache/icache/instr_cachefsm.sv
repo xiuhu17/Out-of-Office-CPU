@@ -56,7 +56,9 @@ module instr_cachefsm
       Compare_Tag: begin
         case (Hit_Miss)
           Hit: begin
-            // for read-only pipelined cache purpose, stay inside compare stage if rqst is made in the same cycle of resp
+              // resp with same cycle rqst
+              //   1. read-only piplined cache should stay in compare_tag state
+              //   2. start reading new address(new set) in the resp cycle
             if (cpu_ufp_rmask == '0) begin 
               next_state = Idle;
             end
