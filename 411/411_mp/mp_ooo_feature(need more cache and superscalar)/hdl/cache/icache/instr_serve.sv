@@ -19,14 +19,17 @@ module instr_serve (
       internal_cpu_ufp_rmask <= 4'h0;
     end else begin
       if (ufp_resp) begin
+        // resp with same cycle rqst
         if (cpu_ufp_rmask != '0) begin
           internal_cpu_ufp_addr  <= cpu_ufp_addr;
           internal_cpu_ufp_rmask <= cpu_ufp_rmask;
         end else begin
+            // resp with same cycle no rqst
           internal_cpu_ufp_addr  <= 32'h0;
           internal_cpu_ufp_rmask <= 4'h0;
         end
       end else begin
+          // rqst from a point without any previous in-flight rqst
         if (internal_cpu_ufp_rmask == '0) begin
           if (cpu_ufp_rmask != '0) begin
             internal_cpu_ufp_addr  <= cpu_ufp_addr;
@@ -42,6 +45,7 @@ module instr_serve (
     ufp_addr  = internal_cpu_ufp_addr;
     ufp_rmask = internal_cpu_ufp_rmask;
 
+    // rqst from a point without any previous in-flight rqst, transparent register, one cycle faster
     if (internal_cpu_ufp_rmask == '0) begin 
       ufp_addr  = cpu_ufp_addr;
       ufp_rmask = cpu_ufp_rmask;
