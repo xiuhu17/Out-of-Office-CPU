@@ -5,15 +5,16 @@ module instruction_queue #(
     input logic rst,
     input logic move_flush,
 
-    // outputing whether the instruction queue is full and the valid/opcode information
-    // we assume the instr_push and instr_pop are always correct
+    // full decides whether we could still fetch(insert into queue)
     output logic instr_full,
+    input logic move_fetch,
+
+    // valid & ready decides whether we could issue to reservation station(remove from queue)
     output logic instr_valid,
     output logic instr_ready,
-
-    input logic move_fetch,
-    input logic imem_resp,
     input logic instr_pop,
+
+    input logic imem_resp,
 
     input logic [31:0] imem_rdata,
     input logic [63:0] fetch_order,
