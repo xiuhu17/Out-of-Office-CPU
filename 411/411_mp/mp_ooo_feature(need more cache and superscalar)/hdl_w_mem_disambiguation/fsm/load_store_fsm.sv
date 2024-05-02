@@ -24,7 +24,7 @@ module load_store_fsm
     // response
     input logic dmem_resp,
     output logic [LOAD_RS_DEPTH-1:0] load_rs_dmem_idx_executing,
-    output logic load_rs_dmem_pop,
+    output logic load_rs_dmem_ready,
     output logic store_buffer_pop
 );
 
@@ -76,7 +76,7 @@ module load_store_fsm
     dmem_rqst = '0;
     arbiter_load_rs = '0;
     arbiter_store_buffer = '0;
-    load_rs_dmem_pop = '0;
+    load_rs_dmem_ready = '0;
     store_buffer_pop = '0;
     load_rs_dmem_idx_executing = '0;
 
@@ -116,7 +116,7 @@ module load_store_fsm
       end
       DMEM_R_STALL: begin
         if (dmem_resp) begin
-          load_rs_dmem_pop = '1;
+          load_rs_dmem_ready = '1;
           load_rs_dmem_idx_executing = internal_load_rs_dmem_idx_executing;
         end
       end

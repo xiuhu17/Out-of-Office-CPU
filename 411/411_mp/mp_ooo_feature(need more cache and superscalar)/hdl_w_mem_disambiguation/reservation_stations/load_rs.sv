@@ -24,13 +24,13 @@ module load_rs
     // update the total number
     input logic store_rs_pop,
 
-    // output to fsm
+    // output to fsm 
     output logic dmem_r_rqst,
-    output logic [LOAD_RS_DEPTH-1:0] load_rs_idx_rqst,
+    output logic [LOAD_RS_DEPTH-1:0] load_rs_dmem_idx_rqst,
 
     // fsm control pop
-    input logic load_rs_pop,
-    input logic [LOAD_RS_DEPTH-1:0] load_rs_idx_executing,
+    input logic load_rs_dmem_ready,
+    input logic [LOAD_RS_DEPTH-1:0] load_rs_dmem_idx_executing,
 
     // from dmem
     input logic [31:0] dmem_rdata,
@@ -96,9 +96,9 @@ module load_rs
   //
   logic [LOAD_RS_DEPTH-1:0] counter;
 
-  // forward status
-  logic could_load[];
-  logic 
+  // 
+  logic load_rs_forward_ready;
+  logic [LOAD_RS_DEPTH-1:0] load_rs_forward_idx_executing;
 
   always_ff @(posedge clk) begin
     if (rst || move_flush) begin
@@ -159,10 +159,14 @@ module load_rs
         end
       end
 
-      if (load_rs_pop) begin
-        load_rs_available[load_rs_idx_executing] <= '1;
-        rs1_ready_arr[load_rs_idx_executing] <= '0;
-        counter <= load_rs_idx_executing + 1'b1;
+      if (load_rs_dmem_ready) begin
+        load_rs_available[load_rs_dmem_idx_executing] <= '1;
+        rs1_ready_arr[load_rs_dmem_idx_executing] <= '0;
+        counter <= load_rs_dmem_idx_executing + 1'b1;
+      end else if (load_rs_forward_ready) begin
+        load_rs_available[load_rs_forward_idx_executing] <= '1;
+        rs1_ready_arr[load_rs_forward_idx_executing] <= '0;
+        counter <= load_rs_forward_idx_executing + 1'b1;
       end
     end
   end
@@ -178,75 +182,121 @@ module load_rs
     end
   end
 
+  // TODO:
   // fsm and arbiter
+  // always_comb begin
+  //   dmem_r_rqst = '0;
+  //   load_rs_idx_rqst = '0;
+  //   arbiter_load_rs_rmask = '0;
+  //   arbiter_load_rs_addr = '0;
+  //   for (int unsigned i = 0; i < LOAD_RS_NUM_ELEM; i++) begin
+  //     if (!load_rs_available[(LOAD_RS_DEPTH)'(i+counter)]) begin
+  //         dmem_r_rqst = '1;
+  //         load_rs_idx_rqst = (LOAD_RS_DEPTH)'(i + counter);
+  //         arbiter_load_rs_addr = rs1_v_arr[(LOAD_RS_DEPTH)'(i+counter)] + imm_arr[(LOAD_RS_DEPTH)'(i+counter)];
+  //         case (funct3_arr[(LOAD_RS_DEPTH)'(i+counter)])
+  //           lb_mem, lbu_mem: begin
+  //             arbiter_load_rs_rmask = 4'b0001 << (arbiter_load_rs_addr[1:0]);
+  //           end
+  //           lh_mem, lhu_mem: begin
+  //             arbiter_load_rs_rmask = 4'b0011 << (arbiter_load_rs_addr[1:0]);
+  //           end
+  //           lw_mem: begin
+  //             arbiter_load_rs_rmask = 4'b1111;
+  //           end
+  //         endcase
+  //         if (rs1_v_arr[(LOAD_RS_DEPTH)'(i+counter)] == 32'h0 && imm_arr[(LOAD_RS_DEPTH)'(i+counter)] == 32'h4) begin
+  //             dmem_r_rqst = '0;
+  //         end
+  //         break;
+  //     end
+  //   end
+  // end
+
+  // TODO:
+  // to cdb
+  // always_comb begin
+  //   cdb_load_rs_valid = '0;
+  //   cdb_load_rs_v = '0;
+  //   cdb_load_rs_rob = '0;
+  //   cdb_load_rs_rmask = '0;
+  //   cdb_load_rs_addr = '0;
+  //   cdb_load_rs_rdata = '0;
+  //   if (load_rs_pop) begin
+  //     cdb_load_rs_valid = '1;
+  //     cdb_load_rs_rob   = target_rob_arr[load_rs_idx_executing];
+  //     cdb_load_rs_addr  = rs1_v_arr[load_rs_idx_executing] + imm_arr[load_rs_idx_executing];
+  //     cdb_load_rs_rdata = dmem_rdata;
+  //     case (funct3_arr[load_rs_idx_executing])
+  //       lb_mem: begin
+  //         cdb_load_rs_rmask = 4'b0001 << (cdb_load_rs_addr[1:0]);
+  //         cdb_load_rs_v = {
+  //           {24{dmem_rdata[7+8*cdb_load_rs_addr[1:0]]}}, dmem_rdata[8*cdb_load_rs_addr[1:0]+:8]
+  //         };
+  //       end
+  //       lbu_mem: begin
+  //         cdb_load_rs_rmask = 4'b0001 << (cdb_load_rs_addr[1:0]);
+  //         cdb_load_rs_v     = {{24{1'b0}}, dmem_rdata[8*cdb_load_rs_addr[1:0]+:8]};
+  //       end
+  //       lh_mem: begin
+  //         cdb_load_rs_rmask = 4'b0011 << (cdb_load_rs_addr[1:0]);
+  //         cdb_load_rs_v = {
+  //           {16{dmem_rdata[15+16*cdb_load_rs_addr[1]]}}, dmem_rdata[16*cdb_load_rs_addr[1]+:16]
+  //         };
+  //       end
+  //       lhu_mem: begin
+  //         cdb_load_rs_rmask = 4'b0011 << (cdb_load_rs_addr[1:0]);
+  //         cdb_load_rs_v     = {{16{1'b0}}, dmem_rdata[16*cdb_load_rs_addr[1]+:16]};
+  //       end
+  //       lw_mem: begin
+  //         cdb_load_rs_rmask = 4'b1111;
+  //         cdb_load_rs_v = dmem_rdata;
+  //       end
+  //     endcase
+  //   end
+  // end
+
+
+  // load: !available && ready
+  // whether all solved
+  // whether conflict(overlap)
+  // if it is, where is the closet overlapped (wmask & rmask != '0)
+  // closet overlapped in store_queue or store_buffer
+  // whether the closet 1: available for forwarding, 2: overlapped wmask must contain all overlapped rmask (wmask | rmask == wmask)
+  // determines whether forward or wait till sending request to dmem
+  logic store_rs_solved[LOAD_RS_NUM_ELEM];
+  logic exist_conflict[LOAD_RS_NUM_ELEM]; 
   always_comb begin
     dmem_r_rqst = '0;
-    load_rs_idx_rqst = '0;
-    arbiter_load_rs_rmask = '0;
-    arbiter_load_rs_addr = '0;
-    for (int unsigned i = 0; i < LOAD_RS_NUM_ELEM; i++) begin
-      if (!load_rs_available[(LOAD_RS_DEPTH)'(i+counter)]) begin
-          dmem_r_rqst = '1;
-          load_rs_idx_rqst = (LOAD_RS_DEPTH)'(i + counter);
-          arbiter_load_rs_addr = rs1_v_arr[(LOAD_RS_DEPTH)'(i+counter)] + imm_arr[(LOAD_RS_DEPTH)'(i+counter)];
-          case (funct3_arr[(LOAD_RS_DEPTH)'(i+counter)])
-            lb_mem, lbu_mem: begin
-              arbiter_load_rs_rmask = 4'b0001 << (arbiter_load_rs_addr[1:0]);
-            end
-            lh_mem, lhu_mem: begin
-              arbiter_load_rs_rmask = 4'b0011 << (arbiter_load_rs_addr[1:0]);
-            end
-            lw_mem: begin
-              arbiter_load_rs_rmask = 4'b1111;
-            end
-          endcase
-          if (rs1_v_arr[(LOAD_RS_DEPTH)'(i+counter)] == 32'h0 && imm_arr[(LOAD_RS_DEPTH)'(i+counter)] == 32'h4) begin
-              dmem_r_rqst = '0;
-          end
-          break;
-      end
+    load_rs_dmem_idx_rqst = '0;
+    load_rs_forward_ready = '0;
+    load_rs_forward_idx_executing = '0;
+    for (int unsigned i = 0; i < LOAD_RS_NUM_ELEM; i ++) begin
+        store_rs_solved[i] = '0;
     end
+    if (!load_rs_dmem_ready) begin
+      for (int unsigned i = 0; i < LOAD_RS_NUM_ELEM; i ++) begin
+        if (!alu_rs_available[i] && rs1_ready_arr[i]) begin
+          for ()
+
+        end
+      end
+    end   
   end
 
-  // to cdb
+  // TODO:
+  // assign to cdb
   always_comb begin
     cdb_load_rs_valid = '0;
     cdb_load_rs_v = '0;
     cdb_load_rs_rob = '0;
     cdb_load_rs_rmask = '0;
     cdb_load_rs_addr = '0;
-    cdb_load_rs_rdata = '0;
-    if (load_rs_pop) begin
+    cdb_load_rs_rdata = '0
+    if (load_rs_dmem_ready) begin
       cdb_load_rs_valid = '1;
-      cdb_load_rs_rob   = target_rob_arr[load_rs_idx_executing];
-      cdb_load_rs_addr  = rs1_v_arr[load_rs_idx_executing] + imm_arr[load_rs_idx_executing];
-      cdb_load_rs_rdata = dmem_rdata;
-      case (funct3_arr[load_rs_idx_executing])
-        lb_mem: begin
-          cdb_load_rs_rmask = 4'b0001 << (cdb_load_rs_addr[1:0]);
-          cdb_load_rs_v = {
-            {24{dmem_rdata[7+8*cdb_load_rs_addr[1:0]]}}, dmem_rdata[8*cdb_load_rs_addr[1:0]+:8]
-          };
-        end
-        lbu_mem: begin
-          cdb_load_rs_rmask = 4'b0001 << (cdb_load_rs_addr[1:0]);
-          cdb_load_rs_v     = {{24{1'b0}}, dmem_rdata[8*cdb_load_rs_addr[1:0]+:8]};
-        end
-        lh_mem: begin
-          cdb_load_rs_rmask = 4'b0011 << (cdb_load_rs_addr[1:0]);
-          cdb_load_rs_v = {
-            {16{dmem_rdata[15+16*cdb_load_rs_addr[1]]}}, dmem_rdata[16*cdb_load_rs_addr[1]+:16]
-          };
-        end
-        lhu_mem: begin
-          cdb_load_rs_rmask = 4'b0011 << (cdb_load_rs_addr[1:0]);
-          cdb_load_rs_v     = {{16{1'b0}}, dmem_rdata[16*cdb_load_rs_addr[1]+:16]};
-        end
-        lw_mem: begin
-          cdb_load_rs_rmask = 4'b1111;
-          cdb_load_rs_v = dmem_rdata;
-        end
-      endcase
+    end else if (load_rs_forward_ready) begin
+      cdb_load_rs_valid = '1;
     end
   end
 endmodule
