@@ -2,7 +2,8 @@ module ROB
   import rv32i_types::*;
 #(
     parameter ROB_DEPTH = 4,  // number of bits to use for depth
-    parameter CDB_SIZE  = 3
+    parameter CDB_SIZE  = 4,
+    parameter LOAD_CDB_IDX = CDB_SIZE - 1
 ) (
     input logic clk,
     input logic rst,
@@ -23,7 +24,7 @@ module ROB
     input logic                 cdb_branch_take,
     input logic [         31:0] cdb_branch_target_pc,
     // for load
-    input logic                 cdb_load_rs_valid,
+    input logic cdb_load_rs_rdata_valid,
     input logic [ROB_DEPTH-1:0] cdb_load_rs_rob,
     input logic [3:0] cdb_load_rs_rmask,
     input logic [31:0] cdb_load_rs_addr,
@@ -188,7 +189,8 @@ module ROB
         tail <= tail + 1'b1;
       end
 
-      for (int i = 0; i < CDB_SIZE; ++i) begin
+      // -1 because we use cdb_load_rs_rdata_valid for load_rs data valid in rob
+      for (int i = 0; i < CDB_SIZE - 1; ++i) begin
         if (cdb_valid[i]) begin
           ready_arr[cdb_rob[i]] <= '1;
           rd_v_arr[cdb_rob[i]]  <= cdb_rd_v[i];
@@ -203,7 +205,9 @@ module ROB
           branch_take_arr[cdb_branch_rs_rob] <= '1;
         end
       end
-      if (cdb_load_rs_valid) begin
+      if (cdb_load_rs_rdata_valid) begin
+        ready_arr[cdb_load_rs_rob] <= '1;
+        rd_v_arr[cdb_load_rs_rob]  <= cdb_rd_v[LOAD_CDB_IDX];
         rvfi_mem_wmask_arr[cdb_load_rs_rob] <= '0;
         rvfi_mem_wdata_arr[cdb_load_rs_rob] <= '0;
         rvfi_mem_rmask_arr[cdb_load_rs_rob] <= cdb_load_rs_rmask;

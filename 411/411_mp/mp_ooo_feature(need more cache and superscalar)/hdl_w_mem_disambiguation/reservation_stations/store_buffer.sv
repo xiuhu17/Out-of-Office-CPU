@@ -28,7 +28,7 @@ import rv32i_types::*;
 
     // forward to load_rs
     output logic store_buffer_valid[STORE_BUFFER_NUM_ELEM],
-    output logic [31:0] store_buffer_waddr[STORE_BUFFER_NUM_ELEM],
+    output logic [31:0] store_buffer_addr[STORE_BUFFER_NUM_ELEM],
     output logic [3:0] store_buffer_wmask[STORE_BUFFER_NUM_ELEM],
     output logic [31:0] store_buffer_wdata[STORE_BUFFER_NUM_ELEM],
 
@@ -40,7 +40,7 @@ import rv32i_types::*;
 
     // store the value from store_rs 
     logic valid_arr[STORE_BUFFER_NUM_ELEM];
-    logic [31:0] waddr_arr[STORE_BUFFER_NUM_ELEM];
+    logic [31:0] addr_arr[STORE_BUFFER_NUM_ELEM];
     logic [3:0] wmask_arr[STORE_BUFFER_NUM_ELEM];
     logic [31:0] wdata_arr[STORE_BUFFER_NUM_ELEM];
 
@@ -54,14 +54,14 @@ import rv32i_types::*;
             tail <= '0;
             for (int unsigned i = 0; i < STORE_BUFFER_NUM_ELEM; i ++) begin 
                 valid_arr[i] <= '0;
-                waddr_arr[i] <= '0;
+                addr_arr[i] <= '0;
                 wmask_arr[i] <= '0;
                 wdata_arr[i] <= '0;
             end
         end else begin
             if (cdb_store_rs_valid) begin
                 valid_arr[head] <= '1;
-                waddr_arr[head] <= cdb_store_rs_addr;
+                addr_arr[head] <= cdb_store_rs_addr;
                 wmask_arr[head] <= cdb_store_rs_wmask;  
                 wdata_arr[head] <= cdb_store_rs_wdata;
                 head <= head + 1'b1;
@@ -77,12 +77,7 @@ import rv32i_types::*;
 
     // whether the store_buffer is full or not
     always_comb begin
-        store_buffer_full = '1;
-        for (int unsigned i = 0; i < STORE_BUFFER_NUM_ELEM; i ++) begin
-            if (!valid_arr[i]) begin
-                store_buffer_full = '0;
-            end
-        end
+        store_buffer_full = valid_arr[head];
     end
 
     // output to arbiter
@@ -94,7 +89,7 @@ import rv32i_types::*;
         if (valid_arr[tail]) begin
             dmem_w_rqst = '1;
             arbiter_store_buffer_wmask = wmask_arr[tail];
-            arbiter_store_buffer_addr = waddr_arr[tail];
+            arbiter_store_buffer_addr = addr_arr[tail];
             arbiter_store_buffer_wdata = wdata_arr[tail];
         end
     end
@@ -104,7 +99,7 @@ import rv32i_types::*;
     always_comb begin
         for (int unsigned i = 0; i < STORE_BUFFER_NUM_ELEM; i ++) begin
             store_buffer_valid[i] = valid_arr[(STORE_BUFFER_DEPTH)'(head - i)];
-            store_buffer_waddr[i] = waddr_arr[(STORE_BUFFER_DEPTH)'(head - i)];
+            store_buffer_addr[i] = addr_arr[(STORE_BUFFER_DEPTH)'(head - i)];
             store_buffer_wmask[i] = wmask_arr[(STORE_BUFFER_DEPTH)'(head - i)];
             store_buffer_wdata[i] = wdata_arr[(STORE_BUFFER_DEPTH)'(head - i)];
         end

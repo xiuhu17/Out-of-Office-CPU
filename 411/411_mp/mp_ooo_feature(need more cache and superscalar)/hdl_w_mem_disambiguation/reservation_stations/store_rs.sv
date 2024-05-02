@@ -49,9 +49,8 @@ import rv32i_types::*;
     input logic [         31:0] cdb_rd_v [CDB_SIZE],
 
     // forward to load queue
-    output logic store_rs_valid[STORE_RS_NUM_ELEM],
     output logic store_rs_wready[STORE_RS_NUM_ELEM],
-    output logic [31:0] store_rs_waddr[STORE_RS_NUM_ELEM],
+    output logic [31:0] store_rs_addr[STORE_RS_NUM_ELEM],
     output logic [3:0] store_rs_wmask[STORE_RS_NUM_ELEM],
     output logic [31:0] store_rs_wdata[STORE_RS_NUM_ELEM],
 
@@ -180,14 +179,13 @@ import rv32i_types::*;
         issue_store_rs_count = count;
         issue_store_rs_head = head;
         for (int unsigned i = 0; i < STORE_RS_NUM_ELEM; i ++) begin 
-            store_rs_valid[i] = valid_arr[i];
             store_rs_wready[i] = rs1_ready_arr[i] && rs2_ready_arr[i];
-            store_rs_waddr[i] = rs1_v_arr[i] + imm_arr[i];
+            store_rs_addr[i] = rs1_v_arr[i] + imm_arr[i];
             store_rs_wdata[i] = rs2_v_arr[i];
             store_rs_wmask[i] = 4'b1111;
             case(funct3_arr[i]) 
-                sb_mem: store_rs_wmask[i] = 4'b0001 << store_rs_waddr[i][1:0];
-                sh_mem: store_rs_wmask[i] = 4'b0011 << store_rs_waddr[i][1:0];
+                sb_mem: store_rs_wmask[i] = 4'b0001 << store_rs_addr[i][1:0];
+                sh_mem: store_rs_wmask[i] = 4'b0011 << store_rs_addr[i][1:0];
                 sw_mem: store_rs_wmask[i] = 4'b1111;
             endcase
         end
