@@ -59,12 +59,12 @@ module data_serve (
     ufp_wmask = internal_cpu_ufp_wmask;
     ufp_wdata = internal_cpu_ufp_wdata;
 
-    if (internal_cpu_ufp_rmask == '0 && internal_cpu_ufp_wmask == '0) begin
-        ufp_addr  = cpu_ufp_addr;
-        ufp_rmask = cpu_ufp_rmask;
-        ufp_wmask = cpu_ufp_wmask;
-        ufp_wdata = cpu_ufp_wdata;
-    end
+    // if (internal_cpu_ufp_rmask == '0 && internal_cpu_ufp_wmask == '0) begin
+    //     ufp_addr  = cpu_ufp_addr;
+    //     ufp_rmask = cpu_ufp_rmask;
+    //     ufp_wmask = cpu_ufp_wmask;
+    //     ufp_wdata = cpu_ufp_wdata;
+    // end
   end
 
 endmodule

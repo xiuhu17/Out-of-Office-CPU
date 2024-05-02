@@ -33,9 +33,9 @@ module ROB
     output logic [ROB_DEPTH-1:0] rob_tail,
     input logic cdb_store_rs_valid,
     input logic [ROB_DEPTH-1:0] cdb_store_rs_rob,
-    input logic [3:0] cdb_arbiter_store_rs_wmask,
-    input logic [31:0] cdb_arbiter_store_rs_addr,
-    input logic [31:0] cdb_arbiter_store_rs_wdata,
+    input logic [3:0] cdb_store_rs_wmask,
+    input logic [31:0] cdb_store_rs_addr,
+    input logic [31:0] cdb_store_rs_wdata,
 
     // for instruction_issue write into rob
     input  logic                   rob_push,
@@ -218,9 +218,9 @@ module ROB
         ready_arr[cdb_store_rs_rob] <= '1;
         rvfi_mem_rmask_arr[cdb_store_rs_rob] <= '0;
         rvfi_mem_rdata_arr[cdb_store_rs_rob] <= '0;
-        rvfi_mem_wmask_arr[cdb_store_rs_rob] <= cdb_arbiter_store_rs_wmask;
-        rvfi_mem_addr_arr[cdb_store_rs_rob] <= cdb_arbiter_store_rs_addr;
-        rvfi_mem_wdata_arr[cdb_store_rs_rob] <= cdb_arbiter_store_rs_wdata;
+        rvfi_mem_wmask_arr[cdb_store_rs_rob] <= cdb_store_rs_wmask;
+        rvfi_mem_addr_arr[cdb_store_rs_rob] <= cdb_store_rs_addr;
+        rvfi_mem_wdata_arr[cdb_store_rs_rob] <= cdb_store_rs_wdata;
       end
 
       if (rob_push) begin

@@ -6,7 +6,7 @@ module load_rs
     parameter STORE_BUFFER_DEPTH = 3,
     parameter ROB_DEPTH = 3,
     parameter CDB_SIZE = 4,
-    parameter STORE_BUFFER_NUM_ELEM = 2 ** STORE_BUFFER_DEPTH
+    parameter STORE_BUFFER_NUM_ELEM = 2 ** STORE_BUFFER_DEPTH,
     parameter STORE_RS_NUM_ELEM = 2 ** STORE_RS_DEPTH,
     parameter LOAD_RS_NUM_ELEM = 2 ** LOAD_RS_DEPTH,
     parameter STORE_RS_NUM_ELEM_1 = STORE_RS_NUM_ELEM + 1
@@ -62,7 +62,7 @@ module load_rs
     input logic store_buffer_valid[STORE_BUFFER_NUM_ELEM],
     input logic [31:0] store_buffer_addr[STORE_BUFFER_NUM_ELEM],
     input logic [3:0] store_buffer_wmask[STORE_BUFFER_NUM_ELEM],
-    input logic [31:0] store_buffer_wdata[STORE_BUFFER_NUM_ELEM]
+    input logic [31:0] store_buffer_wdata[STORE_BUFFER_NUM_ELEM],
 
     // to cdb
     output logic cdb_load_rs_valid,
@@ -96,6 +96,19 @@ module load_rs
   // 
   logic load_rs_forward_ready;
   logic [LOAD_RS_DEPTH-1:0] load_rs_forward_idx_executing;
+
+  // forwarding logic helper
+  logic store_rs_solved[LOAD_RS_NUM_ELEM];
+  logic store_rs_conflict[LOAD_RS_NUM_ELEM]; 
+  logic store_rs_could_forward[LOAD_RS_NUM_ELEM];
+  logic [STORE_RS_DEPTH-1:0]store_rs_conflict_idx[LOAD_RS_NUM_ELEM]; 
+  logic store_buffer_conflict[LOAD_RS_NUM_ELEM]; 
+  logic store_buffer_could_forward[LOAD_RS_NUM_ELEM];
+  logic [STORE_BUFFER_DEPTH-1:0]store_buffer_conflict_idx[LOAD_RS_NUM_ELEM]; 
+  logic [31:0] load_rs_addr[LOAD_RS_NUM_ELEM];
+  logic [3:0] load_rs_rmask[LOAD_RS_NUM_ELEM];
+  logic [3:0] forward_wmask;
+  logic [31:0] forward_wdata;
 
   always_ff @(posedge clk) begin
     if (rst || move_flush) begin
@@ -184,19 +197,7 @@ module load_rs
   // if it is, where is the closet overlapped (wmask & rmask != '0)
   // closet overlapped in store_queue or store_buffer
   // whether the closet 1: available for forwarding, 2: overlapped wmask must contain all overlapped rmask (wmask | rmask == wmask)
-  // determines whether forward or wait till sending request to dmem
-  logic store_rs_solved[LOAD_RS_NUM_ELEM];
-  logic store_rs_conflict[LOAD_RS_NUM_ELEM]; 
-  logic store_rs_could_forward[LOAD_RS_NUM_ELEM];
-  logic [STORE_RS_DEPTH-1:0]store_rs_conflict_idx[LOAD_RS_NUM_ELEM]; 
-  logic store_buffer_conflict[LOAD_RS_NUM_ELEM]; 
-  logic store_buffer_could_forward[LOAD_RS_NUM_ELEM];
-  logic [STORE_BUFFER_DEPTH-1:0]store_buffer_conflict_idx[LOAD_RS_NUM_ELEM]; 
-  logic [31:0] load_rs_addr[LOAD_RS_NUM_ELEM];
-  logic [3:0] load_rs_rmask[LOAD_RS_NUM_ELEM];
-  logic [3:0] forward_wmask;
-  logic [31:0] forward_wdata;
-  
+  // determines whether forward or wait till sending request to dmem  
   always_comb begin
     dmem_r_rqst = '0;
     load_rs_dmem_idx_rqst = '0;
@@ -231,10 +232,10 @@ module load_rs
         endcase
     end
 
-    // whether all solved
+    // can not check when read from dmem is avaible
     if (!load_rs_dmem_ready) begin
       for (int unsigned i = 0; i < LOAD_RS_NUM_ELEM; i ++) begin
-        if (!alu_rs_available[i] && rs1_ready_arr[i]) begin
+        if (!load_rs_available[i] && rs1_ready_arr[i]) begin
           for (int unsigned j = 0; j < STORE_RS_NUM_ELEM_1; j++) begin
             if (store_rs_count_arr[i] == (STORE_RS_DEPTH + 1)'(j)) begin
               store_rs_solved[i] = '1;
@@ -248,13 +249,13 @@ module load_rs
       end
 
       // find closest conflict, and check whether could forward or not
-      for (int unsigned i = 0; i < i < LOAD_RS_NUM_ELEM; i ++) begin
-        if (!alu_rs_available[i] && rs1_ready_arr[i] && store_rs_solved[i]) begin
+      for (int unsigned i = 0; i < LOAD_RS_NUM_ELEM; i ++) begin
+        if (!load_rs_available[i] && rs1_ready_arr[i] && store_rs_solved[i]) begin
             for (int unsigned j = 0; j < STORE_RS_NUM_ELEM_1; j++) begin
               if (store_rs_count_arr[i] == (STORE_RS_DEPTH + 1)'(j)) begin
                 break;
               end
-              if ((store_rs_addr[(store_rs_head_arr[i]-(STORE_RS_DEPTH)'(j))] & 32'hffffffffc) == (load_rs_addr[i] & 32'hfffffffc)) begin
+              if ((store_rs_addr[(store_rs_head_arr[i]-(STORE_RS_DEPTH)'(j))] >> 2) == (load_rs_addr[i] >> 2)) begin
                 if ((store_rs_wmask[(store_rs_head_arr[i]-(STORE_RS_DEPTH)'(j))] & load_rs_rmask[i]) != '0) begin
                   store_rs_conflict[i] = '1;
                   store_rs_conflict_idx[i] = (STORE_RS_DEPTH)'(store_rs_head_arr[i]-(STORE_RS_DEPTH)'(j));
@@ -267,8 +268,8 @@ module load_rs
             end
           for (int unsigned k = 0; k < STORE_BUFFER_NUM_ELEM; k ++) begin
             if (store_buffer_valid[k]) begin
-              if ((store_buffer_addr[k] & 32'hffffffffc) == (load_rs_addr[i] & 32'hfffffffc)) begin
-                if ((store_buffer_wmask[k] & load_rs_rmask[i]) != '0;) begin
+              if ((store_buffer_addr[k] >> 2) == (load_rs_addr[i] >> 2)) begin
+                if ((store_buffer_wmask[k] & load_rs_rmask[i]) != '0) begin
                   store_buffer_conflict[i] = '1;
                   store_buffer_conflict_idx[i] = (STORE_BUFFER_DEPTH)'(k);
                   if ((store_buffer_wmask[k] | load_rs_rmask[i]) == store_buffer_wmask[k]) begin
@@ -283,8 +284,8 @@ module load_rs
       end
 
       // for request to dcache, load_store_fsm, arbiter
-      for ((int unsigned i = 0; i < LOAD_RS_NUM_ELEM; i++)) begin
-        if (!alu_rs_available[i] && rs1_ready_arr[i] && store_rs_solved[i]) begin
+      for (int unsigned i = 0; i < LOAD_RS_NUM_ELEM; i++) begin
+        if (!load_rs_available[i] && rs1_ready_arr[i] && store_rs_solved[i]) begin
           if (store_rs_conflict[i] == '0 && store_buffer_conflict[i] == '0) begin
             dmem_r_rqst = '1;
             load_rs_dmem_idx_rqst = (LOAD_RS_DEPTH)'(i);
@@ -296,8 +297,8 @@ module load_rs
       end
 
       // for forwarding
-      for ((int unsigned i = 0; i < LOAD_RS_NUM_ELEM; i++)) begin
-        if (!alu_rs_available[i] && rs1_ready_arr[i] && store_rs_solved[i]) begin
+      for (int unsigned i = 0; i < LOAD_RS_NUM_ELEM; i++) begin
+        if (!load_rs_available[i] && rs1_ready_arr[i] && store_rs_solved[i]) begin
           if (store_rs_conflict[i]) begin
             if (store_rs_could_forward[i]) begin
               load_rs_forward_ready = '1;
@@ -328,7 +329,7 @@ module load_rs
     cdb_load_rs_rob = '0;
     cdb_load_rs_rmask = '0;
     cdb_load_rs_addr = '0;
-    cdb_load_rs_rdata = '0
+    cdb_load_rs_rdata = '0;
     if (load_rs_dmem_ready) begin
       cdb_load_rs_valid = '1;
       cdb_load_rs_rob = target_rob_arr[load_rs_dmem_idx_executing];

@@ -181,12 +181,21 @@ import rv32i_types::*;
         for (int unsigned i = 0; i < STORE_RS_NUM_ELEM; i ++) begin 
             store_rs_wready[i] = rs1_ready_arr[i] && rs2_ready_arr[i];
             store_rs_addr[i] = rs1_v_arr[i] + imm_arr[i];
-            store_rs_wdata[i] = rs2_v_arr[i];
             store_rs_wmask[i] = 4'b1111;
+            store_rs_wdata[i] = '0;
             case(funct3_arr[i]) 
-                sb_mem: store_rs_wmask[i] = 4'b0001 << store_rs_addr[i][1:0];
-                sh_mem: store_rs_wmask[i] = 4'b0011 << store_rs_addr[i][1:0];
-                sw_mem: store_rs_wmask[i] = 4'b1111;
+                sb_mem: begin
+                    store_rs_wmask[i] = 4'b0001 << store_rs_addr[i][1:0];
+                    store_rs_wdata[i][8 * store_rs_addr[i][1:0] +: 8] = rs2_v_arr[i][7:0];
+                end
+                sh_mem: begin
+                    store_rs_wmask[i] = 4'b0011 << store_rs_addr[i][1:0];
+                    store_rs_wdata[i][16 * store_rs_addr[i][1] +: 16] = rs2_v_arr[i][15:0];
+                end
+                sw_mem: begin
+                    store_rs_wmask[i] = 4'b1111;
+                    store_rs_wdata[i] = rs2_v_arr[i];
+                end
             endcase
         end
     end

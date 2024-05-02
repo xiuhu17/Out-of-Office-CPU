@@ -24,7 +24,7 @@ import rv32i_types::*;
     input logic cdb_store_rs_valid,
     input logic [3:0] cdb_store_rs_wmask,
     input logic [31:0] cdb_store_rs_addr,
-    input logic [31:0] cdb_store_rs_wdata
+    input logic [31:0] cdb_store_rs_wdata,
 
     // forward to load_rs
     output logic store_buffer_valid[STORE_BUFFER_NUM_ELEM],
