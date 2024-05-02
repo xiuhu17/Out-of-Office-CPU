@@ -287,11 +287,13 @@ module load_rs
       for (int unsigned i = 0; i < LOAD_RS_NUM_ELEM; i++) begin
         if (!load_rs_available[i] && rs1_ready_arr[i] && store_rs_solved[i]) begin
           if (store_rs_conflict[i] == '0 && store_buffer_conflict[i] == '0) begin
-            dmem_r_rqst = '1;
-            load_rs_dmem_idx_rqst = (LOAD_RS_DEPTH)'(i);
-            arbiter_load_rs_addr = load_rs_addr[i];
-            arbiter_load_rs_rmask = load_rs_rmask[i];
-            break;
+            if (load_rs_addr[i] != 32'h4) begin
+              dmem_r_rqst = '1;
+              load_rs_dmem_idx_rqst = (LOAD_RS_DEPTH)'(i);
+              arbiter_load_rs_addr = load_rs_addr[i];
+              arbiter_load_rs_rmask = load_rs_rmask[i];
+              break;
+            end
           end
         end
       end

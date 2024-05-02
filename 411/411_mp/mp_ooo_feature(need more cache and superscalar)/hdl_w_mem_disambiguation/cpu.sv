@@ -661,7 +661,6 @@ module cpu
   ) store_buffer(
     .clk(clk),
     .rst(rst),
-    .move_flush(move_flush),
     .store_buffer_full(store_buffer_full),
     .dmem_w_rqst(dmem_w_rqst),
     .store_buffer_pop(store_buffer_pop),

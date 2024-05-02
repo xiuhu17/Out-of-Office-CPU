@@ -9,7 +9,6 @@ import rv32i_types::*;
 (
     input logic clk,
     input logic rst,
-    input logic move_flush,
 
     // output signal
     output logic store_buffer_full,
@@ -49,7 +48,7 @@ import rv32i_types::*;
     logic [STORE_BUFFER_DEPTH-1:0] tail;
 
     always_ff @(posedge clk) begin
-        if (rst || move_flush) begin
+        if (rst) begin
             head <= '0;
             tail <= '0;
             for (int unsigned i = 0; i < STORE_BUFFER_NUM_ELEM; i ++) begin 
