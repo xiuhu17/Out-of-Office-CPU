@@ -3,6 +3,6 @@ Superscalar Tomasulo out-of-order execution CPU(multiple in-order issue, out-of 
 
 Link to the project: https://github.com/xiuhu17/Out-of-Office-CPU/tree/main/411/411_mp/mp_ooo_feature(need%20more%20cache%20and%20superscalar)
 
-Run synthsis: under synthesis folder, run [make synth]
-Run lint: under lint folder, run [make lint]
+Run synthsis: under synthesis folder, run [make synth] \
+Run lint: under lint folder, run [make lint] \
 Run simulation: under sim folder, run [./run.sh]
