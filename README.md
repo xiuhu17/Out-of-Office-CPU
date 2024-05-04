@@ -6,6 +6,6 @@ Run synthsis: under synthesis folder, run [make synth] \
 Run lint: under lint folder, run [make lint] \
 Run simulation: under sim folder, run [./run.sh]
 
-Overview of the entire hdl design with full advance features: https://github.com/xiuhu17/Out-of-Office-CPU/tree/main/411/411_mp/mp_ooo_feature(need%20more%20cache%20and%20superscalar)/hdl_w_mem_disambiguation
+Overview of the entire hdl design with full advance features which are build from scratch: https://github.com/xiuhu17/Out-of-Office-CPU/tree/main/411/411_mp/mp_ooo_feature(need%20more%20cache%20and%20superscalar)/hdl_w_mem_disambiguation
 
 Future feature: full superscalar, lock-up free data cache with MSHR \& MAF, mordern cache prefetcher, speculative load with squash logic
