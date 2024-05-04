@@ -6,3 +6,5 @@ Link to the project: https://github.com/xiuhu17/Out-of-Office-CPU/tree/main/411/
 Run synthsis: under synthesis folder, run [make synth] \
 Run lint: under lint folder, run [make lint] \
 Run simulation: under sim folder, run [./run.sh]
+
+Overview of the entire hdl design with full advance features: https://github.com/xiuhu17/Out-of-Office-CPU/tree/main/411/411_mp/mp_ooo_feature(need%20more%20cache%20and%20superscalar)/hdl_w_mem_disambiguation
