@@ -54,14 +54,6 @@ module instruction_queue #(
     instr_ready = ready_arr[ready_tail];
   end
 
-  // sending value
-  always_comb begin
-    issue_instr = instr_arr[ready_tail];
-    issue_order = order_arr[ready_tail];
-    issue_pc = pc_arr[ready_tail];
-    issue_pc_next = pc_next_arr[ready_tail];
-  end
-
   // if full (head == tail), we do not support pop tail and push head at same cycle
   // if empty (head == tail), we also do not support push and pop for same instructions at same cycle (we want instructions stay for at least one cycle)
   always_ff @(posedge clk) begin
@@ -101,6 +93,14 @@ module instruction_queue #(
     end
   end
 
+// sending value
+  always_comb begin
+    issue_instr = instr_arr[ready_tail];
+    issue_order = order_arr[ready_tail];
+    issue_pc = pc_arr[ready_tail];
+    issue_pc_next = pc_next_arr[ready_tail];
+  end
+    
   decode decode (
       .inst(issue_instr),
       .funct3(issue_funct3),
