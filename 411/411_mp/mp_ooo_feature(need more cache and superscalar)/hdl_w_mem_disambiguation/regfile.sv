@@ -60,6 +60,7 @@ module regfile_scoreboard
         scoreboard_valid_arr[i] <= '0;
       end
     end else begin
+      // 3rd priority for scoreboard: commit
       if (commit_regfile_we && (commit_rd_s != 5'd0)) begin
         // scoreboard update
         //  update only when scoreboard exists and the commit is the rob which matches the scoreboard; stop looking up the rob
@@ -69,6 +70,7 @@ module regfile_scoreboard
         end
       end
 
+      // 2nd priority for scoreboard: issue
       // after updating the scoreboard, we may need to update scoreboard if there's a newly issued instruction
       if (issue_valid && (issue_rd_s != 5'd0)) begin
         if (issue_opcode != store_opcode && issue_opcode != br_opcode) begin
@@ -77,10 +79,11 @@ module regfile_scoreboard
         end
       end
 
+      // 1st priority for scoreboard: flush
       if (move_flush) begin
         for (int i = 0; i < 32; i++) begin
-          scoreboard_arr[i] <= '0;
           scoreboard_valid_arr[i] <= '0;
+          scoreboard_arr[i] <= '0;
         end
       end
 
