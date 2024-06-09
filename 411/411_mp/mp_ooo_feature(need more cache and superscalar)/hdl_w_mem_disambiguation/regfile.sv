@@ -72,8 +72,8 @@ module regfile_scoreboard
       // after updating the scoreboard, we may need to update scoreboard if there's a newly issued instruction
       if (issue_valid && (issue_rd_s != 5'd0)) begin
         if (issue_opcode != store_opcode && issue_opcode != br_opcode) begin
-          scoreboard_arr[issue_rd_s] <= issue_rob;
           scoreboard_valid_arr[issue_rd_s] <= '1;
+          scoreboard_arr[issue_rd_s] <= issue_rob;
         end
       end
 
