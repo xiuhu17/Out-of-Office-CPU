@@ -80,11 +80,11 @@ module ROB
   localparam MAX_NUM_ELEMS = 2 ** ROB_DEPTH;
   logic [ROB_DEPTH-1:0] head;
   logic [ROB_DEPTH-1:0] tail;
+  
   // valid means occupy
   logic valid_arr[MAX_NUM_ELEMS];
   // ready means calculated/ready to commit
   logic ready_arr[MAX_NUM_ELEMS];
-
   // for committing to regfile
   logic [4:0] rd_s_arr[MAX_NUM_ELEMS];
   logic [31:0] rd_v_arr[MAX_NUM_ELEMS];
