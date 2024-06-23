@@ -88,6 +88,7 @@ module regfile_scoreboard
         end
       end
 
+      // commit_rd_v is only used here
       if (commit_regfile_we && (commit_rd_s != 5'd0)) begin
         // value update
         register_arr[commit_rd_s] <= commit_rd_v;
