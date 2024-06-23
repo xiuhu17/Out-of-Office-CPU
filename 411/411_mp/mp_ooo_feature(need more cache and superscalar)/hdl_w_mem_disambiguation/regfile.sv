@@ -61,6 +61,7 @@ module regfile_scoreboard
       end
     end else begin
       // 3rd priority for scoreboard: commit
+      // commit_regfile_we <======> commit_opcode != store_opcode && commit_opcode != br_opcode
       if (commit_regfile_we && (commit_rd_s != 5'd0)) begin
         // scoreboard update
         //  update only when scoreboard exists and the commit is the rob which matches the scoreboard; stop looking up the rob
