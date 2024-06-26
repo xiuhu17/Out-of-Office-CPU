@@ -13,16 +13,18 @@ module load_store_fsm
     input logic rob_valid,
     input logic flush_branch,
 
-    // request
-    input logic [LOAD_RS_DEPTH-1:0] load_rs_dmem_idx_rqst,
+    // input request
+    input logic [LOAD_RS_DEPTH-1:0] load_rs_dmem_idx_rqst, 
     input logic dmem_r_rqst,
     input logic dmem_w_rqst,
+  
     output logic dmem_rqst,
     output logic arbiter_load_rs,
     output logic arbiter_store_buffer,
 
     // response
     input logic dmem_resp,
+    // output resp
     output logic [LOAD_RS_DEPTH-1:0] load_rs_dmem_idx_executing,
     output logic load_rs_dmem_ready,
     output logic store_buffer_pop
