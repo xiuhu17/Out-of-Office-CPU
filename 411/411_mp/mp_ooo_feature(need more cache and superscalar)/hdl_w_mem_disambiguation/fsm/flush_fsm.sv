@@ -23,6 +23,7 @@ module flush_fsm (
       curr_state, next_state;
 
   always_ff @(posedge clk) begin
+    // move_flush has higher priority than next_state
     if (rst || move_flush) begin
       curr_state <= Start;
     end else begin
