@@ -56,3 +56,7 @@ module fetch (
   end
 
 endmodule
+
+
+// move_fetch: store pc_next<--comb-->pc to instr_queue(ff); update pc <= pc_next(ff); send pc, instr_rqst to icache(comb)
+// move_flush: flush entire pipeline(ff); pc <= pc_branch_target(ff)
