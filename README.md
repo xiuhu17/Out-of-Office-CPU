@@ -2,9 +2,9 @@ Superscalar Tomasulo out-of-order execution CPU(two in-order issue, out-of-order
 
 Link to the project: https://github.com/xiuhu17/Out-of-Office-CPU/tree/main/411/411_mp/mp_ooo_feature(need%20more%20cache%20and%20superscalar)
 
-Run synthsis: under synthesis folder, run [make synth] \
-Run lint: under lint folder, run [make lint] \
-Run simulation: under sim folder, run [./run.sh]
+Run synthsis: under synthesis folder, run ```make synth``` \
+Run lint: under lint folder, run ```make lint``` \
+Run simulation: under sim folder, run ```./run.sh```
 
 Overview of the entire hdl design with full advance features which are build from scratch: https://github.com/xiuhu17/Out-of-Office-CPU/tree/main/411/411_mp/mp_ooo_feature(need%20more%20cache%20and%20superscalar)/hdl_w_mem_disambiguation
 
