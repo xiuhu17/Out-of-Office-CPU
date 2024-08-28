@@ -39,12 +39,13 @@ module instruction_queue #(
   logic [31:0] pc_arr[MAX_NUM_ELEMS];
   logic [31:0] pc_next_arr[MAX_NUM_ELEMS];
 
+
+  logic valid_arr[MAX_NUM_ELEMS];
   logic [INSTR_DEPTH-1:0] valid_head;
   logic [INSTR_DEPTH-1:0] valid_tail;
+  logic ready_arr[MAX_NUM_ELEMS];
   logic [INSTR_DEPTH-1:0] ready_head;
   logic [INSTR_DEPTH-1:0] ready_tail;
-  logic valid_arr[MAX_NUM_ELEMS];
-  logic ready_arr[MAX_NUM_ELEMS];
 
   // sending signal
   always_comb begin
