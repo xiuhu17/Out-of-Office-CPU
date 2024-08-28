@@ -48,7 +48,13 @@ module instruction_queue #(
 
   // sending signal
   always_comb begin
-    instr_full  = valid_arr[valid_head];
+    // head
+    instr_full  = '0;
+    if (valid_arr[valid_head]) begin
+        instr_full = '1;
+    end
+
+    // tail
     instr_valid = valid_arr[valid_tail];
     instr_ready = ready_arr[ready_tail];
   end
