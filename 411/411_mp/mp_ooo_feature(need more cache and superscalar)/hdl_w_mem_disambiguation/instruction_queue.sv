@@ -39,7 +39,6 @@ module instruction_queue #(
   logic [31:0] pc_arr[MAX_NUM_ELEMS];
   logic [31:0] pc_next_arr[MAX_NUM_ELEMS];
 
-
   logic valid_arr[MAX_NUM_ELEMS];
   logic [INSTR_DEPTH-1:0] valid_head;
   logic [INSTR_DEPTH-1:0] valid_tail;
@@ -91,17 +90,17 @@ module instruction_queue #(
 
       // push instruction if there's push signal and queue is not full
       if (move_fetch) begin
-        valid_arr[valid_head] <= 1'b1;
         pc_arr[valid_head] <= fetch_pc;
         pc_next_arr[valid_head] <= fetch_pc_next;
         order_arr[valid_head] <= fetch_order;
+        valid_arr[valid_head] <= 1'b1;
         valid_head <= valid_head + 1'b1;
       end
 
       // 
       if (imem_resp) begin
-        ready_arr[ready_head] <= 1'b1;
         instr_arr[ready_head] <= imem_rdata;
+        ready_arr[ready_head] <= 1'b1;
         ready_head <= ready_head + 1'b1;
       end
     end
