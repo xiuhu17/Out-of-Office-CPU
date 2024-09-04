@@ -14,6 +14,10 @@ module flush_fsm (
     output logic move_flush
 );
 
+
+    // once flush_branch is high(rob_ready && rob_valid && flush_branch): stop fetching/loading/storing
+    // once flush_branch is high(rob_ready && rob_valid && flush_branch): wait all inflight request have response, imem_resp(fetch), dmem_resp(load/store)
+
   enum logic [1:0] {
     Start,
     IMEM_STALL,
