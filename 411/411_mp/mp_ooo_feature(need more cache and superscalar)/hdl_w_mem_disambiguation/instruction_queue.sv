@@ -93,6 +93,7 @@ module instruction_queue #(
         pc_arr[valid_head] <= fetch_pc;
         pc_next_arr[valid_head] <= fetch_pc_next;
         order_arr[valid_head] <= fetch_order;
+        
         valid_arr[valid_head] <= 1'b1;
         valid_head <= valid_head + 1'b1;
       end
@@ -100,6 +101,7 @@ module instruction_queue #(
       // 
       if (imem_resp) begin
         instr_arr[ready_head] <= imem_rdata;
+          
         ready_arr[ready_head] <= 1'b1;
         ready_head <= ready_head + 1'b1;
       end
