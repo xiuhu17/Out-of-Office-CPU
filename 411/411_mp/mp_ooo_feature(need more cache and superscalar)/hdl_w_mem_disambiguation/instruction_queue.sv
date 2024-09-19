@@ -46,6 +46,12 @@ module instruction_queue #(
   logic [INSTR_DEPTH-1:0] ready_head;
   logic [INSTR_DEPTH-1:0] ready_tail;
 
+    // whether is full: valid_arr[valid_head]
+    // whether valie && ready: instr_valid = valid_arr[valid_tail]; instr_ready = ready_arr[ready_tail];
+
+    // normal: if current cycle is full(valid_arr[valid_head]) -----> do not push
+    // advance: even if current cycle is full(valid_arr[valid_head]), if current cycle also pop(instr_pop) -----> still can push
+
   // sending signal
   always_comb begin
     // head
