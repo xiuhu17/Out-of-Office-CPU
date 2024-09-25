@@ -16,7 +16,8 @@ module flush_fsm (
 
 
     // once flush_branch is high(rob_ready && rob_valid && flush_branch): stop fetching/loading/storing
-    // once flush_branch is high(rob_ready && rob_valid && flush_branch): wait all inflight request have response, imem_resp(fetch), dmem_resp(load/store)
+    // once flush_branch is high(rob_ready && rob_valid && flush_branch): wait all inflight request have response, imem_resp(fetch), dmem_resp(load/store) ==> generate move_flush
+    // if br or j: if flush_branch, then must also wait for move_flush in rob
 
   enum logic [1:0] {
     Start,
