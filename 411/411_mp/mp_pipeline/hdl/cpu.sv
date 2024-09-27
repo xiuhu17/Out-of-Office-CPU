@@ -16,7 +16,13 @@ import rv32i_types::*;
     output  logic   [31:0]  dmem_wdata,
     input   logic           dmem_resp
 );
-
+    // IF: pc
+    // ID: if_id
+    // EX: id_ex
+    // MEM: ex_mem
+    // WB: mem_WB
+    // only update the state, send request to mem when pipeline move
+    
     if_id_stage_reg_t   curr_if_id_stage_reg, next_if_id_stage_reg;
     id_ex_stage_reg_t   curr_id_ex_stage_reg, next_id_ex_stage_reg;
     ex_mem_stage_reg_t  curr_ex_mem_stage_reg, next_ex_mem_stage_reg;
