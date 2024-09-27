@@ -22,6 +22,8 @@ module data_cachefsm
     output logic [1:0] bank_shift
 );
 
+  // comb: if (condition fullfills) next_state = ....; ff: curr_state <= next_state
+  // comb: if (condition fullfills) signal = ....
   enum logic [3:0] {
     Idle,
     Compare_Tag,
