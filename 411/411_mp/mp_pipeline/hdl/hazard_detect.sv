@@ -132,13 +132,21 @@ import rv32i_types::*;
         
         case (curr_state)
             Start: begin 
-                if (move_pipeline == '1 && branch_flush == '1) begin 
-                    next_state = FLUSH_DELAY;
+                if (move_pipeline == '1) begin 
+                    if (branch_flush == '1) begin
+                        next_state = FLUSH_DELAY;
+                    end else begin
+                        next_state = Start;
+                    end
                 end 
             end 
             FLUSH_DELAY: begin 
-                if (move_pipeline == '1 && branch_flush == '0) begin 
-                    next_state = Start;
+                if (move_pipeline == '1) begin 
+                    if (branch_flush == '1) begin
+                        next_state = FLUSH_DELAY;
+                    end else begin
+                        next_state = Start;
+                    end
                 end 
             end 
         endcase 
