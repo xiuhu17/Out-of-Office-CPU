@@ -1,0 +1,12 @@
+{signal:
+  [
+    {name: "clk"      , wave: "p..|.."},
+    {name: "dfp_addr" , wave: "x5.|.x", data: ["A"]},
+    {name: "dfp_read" , wave: "01.|.0"},
+    {name: "dfp_rdata", wave: "x..|5x", data: ["M[A]"]},
+    {name: "dfp_write", wave: "0..|.."},
+    {name: "dfp_wdata", wave: "x..|.."},
+    {name: "dfp_resp" , wave: "0..|10"}
+  ],
+  config: { hscale: 1 }
+}

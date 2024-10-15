@@ -1,0 +1,6 @@
+{
+    "num_rw_ports": 1,
+    "word_size"   : 24,
+    "write_size"  : 24,
+    "num_words"   : 16
+}

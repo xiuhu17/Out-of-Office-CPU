@@ -1,0 +1,14 @@
+{signal:
+  [
+    {name: "clk"       , wave: "p...|....."},
+    {name: "ufp_addr"  , wave: "x56x|..7x.", data: ["A", "B", "C"]},
+    {name: "ufp_rmask" , wave: "056x|..70."},
+    {name: "ufp_rdata" , wave: "x.5x|..67x", data: ["M[A]", "M[B]", "M[C]"]},
+    {name: "ufp_resp"  , wave: "0.10|..1.0"},
+    {},
+    {name: "dfp_read"  , wave: "0..1|.0..."},
+    {name: "dfp_data"  , wave: "x...|6x..."},
+    {name: "dfp_resp"  , wave: "0...|10..."}
+  ],
+  config: { hscale: 1 }
+}

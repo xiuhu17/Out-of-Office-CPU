@@ -1,0 +1,12 @@
+{signal:
+  [
+    {name: "clk"  , wave: "p....."},
+    {name: "csb"  , wave: "10..1."},
+    {name: "web"  , wave: "1.01.."},
+    {name: "wmask", wave: "x.8x.."},
+    {name: "addr" , wave: "x3..x.", data: ["Addr"]},
+    {name: "din"  , wave: "x.8x..", data: ["New"]},
+    {name: "dout" , wave: "x.5.8.", data: ["Old", "New"]}
+  ],
+  config: { hscale: 2 }
+}
