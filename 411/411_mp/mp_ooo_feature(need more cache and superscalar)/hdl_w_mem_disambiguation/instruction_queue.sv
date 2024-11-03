@@ -52,6 +52,10 @@ module instruction_queue #(
     // normal: if current cycle is full(valid_arr[valid_head]) -----> do not push
     // advance: even if current cycle is full(valid_arr[valid_head]), if current cycle also pop(instr_pop) -----> still can push
 
+    // when is not full/empty: push and pop can happen in the same cycle
+    // if full, head == tail -> can not push -> can only pop
+    // if empty, head == tail -> can not pop -> can only push
+
   // sending signal
   always_comb begin
     // head
